@@ -21,14 +21,21 @@ def generate_launch_description():
     joy_params = PathJoinSubstitution([mm_bringup_share, 'config', 'joy_teleop.yaml'])
 
     use_sim_time = PythonExpression(["'", clock_mode, "' == 'sim'"])
+
     use_fake_joint_states = PythonExpression(
+        ["'true' if ('", launch_sim, "' == 'false') else 'false'"]
+    )
+    use_joint_state_gui = PythonExpression(
         [
-            "('",
+            "'true' if (('",
             input_mode,
             "' == 'gui') and ('",
             launch_sim,
-            "' == 'false')",
+            "' == 'false')) else 'false'",
         ]
+    )
+    publish_base_to_arm_tf = PythonExpression(
+        ["'true' if ('", launch_sim, "' == 'false') else 'false'"]
     )
 
     is_sim = PythonExpression(["'", launch_sim, "' == 'true'"])
@@ -45,6 +52,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(display_launch),
         launch_arguments={
             'use_fake_joint_states': use_fake_joint_states,
+            'use_joint_state_gui': use_joint_state_gui,
+            'publish_base_to_arm_tf': publish_base_to_arm_tf,
             'use_sim_time': use_sim_time,
         }.items(),
         condition=IfCondition(is_display),
@@ -64,6 +73,9 @@ def generate_launch_description():
         DeclareLaunchArgument('launch_display', default_value='true'),
         DeclareLaunchArgument('input', default_value='none'),
         DeclareLaunchArgument('teleop_mode', default_value='hybrid'),
+        DeclareLaunchArgument('use_fake_joint_states', default_value='false'),
+        DeclareLaunchArgument('use_joint_state_gui', default_value='false'),
+        DeclareLaunchArgument('publish_base_to_arm_tf', default_value='false'),
         sim,
         display,
         teleop,

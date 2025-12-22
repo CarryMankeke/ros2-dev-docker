@@ -11,7 +11,7 @@
       <uri>model://ground_plane</uri>
     </include>
 
-    <!-- Mobile manipulator assembly (base + arm fixed joint). -->
+    <!-- Ensamblaje del manipulador móvil (base y brazo unidos con junta fija). -->
     <include>
       <uri>file:///tmp/mm_assembly.sdf</uri>
       <name>mm_assembly</name>

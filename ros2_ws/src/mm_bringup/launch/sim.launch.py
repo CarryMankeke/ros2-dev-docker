@@ -104,7 +104,7 @@ def _generate_robot_files(
             '    </include>',
             '    <joint name="base_arm_fixed" type="fixed">',
             f'      <parent>mm_base::{base_prefix_val}base_link</parent>',
-            f'      <child>mm_arm::{arm_prefix_val}base_link</child>',
+            f'      <child>mm_arm::{arm_prefix_val}root_link</child>',
             '    </joint>',
             '  </model>',
             '</sdf>',
@@ -160,7 +160,7 @@ def generate_launch_description():
     arm_yaw = LaunchConfiguration('arm_yaw')
 
     base_link_frame = PythonExpression(["'", base_prefix, "base_link'"])
-    arm_link_frame = PythonExpression(["'", arm_prefix, "base_link'"])
+    arm_link_frame = PythonExpression(["'", arm_prefix, "root_link'"])
 
     mm_bringup_share = FindPackageShare('mm_bringup')
     mm_base_share = FindPackageShare('mm_base_description')
@@ -375,7 +375,7 @@ def generate_launch_description():
     clock_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        arguments=['/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'],
         output='screen',
     )
 

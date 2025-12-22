@@ -1,17 +1,17 @@
-# ros2-sim-vnc — HOST-driven quick guide (docker compose exec)
+# ros2-sim-vnc — guía rápida desde el host (docker compose exec)
 
-# Always run from the repo root
+# Ejecuta siempre desde la raíz del repo
 cd ~/Documents/ros2-sim-vnc
 
-# noVNC (host browser)
+# noVNC (navegador en el host)
 # http://localhost:8080
 
-# Official pattern (no TTY)
+# Patrón recomendado (sin TTY)
 # docker compose exec -T ros2-vnc bash -lc '<commands>'
 
 
 # ------------------------------------------------------------
-# 1) Containers
+# 1) Contenedores
 # ------------------------------------------------------------
 
 docker compose build
@@ -20,11 +20,14 @@ docker compose up -d
 docker compose ps
 docker compose ps -a
 docker compose logs -f --tail=200 ros2-vnc
+docker compose logs -f --tail=200 micro-ros-agent
+docker compose logs -f --tail=200 ros2-vnc micro-ros-agent
+
 docker compose down
 
 
 # ------------------------------------------------------------
-# 2) Build workspace (inside container, from host)
+# 2) Compilar el workspace (dentro del contenedor, lanzado desde el host)
 # ------------------------------------------------------------
 
 docker compose exec -T ros2-vnc bash -lc '
@@ -36,10 +39,10 @@ colcon build --symlink-install
 
 
 # ------------------------------------------------------------
-# 3) Modes (single entrypoint)
+# 3) Modos (un único entrypoint)
 # ------------------------------------------------------------
 
-# Default: SIM + RViz, sim clock, no teleop
+# Predeterminado: simulación + RViz, reloj simulado, sin teleop
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
@@ -47,7 +50,7 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py
 '
 
-# SIM + RViz + ESP32 teleop (hybrid by default)
+# SIM + RViz + teleop ESP32 (modo híbrido por defecto)
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
@@ -55,7 +58,7 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid
 '
 
-# RViz only (no sim), real clock, GUI sliders for arm
+# Solo RViz (sin simulación), reloj real, sliders GUI para el brazo
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
@@ -63,7 +66,7 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=gui
 '
 
-# Teleop without SIM (use real clock + ESP32; assumes real hardware)
+# Teleop sin simulación (reloj real + ESP32; supone hardware físico)
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
@@ -71,13 +74,13 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=esp32 teleop_mode:=base
 '
 
-# Local models: warehouse.sdf now uses model:// URIs from:
+# Modelos locales: warehouse.sdf usa URIs model:// desde:
 # ros2_ws/src/mm_bringup/models
-# sim.launch.py sets GZ_SIM_RESOURCE_PATH automatically.
+# sim.launch.py ajusta GZ_SIM_RESOURCE_PATH automáticamente.
 
 
 # ------------------------------------------------------------
-# 4) Template for any ROS2 command
+# 4) Plantilla para cualquier comando ROS2
 # ------------------------------------------------------------
 
 docker compose exec -T ros2-vnc bash -lc '
@@ -88,7 +91,7 @@ source /root/ros2_ws/install/setup.bash
 
 
 # ------------------------------------------------------------
-# 5) Rebuild image (only if Dockerfile or supervisord.conf changed)
+# 5) Reconstruir la imagen (solo si cambió Dockerfile o supervisord.conf)
 # ------------------------------------------------------------
 
 docker compose down
@@ -97,56 +100,56 @@ docker compose up -d
 
 
 # ------------------------------------------------------------
-# 8) Joystick mapping (Funduino -> sensor_msgs/Joy)
+# 8) Mapeo del joystick (Funduino -> sensor_msgs/Joy)
 # ------------------------------------------------------------
 
-# Axes:
+# Ejes:
 # axes[0] = X (A0)  [-1..1]
-# axes[1] = Y (A1)  [-1..1]  (default inverted for forward)
+# axes[1] = Y (A1)  [-1..1]  (invertido por defecto para avanzar)
 # axes[2] = dpad_x  (-1,0,1) A/D
 # axes[3] = dpad_y  (-1,0,1) B/C
 # axes[4] = mode    (0,1,2) BASE/ARM/HYBRID
 #
-# Buttons (indexes):
+# Botones (índices):
 # 0=A  1=B  2=C  3=D  4=E  5=F  6=SW  7=START  8=SELECT
-# 9=DPAD_UP  10=DPAD_DOWN  11=DPAD_LEFT  12=DPAD_RIGHT (not used by ESP32 mapping)
+# 9=DPAD_UP  10=DPAD_DOWN  11=DPAD_LEFT  12=DPAD_RIGHT (no usados por el mapeo del ESP32)
 #
-# Deadman: E or F
-# Base (default): joystick X/Y -> linear y/x, C/D -> yaw
-# Arm (default): D-pad axes -> joint deltas (trajectory mode).
-# Z is disabled by default (set arm_up_button/arm_down_button + allow in YAML).
-# If you want Cartesian control, set arm_control_mode: twist and run a MoveIt Servo node.
-# Gripper: A=open, B=close (placeholder topic /mm_arm/gripper_command)
-# Home: SW (sends trajectory to initial pose from joint_states)
-# Mode: START cycles base->arm->hybrid, SELECT cycles backwards
+# Deadman: E o F
+# Base (por defecto): joystick X/Y -> lineal y/x, C/D -> yaw
+# Brazo (por defecto): ejes del D-pad -> incrementos de articulaciones (modo trayectoria).
+# Z está deshabilitado por defecto (actívalo con arm_up_button/arm_down_button en el YAML).
+# Para control cartesiano, usa arm_control_mode: twist y ejecuta un nodo MoveIt Servo.
+# Pinza: A=abrir, B=cerrar (tópico temporal /mm_arm/gripper_command)
+# Home: SW (envía trayectoria a la pose inicial tomada de joint_states)
+# Modo: START recorre base->arm->hybrid, SELECT recorre en sentido inverso
 #
-# Teleop params live in:
+# Parámetros de teleop están en:
 # ros2_ws/src/mm_bringup/config/joy_teleop.yaml
 #
-# ESP32 firmware (micro-ROS /joy):
+# Firmware del ESP32 (micro-ROS /joy):
 # extras/esp32_funduino_joy/esp32_funduino_joy.ino
 
-# micro-ROS agent (UDP) is auto-started by supervisord inside the container.
-# If you want to run it manually instead, stop the container or comment it in supervisord.conf, then:
+# El agente micro-ROS (UDP) lo arranca supervisord dentro del contenedor.
+# Si quieres lanzarlo manualmente, detén el contenedor o comenta la entrada en supervisord.conf y luego:
 # cd ~/Documents/ros2-sim-vnc
 # docker compose exec -T ros2-vnc bash -lc '
 # source /opt/ros/jazzy/setup.bash
 # ros2 run micro_ros_agent micro_ros_agent udp4 --port 8888
 # '
 #
-# The ESP32 should point AGENT_IP to your HOST IP (not the container).
+# El ESP32 debe apuntar AGENT_IP a la IP del HOST (no la del contenedor).
 
 
 # ------------------------------------------------------------
-# 9) Troubleshooting
+# 9) Problemas frecuentes
 # ------------------------------------------------------------
 
 # "no configuration file provided: not found"
-# -> you are not in the repo root
+# -> no estás en la raíz del repo
 cd ~/Documents/ros2-sim-vnc
 
-# noVNC not reachable
-# -> check container and port 8080
+# noVNC no responde
+# -> revisa que el contenedor esté arriba y el puerto 8080 abierto
 
 docker compose ps
 lsof -nP -iTCP:8080 -sTCP:LISTEN

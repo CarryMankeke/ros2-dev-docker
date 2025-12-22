@@ -61,6 +61,8 @@ def _generate_urdf_files(
 
 def generate_launch_description():
     use_fake_joint_states = LaunchConfiguration('use_fake_joint_states')
+    use_joint_state_gui = LaunchConfiguration('use_joint_state_gui')
+    publish_base_to_arm_tf = LaunchConfiguration('publish_base_to_arm_tf')
     use_sim_time = LaunchConfiguration('use_sim_time')
     rviz_config = LaunchConfiguration('rviz_config')
     base_prefix = LaunchConfiguration('base_prefix')
@@ -75,7 +77,7 @@ def generate_launch_description():
     arm_yaw = LaunchConfiguration('arm_yaw')
 
     base_link_frame = PythonExpression(["'", base_prefix, "base_link'"])
-    arm_link_frame = PythonExpression(["'", arm_prefix, "base_link'"])
+    arm_link_frame = PythonExpression(["'", arm_prefix, "root_link'"])
 
     mm_bringup_share = FindPackageShare('mm_bringup')
     mm_base_share = FindPackageShare('mm_base_description')
@@ -140,6 +142,18 @@ def generate_launch_description():
         ],
     )
 
+    base_joint_state_publisher = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        namespace='mm_base',
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'robot_description': base_description},
+        ],
+        condition=IfCondition(use_fake_joint_states),
+    )
+
     arm_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -149,6 +163,28 @@ def generate_launch_description():
             {'use_sim_time': use_sim_time},
             {'robot_description': arm_description},
         ],
+    )
+
+    arm_joint_state_publisher = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        namespace='mm_arm',
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'robot_description': arm_description},
+        ],
+        condition=IfCondition(
+            PythonExpression(
+                [
+                    "'",
+                    use_fake_joint_states,
+                    "'.lower() == 'true' and '",
+                    use_joint_state_gui,
+                    "'.lower() == 'false'",
+                ]
+            )
+        ),
     )
 
     base_to_arm_tf = Node(
@@ -166,7 +202,7 @@ def generate_launch_description():
             '--frame-id', base_link_frame,
             '--child-frame-id', arm_link_frame,
         ],
-        condition=IfCondition(use_fake_joint_states),
+        condition=IfCondition(publish_base_to_arm_tf),
     )
 
     arm_joint_state_gui = Node(
@@ -178,7 +214,7 @@ def generate_launch_description():
             {'use_sim_time': use_sim_time},
             {'robot_description': arm_description},
         ],
-        condition=IfCondition(use_fake_joint_states),
+        condition=IfCondition(use_joint_state_gui),
     )
 
     start_rviz = TimerAction(
@@ -196,6 +232,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('use_fake_joint_states', default_value='false'),
+        DeclareLaunchArgument('use_joint_state_gui', default_value='false'),
+        DeclareLaunchArgument('publish_base_to_arm_tf', default_value='false'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('rviz_config', default_value=default_rviz),
         DeclareLaunchArgument('base_prefix', default_value='mm_base_'),
@@ -211,7 +249,9 @@ def generate_launch_description():
 
         generate_files,
         base_state_publisher,
+        base_joint_state_publisher,
         arm_state_publisher,
+        arm_joint_state_publisher,
         base_to_arm_tf,
         arm_joint_state_gui,
         start_rviz,

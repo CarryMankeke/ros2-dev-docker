@@ -7,7 +7,7 @@
   <xacro:property name="scale" value="$(arg scale)"/>
   <xacro:property name="controllers_file" value="$(arg controllers_file)"/>
 
-  <!-- Placeholder geometry (scale for quick iteration). -->
+  <!-- Geometría provisional; usar scale para iterar rápidamente. -->
   <xacro:property name="link1_len" value="${0.22 * scale}"/>
   <xacro:property name="link2_len" value="${0.22 * scale}"/>
   <xacro:property name="link3_len" value="${0.18 * scale}"/>
@@ -248,7 +248,7 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- Sensors on the end-effector. -->
+  <!-- Sensores montados en el efector final. -->
   <link name="${prefix}ee_camera_link">
     <xacro:simple_inertial mass="0.1" inertia="0.0003" origin_z="0.0"/>
     <visual>
@@ -282,7 +282,7 @@
     <origin xyz="0 0 0.04" rpy="0 0 0"/>
   </joint>
 
-  <!-- ros2_control for 6DOF arm (encoders -> joint states). -->
+  <!-- ros2_control para el brazo de 6 GDL (encoders a joint_states). -->
   <ros2_control name="mm_arm_system" type="system">
     <hardware>
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>

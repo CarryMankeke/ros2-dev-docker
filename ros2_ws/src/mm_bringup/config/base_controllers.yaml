@@ -16,9 +16,9 @@ controller_manager:
         base_frame_id: mm_base_base_link
         odom_frame_id: mm_base_odom
 
-        # Keep these in sync with mm_base_description/urdf/mm_base.urdf.xacro
-        wheel_separation_x: 0.33   # front<->rear distance (m)
-        wheel_separation_y: 0.33   # left<->right distance (m)
+        # Mantener estos valores en sincronía con mm_base_description/urdf/mm_base.urdf.xacro
+        wheel_separation_x: 0.33   # distancia eje delantero-trasero (m)
+        wheel_separation_y: 0.33   # distancia eje izquierdo-derecho (m)
         wheel_radius: 0.06
 
         front_left_wheel_name: mm_base_front_left_wheel_joint

@@ -37,9 +37,10 @@ services:
 
     environment:
       - ROS_DOMAIN_ID=0
+      - ROS_DISTRO=jazzy
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
-    # El entrypoint del contenedor ya es el agente; esto son args:
+    # Usa el entrypoint por defecto de la imagen (micro-ros-agent) y pasa los argumentos directamente.
     command: ["udp4", "--port", "8888", "-v6"]
 
     ports:

@@ -20,8 +20,9 @@
       <grid>false</grid>
     </scene>
 
-    <!-- TODO(rkreinin): Fix lighting so that spawning multiple robots does not crash the sim-->
-    <!-- <light type="directional" name="sun">
+    <!-- TODO(rkreinin): ajustar la iluminación para que al crear varios robots no se caiga la simulación -->
+    <!-- Luz direccional deshabilitada mientras se busca mayor estabilidad con varios robots.
+    <light type="directional" name="sun">
       <cast_shadows>0</cast_shadows>
       <pose>-5 -3 10 0 0 0</pose>
       <diffuse>1 1 1 1</diffuse>
@@ -44,7 +45,7 @@
       <pose>0 0 0 0 0 0</pose>
     </model>
 
-    <!-- Base -->
+    <!-- Base principal del almacén -->
     <include>
       <uri>
         model://Warehouse
@@ -53,7 +54,7 @@
       <pose>0 0 -0.1 0 0 0</pose>
     </include>
 
-    <!-- Pallet Box Mobile -->
+    <!-- Palet móvil -->
     <!--
     <include>
       <uri>
@@ -64,7 +65,7 @@
       <static>true</static>
     </include> -->
 
-    <!-- Shelves -->
+    <!-- Estanterías -->
     <include>
       <uri>
         model://shelf_big
@@ -122,7 +123,7 @@
       <pose>0.4 -2 0 0 -0 0</pose>
     </include>
 
-    <!-- Navigation Challenge section -->
+    <!-- Zona de obstáculos para navegación -->
 
     <include>
       <uri>
@@ -160,7 +161,7 @@
       <pose>-4 21.5 0 0 -0 1.57</pose>
     </include>
 
-    <!-- Barriers -->
+    <!-- Barreras -->
 
     <include>
       <uri>
@@ -191,7 +192,7 @@
       <pose>-12.85 4.85 0 0 0 0</pose>
     </include>
 
-    <!-- Chairs -->
+    <!-- Sillas -->
 
     <include>
       <uri>
@@ -222,7 +223,7 @@
       <pose>-14 6.5 0 0 -0 1.9</pose>
     </include>
     
-    <!-- Table -->
+    <!-- Mesa -->
 
     <include>
       <uri>
@@ -232,7 +233,7 @@
       <pose>-12.7 6.5 0 0 0 0</pose>
     </include>
 
-    <!-- People -->
+    <!-- Personas en escena -->
 
     <include>
       <uri>
@@ -258,7 +259,7 @@
       <pose>-12 15 0 0 0 0</pose>
     </include>
 
-    <!-- Mobile manipulator assembly (base + arm fixed joint). -->
+    <!-- Ensamblaje del manipulador móvil (base y brazo unidos con junta fija). -->
     <include>
       <uri>file:///tmp/mm_assembly.sdf</uri>
       <name>mm_assembly</name>

@@ -1,20 +1,20 @@
-// ESP32 + Funduino Joystick Shield + micro-ROS (WiFi/UDP) -> publishes /joy
+// ESP32 con shield Funduino y micro-ROS por WiFi/UDP que publica /joy.
 //
-// Requirements (Arduino IDE / PlatformIO):
-// - Board: ESP32 (Arduino core)
-// - Library: micro_ros_arduino
-// - ROS side: micro-ROS Agent running (udp4 port 8888 typical)
+// Requisitos (Arduino IDE / PlatformIO):
+// - Placa: ESP32 (núcleo Arduino)
+// - Librería: micro_ros_arduino
+// - Lado ROS: agente micro-ROS en ejecución (udp4 puerto 8888 por defecto)
 //
-// Buttons (shield):
+// Botones del shield:
 //  A,B,C,D,E(Select),F(Start=deadman),SW(click)
 //
-// Modes:
+// Modos de uso:
 //  0 = BASE
 //  1 = ARM
 //  2 = COMBO
 //
-// NOTE: The shield has Arduino pin labels. On ESP32, map them to real GPIO.
-// Edit the GPIO pins below to match your wiring.
+// Nota: el shield trae pines con nomenclatura de Arduino; aquí se asignan a GPIO reales del ESP32.
+// Ajusta los GPIO más abajo según tu cableado.
 
 #include <WiFi.h>
 #include <micro_ros_arduino.h>
@@ -26,64 +26,64 @@
 #include <sensor_msgs/msg/joy.h>
 
 // =======================
-// WiFi + Agent
+// WiFi y agente micro-ROS
 // =======================
 static char *WIFI_SSID     = "Galaxy A52S 5G CB0F";
 static char *WIFI_PASSWORD = "hzxd2620";
 
-// IP of the PC/router where micro-ROS agent runs (same WiFi)
+// IP del equipo o router donde corre el agente micro-ROS (en la misma WiFi)
 static char AGENT_IP[] = "10.96.130.73";
 static const uint AGENT_PORT = 8888;
 
 // =======================
-// Publish rate
+// Frecuencia de publicación
 // =======================
 static const uint32_t PUB_HZ = 50;
 static const uint32_t PUB_PERIOD_MS = 1000 / PUB_HZ;
 
 // =======================
-// Pin mapping (ADJUST)
+// Mapeo de pines (ajusta según tu hardware)
 // =======================
-// Analog axes (shield says A0/A1). On ESP32 use ADC GPIOs.
-// Avoid ADC2 with WiFi; prefer ADC1 (GPIO32-39).
-static const int PIN_X = 34; // ADC1
-static const int PIN_Y = 35; // ADC1
+// Ejes analógicos (el shield muestra A0/A1); en ESP32 se usan GPIO con ADC.
+// Evita ADC2 cuando usas WiFi; mejor ADC1 (GPIO32-39).
+static const int PIN_X = 34; // ADC1 en ESP32
+static const int PIN_Y = 35; // ADC1 en ESP32
 
-// Digital buttons (use free GPIOs; with internal pullup)
-static const int PIN_SW = 25; // joystick click
+// Botones digitales (GPIO libres con resistencia pull-up interna)
+static const int PIN_SW = 25; // clic del joystick
 
 static const int PIN_A  = 26;
 static const int PIN_B  = 27;
 static const int PIN_C  = 14;
 static const int PIN_D  = 12;
 
-static const int PIN_E_SELECT = 13; // Select = cycle mode
-static const int PIN_F_START  = 33; // Start = deadman
+static const int PIN_E_SELECT = 13; // Select = cambia de modo
+static const int PIN_F_START  = 33; // Start = botón de seguridad (deadman)
 
 // =======================
-// Joy message layout
+// Estructura del mensaje Joy
 // =======================
-// axes:
-//  0: left_stick_x  (-1..1)  joystick X
-//  1: left_stick_y  (-1..1)  joystick Y
-//  2: dpad_x        (-1,0,1) buttons A/D (left/right)
-//  3: dpad_y        (-1,0,1) buttons B/C (down/up)
+// ejes:
+//  0: left_stick_x  (-1..1)  eje X del joystick
+//  1: left_stick_y  (-1..1)  eje Y del joystick
+//  2: dpad_x        (-1,0,1) botones A/D (izquierda/derecha)
+//  3: dpad_y        (-1,0,1) botones B/C (abajo/arriba)
 //  4: mode          (0,1,2)  BASE/ARM/COMBO
 //
-// buttons:
+// botones:
 //  0 A
 //  1 B
 //  2 C
 //  3 D
 //  4 E (Select)
 //  5 F (Start / deadman)
-//  6 SW (home request)
+//  6 SW (solicitud de HOME)
 
 static const size_t AXES_LEN = 5;
 static const size_t BUTTONS_LEN = 7;
 
 // =======================
-// micro-ROS objects
+// Objetos de micro-ROS
 // =======================
 rcl_allocator_t allocator;
 rclc_support_t support;
@@ -95,13 +95,13 @@ rclc_executor_t executor;
 
 sensor_msgs__msg__Joy joy_msg;
 
-// State
+// Estado de la aplicación
 volatile int mode = 0; // 0=BASE,1=ARM,2=COMBO
 bool prev_select = false;
 
-// =============== helpers ===============
+// =============== funciones auxiliares ===============
 static inline int read_button(int pin) {
-  // With pullup: PRESSED = LOW
+  // Con pull-up activa, PRESIONADO equivale a nivel bajo
   return digitalRead(pin) == LOW ? 1 : 0;
 }
 
@@ -109,50 +109,50 @@ static inline float map_axis_to_unit(int raw, int center, int deadband) {
   int v = raw - center;
   if (abs(v) < deadband) return 0.0f;
 
-  // Normalize to [-1,1], assuming ADC 0..4095 (ESP32 12-bit)
+  // Normaliza a [-1,1] asumiendo ADC 0..4095 (12 bits en ESP32)
   float f = (float)v / 2048.0f;
   if (f > 1.0f) f = 1.0f;
   if (f < -1.0f) f = -1.0f;
   return f;
 }
 
-// Timer callback: publish /joy
+// Temporizador: publica el mensaje /joy
 void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
   if (timer == NULL) return;
 
-  // Buttons
+  // Lectura de botones
   int bA  = read_button(PIN_A);
   int bB  = read_button(PIN_B);
   int bC  = read_button(PIN_C);
   int bD  = read_button(PIN_D);
   int bE  = read_button(PIN_E_SELECT);
-  int bF  = read_button(PIN_F_START);  // deadman
-  int bSW = read_button(PIN_SW);       // home request
+  int bF  = read_button(PIN_F_START);  // botón de seguridad (deadman)
+  int bSW = read_button(PIN_SW);       // petición de retorno a HOME
 
-  // Rising edge to change mode with Select (E)
+  // Flanco ascendente para cambiar de modo con Select (E)
   bool sel = (bE == 1);
   if (sel && !prev_select) {
     mode = (mode + 1) % 3; // BASE->ARM->COMBO->...
   }
   prev_select = sel;
 
-  // Axes
+  // Ejes analógicos
   int rawX = analogRead(PIN_X);
   int rawY = analogRead(PIN_Y);
 
-  // Quick center assumption ~2048. You can calibrate at boot if needed.
+  // Supone un centro aproximado en 2048; se puede calibrar al inicio si hace falta.
   const int center = 2048;
   const int deadband = 80;
 
   float x = map_axis_to_unit(rawX, center, deadband);
   float y = map_axis_to_unit(rawY, center, deadband);
 
-  // Virtual D-pad with A/D and B/C
-  // A=left, D=right, C=up, B=down
+  // Cruz direccional virtual con A/D y B/C
+  // A=izquierda, D=derecha, C=arriba, B=abajo
   int dpad_x = (bD ? 1 : 0) + (bA ? -1 : 0);
   int dpad_y = (bC ? 1 : 0) + (bB ? -1 : 0);
 
-  // Deadman: if not pressed, send zeros (safety)
+  // Deadman: si no está pulsado, se envían ceros por seguridad
   if (!bF) {
     x = 0.0f;
     y = 0.0f;
@@ -160,7 +160,7 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
     dpad_y = 0;
   }
 
-  // Fill Joy
+  // Carga los ejes del mensaje Joy
   joy_msg.axes.data[0] = x;
   joy_msg.axes.data[1] = y;
   joy_msg.axes.data[2] = (float)dpad_x;
@@ -175,7 +175,7 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
   joy_msg.buttons.data[5] = bF;
   joy_msg.buttons.data[6] = bSW;
 
-  // Publish
+  // Publica el mensaje
   rcl_publish(&joy_pub, &joy_msg, NULL);
 }
 
@@ -183,11 +183,11 @@ void setup() {
   Serial.begin(115200);
   delay(200);
 
-  // ADC setup
+  // Configuración del ADC
   analogSetAttenuation(ADC_11db);
-  // If supported: analogReadResolution(12);
+  // Si está disponible: analogReadResolution(12);
 
-  // Buttons with pullup
+  // Botones con resistencia pull-up
   pinMode(PIN_SW, INPUT_PULLUP);
   pinMode(PIN_A,  INPUT_PULLUP);
   pinMode(PIN_B,  INPUT_PULLUP);
@@ -196,16 +196,16 @@ void setup() {
   pinMode(PIN_E_SELECT, INPUT_PULLUP);
   pinMode(PIN_F_START,  INPUT_PULLUP);
 
-  // micro-ROS WiFi transport (UDP)
+  // Transporte WiFi de micro-ROS sobre UDP
   set_microros_wifi_transports(WIFI_SSID, WIFI_PASSWORD, AGENT_IP, AGENT_PORT);
 
   allocator = rcl_get_default_allocator();
 
-  // Init support + node
+  // Inicializa soporte y nodo
   rclc_support_init(&support, 0, NULL, &allocator);
   rclc_node_init_default(&node, "esp32_joy_node", "", &support);
 
-  // Publisher /joy
+  // Publicador del tópico /joy
   rclc_publisher_init_default(
     &joy_pub,
     &node,
@@ -213,7 +213,7 @@ void setup() {
     "/joy"
   );
 
-  // Prepare sequences
+  // Reserva la memoria para ejes y botones
   joy_msg.axes.data = (float*)malloc(sizeof(float) * AXES_LEN);
   joy_msg.axes.size = AXES_LEN;
   joy_msg.axes.capacity = AXES_LEN;
@@ -222,7 +222,7 @@ void setup() {
   joy_msg.buttons.size = BUTTONS_LEN;
   joy_msg.buttons.capacity = BUTTONS_LEN;
 
-  // Timer + executor
+  // Configura temporizador y ejecutor
   rclc_timer_init_default(
     &timer,
     &support,
