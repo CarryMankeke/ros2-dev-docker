@@ -1,0 +1,28 @@
+# Colcon build artifacts (workspace root)
+/ros2_ws/build/
+/ros2_ws/install/
+/ros2_ws/log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local overrides / env
+.env
+.env.*
+docker-compose.override.yml

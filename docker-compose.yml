@@ -1,0 +1,26 @@
+services:
+  ros2-vnc:
+    platform: linux/arm64
+    build: .
+    container_name: ros2_vnc_container
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+    environment:
+      - DISPLAY=:0
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - QT_X11_NO_MITSHM=1
+      - XDG_RUNTIME_DIR=/tmp/runtime-root
+      - ROS2_WS=/root/ros2_ws
+
+    ports:
+      - "8080:8080"
+      - "8888:8888/udp"
+
+    shm_size: "512m"
+    security_opt:
+      - seccomp:unconfined
+
+    volumes:
+      - ./ros2_ws:/root/ros2_ws:rw

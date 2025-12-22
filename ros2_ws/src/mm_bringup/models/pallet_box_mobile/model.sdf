@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <model name="pallet_box_mobile">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 0.1 0 0 0</pose>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>1.0 0.8 0.2</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.7 0.7 0.7 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
+        </material>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>1.0 0.8 0.2</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

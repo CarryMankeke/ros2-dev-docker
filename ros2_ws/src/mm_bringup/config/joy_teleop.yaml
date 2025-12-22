@@ -1,0 +1,57 @@
+joy_teleop:
+  ros__parameters:
+    mode: base
+    joy_topic: /joy
+    cmd_vel_topic: /mm_base/mecanum_drive_controller/cmd_vel_unstamped
+    cmd_vel_alt_topic: /mm_base/cmd_vel_unstamped
+    arm_twist_topic: /mm_arm/servo_node/delta_twist_cmds
+    arm_traj_topic: /mm_arm/arm_trajectory_controller/joint_trajectory
+    gripper_topic: /mm_arm/gripper_command
+    arm_frame: mm_arm_tool0
+    arm_control_mode: trajectory
+    arm_joint_step: 0.08
+
+    publish_rate: 30.0
+    joy_timeout: 0.5
+
+    scale_linear: 0.6
+    scale_angular: 1.2
+    arm_linear_scale: 0.08
+    arm_vertical_scale: 0.06
+    home_duration: 2.0
+
+    axis_linear_x: 1
+    axis_linear_y: 0
+    axis_angular_z: -1
+    invert_linear_x: 1
+    invert_linear_y: 0
+
+    dpad_axis_x: 2
+    dpad_axis_y: 3
+    dpad_axis_deadband: 0.5
+    mode_axis: 4
+
+    button_rot_left: 2
+    button_rot_right: 3
+    arm_up_button: -1
+    arm_down_button: -1
+
+    dpad_up: -1
+    dpad_down: -1
+    dpad_left: -1
+    dpad_right: -1
+
+    deadman_buttons: [4, 5]
+    home_button: 6
+    start_button: -1
+    select_button: -1
+    gripper_open_button: 0
+    gripper_close_button: 1
+
+    arm_joint_names:
+      - mm_arm_shoulder_pan_joint
+      - mm_arm_shoulder_lift_joint
+      - mm_arm_elbow_joint
+      - mm_arm_wrist_1_joint
+      - mm_arm_wrist_2_joint
+      - mm_arm_wrist_3_joint
