@@ -42,10 +42,6 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - SIM + RViz + teleop ESP32: `ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid`
 - RViz + GUI de estados articulares (sin sim): `ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=gui`
 
-## Notas para el repo
-- El `.gitignore` de la raíz y `ros2_ws/.gitignore` excluyen los artefactos de colcon.
-- Para subir a GitHub basta con ejecutar `git init`, `git add .`, `git commit -m "Initial import"` y luego enlazar el remoto.
-- Sensibles: el hotspot micro-ROS del ESP32 (`extras/esp32_funduino_joy/esp32_funduino_joy.ino`) contiene SSID, contraseña, IP y puerto; cámbialos antes de publicar si no lo quieres público.
 
 ## Recursos útiles
 - `info.txt`: resumen de comandos más usados.

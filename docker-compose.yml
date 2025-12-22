@@ -13,10 +13,11 @@ services:
       - QT_X11_NO_MITSHM=1
       - XDG_RUNTIME_DIR=/tmp/runtime-root
       - ROS2_WS=/root/ros2_ws
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
     ports:
       - "8080:8080"
-      - "8888:8888/udp"
 
     shm_size: "512m"
     security_opt:
@@ -24,3 +25,29 @@ services:
 
     volumes:
       - ./ros2_ws:/root/ros2_ws:rw
+
+    networks:
+      - rosnet
+
+  micro-ros-agent:
+    image: microros/micro-ros-agent:jazzy
+    platform: linux/arm64
+    container_name: micro_ros_agent
+    restart: unless-stopped
+
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
+    # El entrypoint del contenedor ya es el agente; esto son args:
+    command: ["udp4", "--port", "8888", "-v6"]
+
+    ports:
+      - "8888:8888/udp"
+
+    networks:
+      - rosnet
+
+networks:
+  rosnet:
+    driver: bridge

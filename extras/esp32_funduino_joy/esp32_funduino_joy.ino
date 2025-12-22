@@ -32,7 +32,7 @@ static char *WIFI_SSID     = "Galaxy A52S 5G CB0F";
 static char *WIFI_PASSWORD = "hzxd2620";
 
 // IP of the PC/router where micro-ROS agent runs (same WiFi)
-static char AGENT_IP[] = "192.168.1.100";
+static char AGENT_IP[] = "10.96.130.73";
 static const uint AGENT_PORT = 8888;
 
 // =======================
