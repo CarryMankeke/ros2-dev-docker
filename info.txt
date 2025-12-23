@@ -1,155 +1,43 @@
-# ros2-sim-vnc — guía rápida desde el host (docker compose exec)
+# Guía rápida en pseudocódigo (ros2-sim-vnc)
 
-# Ejecuta siempre desde la raíz del repo
-cd ~/Documents/ros2-sim-vnc
+"""pseudo
+1) Contenedores
+ crear(): docker compose build ; docker compose up -d
+  host:
+    - macOS arm64 -> usar platform linux/arm64
+    - Windows 10 x64 (Intel i3 + NVIDIA 1060) -> Docker Desktop + WSL2 con platform linux/amd64 y runtime nvidia
+  leer(): docker compose ps ; docker compose logs -f ros2-vnc
+  actualizar(): docker compose build --no-cache
+  borrar(): docker compose down
 
-# noVNC (navegador en el host)
-# http://localhost:8080
+2) Compilar workspace dentro del contenedor
+ docker compose exec -T ros2-vnc bash -lc '
+    source /opt/ros/jazzy/setup.bash
+    cd /root/ros2_ws
+    rm -rf build install log
+    colcon build --symlink-install
+  '
 
-# Patrón recomendado (sin TTY)
-# docker compose exec -T ros2-vnc bash -lc '<commands>'
+3) Lanzar modos
+  sim_por_defecto(): ros2 launch mm_bringup modes.launch.py
+  sim_mas_esp32(): ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid
+  rviz_sin_sim(): ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=gui
+ teleop_real(): ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=esp32 teleop_mode:=base
+  notas:
+    - sincronicen use_sim_time según https://docs.ros.org/en/jazzy/How-To-Guides/Clock-and-Rate.html
+    - QoS sensor_data para /joy y reliable para /cmd_vel y controladores como indica Jazzy (depth>=10)
 
+4) Modelo de joystick (micro-ROS)
+  ejes: axes[0]=X, axes[1]=Y invertido, axes[2]=dpad_x, axes[3]=dpad_y, axes[4]=mode(BASE/ARM/HYBRID)
+ botones: 0=A 1=B 2=C 3=D 4=E 5=F 6=SW 7=START 8=SELECT 9-12=DPAD
+  deadman: E o F
+  base: XY -> cmd_vel lineal, C/D -> yaw
+  brazo: D-pad -> incrementos articulares (trayectoria)
+  gripper: A abre, B cierra
+  home: SW ; cambio de modo: START/SELECT
 
-# ------------------------------------------------------------
-# 1) Contenedores
-# ------------------------------------------------------------
-
-docker compose build
-docker compose --progress=plain build --no-cache
-docker compose up -d
-docker compose ps
-docker compose ps -a
-docker compose logs -f --tail=200 ros2-vnc
-docker compose logs -f --tail=200 micro-ros-agent
-docker compose logs -f --tail=200 ros2-vnc micro-ros-agent
-
-docker compose down
-
-
-# ------------------------------------------------------------
-# 2) Compilar el workspace (dentro del contenedor, lanzado desde el host)
-# ------------------------------------------------------------
-
-docker compose exec -T ros2-vnc bash -lc '
-source /opt/ros/jazzy/setup.bash
-cd /root/ros2_ws
-rm -rf build install log
-colcon build --symlink-install
-'
-
-
-# ------------------------------------------------------------
-# 3) Modos (un único entrypoint)
-# ------------------------------------------------------------
-
-# Predeterminado: simulación + RViz, reloj simulado, sin teleop
-cd ~/Documents/ros2-sim-vnc
-docker compose exec -T ros2-vnc bash -lc '
-source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
-ros2 launch mm_bringup modes.launch.py
-'
-
-# SIM + RViz + teleop ESP32 (modo híbrido por defecto)
-cd ~/Documents/ros2-sim-vnc
-docker compose exec -T ros2-vnc bash -lc '
-source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
-ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid
-'
-
-# Solo RViz (sin simulación), reloj real, sliders GUI para el brazo
-cd ~/Documents/ros2-sim-vnc
-docker compose exec -T ros2-vnc bash -lc '
-source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
-ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=gui
-'
-
-# Teleop sin simulación (reloj real + ESP32; supone hardware físico)
-cd ~/Documents/ros2-sim-vnc
-docker compose exec -T ros2-vnc bash -lc '
-source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
-ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=esp32 teleop_mode:=base
-'
-
-# Modelos locales: warehouse.sdf usa URIs model:// desde:
-# ros2_ws/src/mm_bringup/models
-# sim.launch.py ajusta GZ_SIM_RESOURCE_PATH automáticamente.
-
-
-# ------------------------------------------------------------
-# 4) Plantilla para cualquier comando ROS2
-# ------------------------------------------------------------
-
-docker compose exec -T ros2-vnc bash -lc '
-source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
-<ROS2_COMMAND>
-'
-
-
-# ------------------------------------------------------------
-# 5) Reconstruir la imagen (solo si cambió Dockerfile o supervisord.conf)
-# ------------------------------------------------------------
-
-docker compose down
-docker compose build --pull
-docker compose up -d
-
-
-# ------------------------------------------------------------
-# 8) Mapeo del joystick (Funduino -> sensor_msgs/Joy)
-# ------------------------------------------------------------
-
-# Ejes:
-# axes[0] = X (A0)  [-1..1]
-# axes[1] = Y (A1)  [-1..1]  (invertido por defecto para avanzar)
-# axes[2] = dpad_x  (-1,0,1) A/D
-# axes[3] = dpad_y  (-1,0,1) B/C
-# axes[4] = mode    (0,1,2) BASE/ARM/HYBRID
-#
-# Botones (índices):
-# 0=A  1=B  2=C  3=D  4=E  5=F  6=SW  7=START  8=SELECT
-# 9=DPAD_UP  10=DPAD_DOWN  11=DPAD_LEFT  12=DPAD_RIGHT (no usados por el mapeo del ESP32)
-#
-# Deadman: E o F
-# Base (por defecto): joystick X/Y -> lineal y/x, C/D -> yaw
-# Brazo (por defecto): ejes del D-pad -> incrementos de articulaciones (modo trayectoria).
-# Z está deshabilitado por defecto (actívalo con arm_up_button/arm_down_button en el YAML).
-# Para control cartesiano, usa arm_control_mode: twist y ejecuta un nodo MoveIt Servo.
-# Pinza: A=abrir, B=cerrar (tópico temporal /mm_arm/gripper_command)
-# Home: SW (envía trayectoria a la pose inicial tomada de joint_states)
-# Modo: START recorre base->arm->hybrid, SELECT recorre en sentido inverso
-#
-# Parámetros de teleop están en:
-# ros2_ws/src/mm_bringup/config/joy_teleop.yaml
-#
-# Firmware del ESP32 (micro-ROS /joy):
-# extras/esp32_funduino_joy/esp32_funduino_joy.ino
-
-# El agente micro-ROS (UDP) lo arranca supervisord dentro del contenedor.
-# Si quieres lanzarlo manualmente, detén el contenedor o comenta la entrada en supervisord.conf y luego:
-# cd ~/Documents/ros2-sim-vnc
-# docker compose exec -T ros2-vnc bash -lc '
-# source /opt/ros/jazzy/setup.bash
-# ros2 run micro_ros_agent micro_ros_agent udp4 --port 8888
-# '
-#
-# El ESP32 debe apuntar AGENT_IP a la IP del HOST (no la del contenedor).
-
-
-# ------------------------------------------------------------
-# 9) Problemas frecuentes
-# ------------------------------------------------------------
-
-# "no configuration file provided: not found"
-# -> no estás en la raíz del repo
-cd ~/Documents/ros2-sim-vnc
-
-# noVNC no responde
-# -> revisa que el contenedor esté arriba y el puerto 8080 abierto
-
-docker compose ps
-lsof -nP -iTCP:8080 -sTCP:LISTEN
+5) Limpieza y reconstrucción total
+  docker compose down
+  docker compose build --pull
+  docker compose up -d
+"""

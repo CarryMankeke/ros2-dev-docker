@@ -1,19 +1,11 @@
-<?xml version="1.0"?>
-<sdf version="1.7">
-  <model name="Warehouse">
-    <static>true</static>
-    <link name="link">
-      <pose>0 0 0.05 0 0 0</pose>
-      <visual name="visual">
-        <geometry>
-          <box>
-            <size>30.0 30.0 0.1</size>
-          </box>
-        </geometry>
-        <material>
-          <ambient>0.7 0.7 0.7 1</ambient>
-          <diffuse>0.7 0.7 0.7 1</diffuse>
-        </material>
-      </visual>    </link>
-  </model>
-</sdf>
+<!-- pseudocódigo SDF para modelo Warehouse -->
+modelo_Warehouse:
+  crear:
+    - definir enlaces visual y collision básicos
+    - asignar materiales simples y masa aproximada
+  leer:
+    - pose inicial relativa al world
+  actualizar:
+    - escalar o reubicar para pruebas de navegación/agarre
+  borrar:
+    - remover del world cuando no sea necesario

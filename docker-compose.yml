@@ -1,54 +1,39 @@
-services:
-  ros2-vnc:
-    platform: linux/arm64
-    build: .
-    container_name: ros2_vnc_container
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
+# Pseudocódigo docker-compose para ros2-sim-vnc
+# Ilustra relaciones CRUD entre servicios ros2-vnc y micro-ros-agent.
 
-    environment:
-      - DISPLAY=:0
-      - LIBGL_ALWAYS_SOFTWARE=1
-      - QT_X11_NO_MITSHM=1
-      - XDG_RUNTIME_DIR=/tmp/runtime-root
-      - ROS2_WS=/root/ros2_ws
-      - ROS_DOMAIN_ID=0
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+"""pseudo
+servicio ros2-vnc:
+  crear:
+    - build: contexto actual
+    - platform: linux/arm64 (macOS M1) | linux/amd64 (Windows 10 x64 + WSL2)
+    - container_name: ros2_vnc_container
+    - variables entorno: DISPLAY, LIBGL_ALWAYS_SOFTWARE, QT_X11_NO_MITSHM, XDG_RUNTIME_DIR, ROS2_WS, ROS_DOMAIN_ID, RMW_IMPLEMENTATION
+    - puertos: 8080:8080
+    - volumen: ./ros2_ws -> /root/ros2_ws (rw)
+    - red: rosnet
+    - reinicio: unless-stopped
+    - healthcheck sugerido: ros2 node list (ver comandos en https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html)
+  leer:
+    - docker compose logs -f ros2-vnc
+    - docker compose exec -T ros2-vnc env
+  actualizar:
+    - reconstruir imagen y reiniciar contenedor si cambian Dockerfile/supervisord
+  borrar:
+    - docker compose down --remove-orphans
 
-    ports:
-      - "8080:8080"
+servicio micro-ros-agent:
+  crear:
+    - image: microros/micro-ros-agent:jazzy (platform linux/arm64 o linux/amd64)
+    - comando: [udp4, --port, 8888, -v6]
+    - puerto: 8888/udp
+    - red: rosnet
+  leer:
+    - docker compose logs -f micro-ros-agent
+  actualizar:
+    - ajustar ROS_DOMAIN_ID o parámetros UDP
+  borrar:
+    - docker compose stop micro-ros-agent && docker compose rm micro-ros-agent
 
-    shm_size: "512m"
-    security_opt:
-      - seccomp:unconfined
-
-    volumes:
-      - ./ros2_ws:/root/ros2_ws:rw
-
-    networks:
-      - rosnet
-
-  micro-ros-agent:
-    image: microros/micro-ros-agent:jazzy
-    platform: linux/arm64
-    container_name: micro_ros_agent
-    restart: unless-stopped
-
-    environment:
-      - ROS_DOMAIN_ID=0
-      - ROS_DISTRO=jazzy
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
-
-    # Usa el entrypoint por defecto de la imagen (micro-ros-agent) y pasa los argumentos directamente.
-    command: ["udp4", "--port", "8888", "-v6"]
-
-    ports:
-      - "8888:8888/udp"
-
-    networks:
-      - rosnet
-
-networks:
-  rosnet:
-    driver: bridge
+red rosnet:
+  tipo: bridge
+"""
