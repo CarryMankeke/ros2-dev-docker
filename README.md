@@ -33,6 +33,8 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - `ros2_ws/src/mm_base_description`: base omnidireccional (URDF/Xacro + ros2_control).
 - `ros2_ws/src/mm_arm_description`: brazo 6DOF con control por posición.
 - `ros2_ws/src/mm_bringup`: launch files, configuración de teleop (`joy_teleop.py`), configuración de controladores y mundos SDF.
+- `ros2_ws/src/mm_moveit_config`: configuración MoveIt 2 alineada con los controladores de brazo y gripper.
+- `ros2_ws/src/mm_navigation`: parámetros Nav2 (mapas/costmaps/BT) para la fase de autonomía.
 - `ros2_ws/src/mm_bringup/models`: assets locales para ser referenciados como `model://`.
 - `extras/esp32_funduino_joy`: firmware ESP32 para publicar `/joy` por micro-ROS.
 - `Dockerfile/docker-compose/supervisord.conf`: entorno con noVNC + micro-ROS Agent.
@@ -47,4 +49,5 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - `info.txt`: resumen de comandos más usados.
 - `ros2_ws/src/mm_bringup/worlds/warehouse.sdf`: escenario principal, sensores habilitados y modelos locales.
 - `ros2_ws/src/mm_bringup/scripts/joy_teleop.py` + `config/joy_teleop.yaml`: lógica del teleop ESP32/joystick.
+- `docs/estructura_pseudocodigo.md`: esqueleto completo en pseudocódigo de nodos, launchfiles y flujo de arranque para la simulación.
 
