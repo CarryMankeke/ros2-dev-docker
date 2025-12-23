@@ -1,70 +1,21 @@
-#!/usr/bin/env python3
-import pathlib
+"""pseudo
+# Nodo utilitario que publica URDF combinado de base + brazo para RViz y simulación.
+# Incluye selector de prefijo y scale para reutilizar en múltiples instancias.
 
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
-from std_msgs.msg import String
+procedimiento main():
+  crear:
+    - inicializar rclpy, nodo "robot_description_publisher"
+    - parámetros: prefix (mm_), scale (1.0), use_sim_time (bool), controllers_file (ruta YAML)
+    - leer xacro mm_base.urdf.xacro y mm_arm.urdf.xacro, concatenar en <robot_description> (usar xacro conforme https://docs.ros.org/en/jazzy/Tutorials/Intermediate/URDF/Using-Xacro.html)
+    - publisher de std_msgs/String en /robot_description con QoS reliable
+  leer:
+    - validar existencia de archivos xacro y controllers YAML; registrar advertencias si faltan
+    - exponer parámetros vía servicios de rcl_interfaces/GetParameters
+  actualizar:
+    - reconstruir descripción cuando cambien parámetros o se reciba señal de recarga
+    - mantener publicación latched para nuevos suscriptores (RViz, robot_state_publisher)
+  borrar:
+    - detener nodo y limpiar timers/hilos
 
-
-class RobotDescriptionPublisher(Node):
-    def __init__(self) -> None:
-        super().__init__('robot_description_publisher')
-        self.declare_parameter('urdf_file', '')
-        self.declare_parameter('publish_period', 0.5)
-
-        urdf_file = self.get_parameter('urdf_file').value
-        if not urdf_file:
-            self.get_logger().error('Parameter "urdf_file" is required.')
-            raise RuntimeError('urdf_file parameter not set')
-
-        self._urdf_path = pathlib.Path(urdf_file)
-        self._published = False
-        self._missing_warned = False
-
-        qos = QoSProfile(depth=1)
-        qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
-        qos.reliability = ReliabilityPolicy.RELIABLE
-        self._publisher = self.create_publisher(String, 'robot_description', qos)
-
-        period = float(self.get_parameter('publish_period').value)
-        self._timer = self.create_timer(max(period, 0.1), self._on_timer)
-
-    def _on_timer(self) -> None:
-        if self._published:
-            self._timer.cancel()
-            return
-
-        if not self._urdf_path.exists():
-            if not self._missing_warned:
-                self.get_logger().warn(
-                    f'URDF not found yet at {self._urdf_path}, waiting...'
-                )
-                self._missing_warned = True
-            return
-
-        urdf_text = self._urdf_path.read_text(encoding='utf-8')
-        msg = String()
-        msg.data = urdf_text
-        self._publisher.publish(msg)
-        self._published = True
-        self.get_logger().info(f'Published robot_description from {self._urdf_path}')
-
-
-def main() -> None:
-    rclpy.init()
-    try:
-        node = RobotDescriptionPublisher()
-    except RuntimeError:
-        rclpy.shutdown()
-        return
-
-    try:
-        rclpy.spin(node)
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': llamar main()
+"""

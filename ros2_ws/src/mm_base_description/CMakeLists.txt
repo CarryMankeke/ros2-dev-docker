@@ -1,11 +1,14 @@
-cmake_minimum_required(VERSION 3.8)
-project(mm_base_description)
+# Pseudocódigo de empaquetado para mm_base_description
 
-find_package(ament_cmake REQUIRED)
-find_package(xacro REQUIRED)
-
-install(DIRECTORY urdf
-  DESTINATION share/${PROJECT_NAME}
-)
-
-ament_package()
+"""pseudo
+proyecto mm_base_description:
+  crear:
+    - declarar cmake_minimum_required(3.8)
+    - registrar ament_cmake y xacro
+  leer:
+    - carpeta urdf con modelo de base omnidireccional
+  actualizar:
+    - instalar urdf -> share/mm_base_description
+  borrar:
+    - limpiar artefactos de build/install/log
+"""

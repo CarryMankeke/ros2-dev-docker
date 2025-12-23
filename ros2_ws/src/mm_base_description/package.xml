@@ -1,17 +1,22 @@
-<?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
-<package format="3">
-  <name>mm_base_description</name>
-  <version>0.1.0</version>
-  <description>Mobile base description for mm_base.</description>
-  <maintainer email="todo@example.com">todo</maintainer>
-  <license>TODO: License declaration</license>
+<!-- Pseudocódigo del paquete mm_base_description -->
+<pseudo_package name="mm_base_description" version="0.1.0">
+  <descripcion>Modelo URDF/Xacro de la base móvil mm_base.</descripcion>
+  <responsable email="todo@example.com">todo</responsable>
+  <licencia>Pendiente de definir.</licencia>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <crear>
+    <buildtool>ament_cmake</buildtool>
+  </crear>
 
-  <depend>xacro</depend>
+  <leer_dependencias>
+    <dep>xacro</dep>
+  </leer_dependencias>
 
-  <export>
-    <build_type>ament_cmake</build_type>
-  </export>
-</package>
+  <actualizar>
+    <nota>Agregar meshes, transmissions y ros2_control en archivos URDF reales.</nota>
+  </actualizar>
+
+  <borrar>
+    <nota>Retirar placeholders cuando se integre el modelo final.</nota>
+  </borrar>
+</pseudo_package>

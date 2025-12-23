@@ -1,31 +1,17 @@
-cmake_minimum_required(VERSION 3.8)
-project(mm_bringup)
+# Pseudocódigo de build para mm_bringup
+# Estructura CRUD sobre recursos de lanzamiento, configs y scripts.
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
-find_package(ament_cmake REQUIRED)
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # La siguiente línea omite el linter que valida derechos de autor
-  # Bórrala cuando todos los archivos tengan copyright y licencia
-  set(ament_cmake_copyright_FOUND TRUE)
-  # La siguiente línea desactiva cpplint (solo funciona en repos git)
-  # Elimina la excepción cuando el paquete esté en git y todos los archivos tengan licencia
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
-
-
-install(DIRECTORY launch config worlds rviz
-  DESTINATION share/${PROJECT_NAME}
-)
-
-install(PROGRAMS
-  scripts/robot_description_publisher.py
-  scripts/joy_teleop.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-ament_package()
+"""pseudo
+proyecto mm_bringup:
+  crear:
+    - declarar cmake_minimum_required(3.8)
+    - habilitar warnings (-Wall -Wextra -Wpedantic)
+    - localizar dependencias: ament_cmake
+  leer:
+    - opciones de lint automáticas (ament_lint_auto) con excepciones temporales
+  actualizar:
+    - instalar directorios launch, config, worlds, rviz -> share/mm_bringup
+    - instalar scripts ejecutables: robot_description_publisher.py, joy_teleop.py
+  borrar:
+    - limpiar artefactos con colcon clean o rm -rf build/install/log
+"""

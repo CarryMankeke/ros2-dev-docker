@@ -1,21 +1,12 @@
-<?xml version="1.0"?>
-<sdf version="1.7">
-  <world name="mm_world">
-    <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
-      <render_engine>ogre2</render_engine>
-    </plugin>
-    <include>
-      <uri>model://sun</uri>
-    </include>
-    <include>
-      <uri>model://ground_plane</uri>
-    </include>
+<!-- pseudocódigo de mundo Gazebo minimalista -->
 
-    <!-- Ensamblaje del manipulador móvil (base y brazo unidos con junta fija). -->
-    <include>
-      <uri>file:///tmp/mm_assembly.sdf</uri>
-      <name>mm_assembly</name>
-      <pose>0 0 0 0 0 0</pose>
-    </include>
-  </world>
-</sdf>
+mundo_minimal:
+  crear:
+    - plano base plano y luz direccional
+    - parámetros de física por defecto (max_step_size 0.001, real_time_update_rate 1000)
+  leer:
+    - reloj /clock y tf broadcasting
+  actualizar:
+    - spawn único del robot en origen con heading 0
+  borrar:
+    - remover entidades al detener
