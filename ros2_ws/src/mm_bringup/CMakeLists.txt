@@ -19,7 +19,7 @@ if(BUILD_TESTING)
 endif()
 
 
-install(DIRECTORY launch config worlds rviz
+install(DIRECTORY launch config worlds rviz models
   DESTINATION share/${PROJECT_NAME}
 )
 

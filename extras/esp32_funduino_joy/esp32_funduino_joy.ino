@@ -28,7 +28,7 @@
 // =======================
 // WiFi y agente micro-ROS
 // =======================
-static char *WIFI_SSID     = "Galaxy A52S 5G CB0F";
+static char *WIFI_SSID     = "Galaxy A52s 5G CB0F";
 static char *WIFI_PASSWORD = "hzxd2620";
 
 // IP del equipo o router donde corre el agente micro-ROS (en la misma WiFi)
@@ -98,6 +98,47 @@ sensor_msgs__msg__Joy joy_msg;
 // Estado de la aplicación
 volatile int mode = 0; // 0=BASE,1=ARM,2=COMBO
 bool prev_select = false;
+uint32_t publish_count = 0;
+
+// =============== utilidades de depuración ===============
+const char* wifi_status_to_str(wl_status_t status) {
+  switch (status) {
+    case WL_IDLE_STATUS:    return "IDLE";
+    case WL_NO_SSID_AVAIL:  return "NO_SSID";
+    case WL_SCAN_COMPLETED: return "SCAN_DONE";
+    case WL_CONNECTED:      return "CONNECTED";
+    case WL_CONNECT_FAILED: return "CONNECT_FAILED";
+    case WL_CONNECTION_LOST:return "CONNECTION_LOST";
+    case WL_DISCONNECTED:   return "DISCONNECTED";
+    default:                return "UNKNOWN";
+  }
+}
+
+void log_rcl_ret(const char *label, rcl_ret_t ret) {
+  if (ret != RCL_RET_OK) {
+    Serial.printf("[micro-ROS] %s failed: %d\r\n", label, (int)ret);
+  } else {
+    Serial.printf("[micro-ROS] %s OK\r\n", label);
+  }
+}
+
+void wait_for_wifi() {
+  Serial.printf("[WiFi] Conectando a SSID '%s'...\r\n", WIFI_SSID);
+  while (WiFi.status() != WL_CONNECTED) {
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    uint32_t start = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - start < 10000) {
+      delay(250);
+      Serial.print(".");
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      break;
+    }
+    Serial.printf("\r\n[WiFi] Estado: %s. Reintentando en 1s...\r\n", wifi_status_to_str(WiFi.status()));
+    delay(1000);
+  }
+  Serial.printf("\r\n[WiFi] Conectado. IP: %s\r\n", WiFi.localIP().toString().c_str());
+}
 
 // =============== funciones auxiliares ===============
 static inline int read_button(int pin) {
@@ -177,6 +218,12 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
 
   // Publica el mensaje
   rcl_publish(&joy_pub, &joy_msg, NULL);
+
+  publish_count++;
+  if (publish_count % (PUB_HZ * 2) == 0) { // cada ~2 segundos a 50 Hz
+    Serial.printf("[PUB] mode=%d axes: %.2f %.2f dpad=%d,%d deadman=%d\r\n",
+                  mode, x, y, dpad_x, dpad_y, bF);
+  }
 }
 
 void setup() {
@@ -197,20 +244,25 @@ void setup() {
   pinMode(PIN_F_START,  INPUT_PULLUP);
 
   // Transporte WiFi de micro-ROS sobre UDP
+  wait_for_wifi();
+  Serial.printf("[micro-ROS] Configurando transporte WiFi -> agente %s:%u\r\n", AGENT_IP, AGENT_PORT);
   set_microros_wifi_transports(WIFI_SSID, WIFI_PASSWORD, AGENT_IP, AGENT_PORT);
 
   allocator = rcl_get_default_allocator();
 
   // Inicializa soporte y nodo
-  rclc_support_init(&support, 0, NULL, &allocator);
-  rclc_node_init_default(&node, "esp32_joy_node", "", &support);
+  log_rcl_ret("support_init", rclc_support_init(&support, 0, NULL, &allocator));
+  log_rcl_ret("node_init", rclc_node_init_default(&node, "esp32_joy_node", "", &support));
 
   // Publicador del tópico /joy
-  rclc_publisher_init_default(
+  log_rcl_ret(
+    "publisher_init",
+    rclc_publisher_init_default(
     &joy_pub,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Joy),
     "/joy"
+    )
   );
 
   // Reserva la memoria para ejes y botones
@@ -223,20 +275,32 @@ void setup() {
   joy_msg.buttons.capacity = BUTTONS_LEN;
 
   // Configura temporizador y ejecutor
-  rclc_timer_init_default(
+  log_rcl_ret(
+    "timer_init",
+    rclc_timer_init_default(
     &timer,
     &support,
     RCL_MS_TO_NS(PUB_PERIOD_MS),
     timer_cb
+    )
   );
 
-  rclc_executor_init(&executor, &support.context, 1, &allocator);
-  rclc_executor_add_timer(&executor, &timer);
+  log_rcl_ret("executor_init", rclc_executor_init(&executor, &support.context, 1, &allocator));
+  log_rcl_ret("executor_add_timer", rclc_executor_add_timer(&executor, &timer));
 
   Serial.println("micro-ROS /joy publisher ready");
 }
 
 void loop() {
+  // Si el WiFi se cae, intenta reconectar sin bloquear
+  static uint32_t last_reconnect = 0;
+  if (WiFi.status() != WL_CONNECTED && millis() - last_reconnect > 5000) {
+    Serial.printf("[WiFi] Estado %s, reintentando...\r\n", wifi_status_to_str(WiFi.status()));
+    WiFi.disconnect();
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    last_reconnect = millis();
+  }
+
   rclc_executor_spin_some(&executor, RCL_MS_TO_NS(5));
   delay(2);
 }

@@ -219,21 +219,9 @@ def generate_launch_description():
 
 
     models_path = PathJoinSubstitution([mm_bringup_share, 'models'])
-    existing_gz_path = EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value='')
-    gz_resource_path = PythonExpression(
-        [
-            "'",
-            models_path,
-            "' + (':' + '",
-            existing_gz_path,
-            "' if '",
-            existing_gz_path,
-            "' else '')",
-        ]
-    )
     set_gz_resource_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
-        value=gz_resource_path,
+        value=models_path,
     )
 
     gz_launch = IncludeLaunchDescription(
@@ -339,26 +327,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    wait_for_base_cm = OpaqueFunction(
-        function=_wait_for_service_and_start,
-        args=[
-            '/mm_base/mm_base_controller_manager/list_controllers',
-            120.0,
-            base_jsb,
-            'mm_base',
-        ],
-    )
-
-    wait_for_arm_cm = OpaqueFunction(
-        function=_wait_for_service_and_start,
-        args=[
-            '/mm_arm/mm_arm_controller_manager/list_controllers',
-            120.0,
-            arm_jsb,
-            'mm_arm',
-        ],
-    )
-
     base_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -401,7 +369,7 @@ def generate_launch_description():
     start_arm_jsb = RegisterEventHandler(
         OnProcessExit(
             target_action=base_mecanum,
-            on_exit=_chain_or_shutdown(wait_for_arm_cm, 'mm_base mecanum_drive_controller'),
+            on_exit=_chain_or_shutdown(arm_jsb, 'mm_base mecanum_drive_controller'),
         )
     )
 
@@ -444,7 +412,6 @@ def generate_launch_description():
         base_bridge,
         clock_bridge,
         arm_bridge,
-        wait_for_base_cm,
         start_base_mecanum,
         start_arm_jsb,
         start_arm_traj,

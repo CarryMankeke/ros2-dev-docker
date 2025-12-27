@@ -26,3 +26,6 @@ Thumbs.db
 .env
 .env.*
 docker-compose.override.yml
+
+# Local docs (no version control)
+/docs/
