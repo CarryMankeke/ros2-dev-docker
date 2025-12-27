@@ -74,9 +74,18 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=esp32 teleop_mode:=base
 '
 
-# Modelos locales: warehouse.sdf usa URIs model:// desde:
-# ros2_ws/src/mm_bringup/models
-# sim.launch.py ajusta GZ_SIM_RESOURCE_PATH automáticamente.
+# Modelos locales: warehouse.sdf (plano + cubo) usa URIs model:// desde:
+# ros2_ws/src/mm_bringup/models. sim.launch.py ajusta GZ_SIM_RESOURCE_PATH automáticamente.
+
+# Ajustes útiles:
+# - Nivel de log de Gazebo: gz_verbosity:=3
+# - Posición inicial: base_x:=0.0 base_y:=0.0 base_yaw:=0.0 arm_x:=0.0 arm_y:=0.0 arm_z:=0.06
+# - Bridges ROS↔Gazebo: config/bridge_params.yaml (cargado por sim.launch.py)
+#   Incluye cámaras: /mm_base/camera y /mm_base/nav_camera
+# - Nav2 opcional: launch_nav2:=true nav2_map:=<map.yaml> nav2_params:=config/nav2_params.yaml nav2_bt:=<bt.xml> (por defecto usa navigate_w_replanning_and_recovery.xml de nav2_bt_navigator)
+# - MoveIt opcional: launch_moveit:=true (usa config de mm_bringup/config/*moveit*, rviz activable con launch_rviz:=true|false)
+# - Cache de modelos: model_cache_dir:=/tmp/mm_bringup (si cambias, ajusta el world que uses)
+# - Host Mac ARM/Windows/x86: todo corre en Docker Linux con imagen multi-arquitectura; habilita virtualización (Rosetta no necesaria). Rutas /tmp/ son dentro del contenedor.
 
 
 # ------------------------------------------------------------

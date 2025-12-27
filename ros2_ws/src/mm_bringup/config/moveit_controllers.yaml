@@ -1,0 +1,18 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    use_sim_time: true
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  ros__parameters:
+    arm_trajectory_controller:
+      type: FollowJointTrajectory
+      joints:
+        - mm_arm_shoulder_pan_joint
+        - mm_arm_shoulder_lift_joint
+        - mm_arm_elbow_joint
+        - mm_arm_wrist_1_joint
+        - mm_arm_wrist_2_joint
+        - mm_arm_wrist_3_joint

@@ -26,6 +26,7 @@ install(DIRECTORY launch config worlds rviz models
 install(PROGRAMS
   scripts/robot_description_publisher.py
   scripts/joy_teleop.py
+  scripts/joint_state_aggregator.py
   DESTINATION lib/${PROJECT_NAME}
 )
 ament_package()

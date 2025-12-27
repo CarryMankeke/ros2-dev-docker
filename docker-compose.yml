@@ -1,6 +1,5 @@
 services:
   ros2-vnc:
-    platform: linux/arm64
     build: .
     container_name: ros2_vnc_container
     restart: unless-stopped
@@ -31,7 +30,6 @@ services:
 
   micro-ros-agent:
     image: microros/micro-ros-agent:jazzy
-    platform: linux/arm64
     container_name: micro_ros_agent
     restart: unless-stopped
 

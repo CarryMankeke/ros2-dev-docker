@@ -1,4 +1,4 @@
-# Imagen base oficial multi-arquitectura probada en arm64 (Mac M1)
+# Imagen base oficial multi-arquitectura (amd64/arm64)
 FROM ros:jazzy-ros-base-noble
 
 ENV DEBIAN_FRONTEND=noninteractive \

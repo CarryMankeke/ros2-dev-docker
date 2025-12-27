@@ -1,3 +1,5 @@
+import os
+import shutil
 import subprocess
 import time
 
@@ -21,6 +23,7 @@ from launch.substitutions import (
     PathJoinSubstitution,
     PythonExpression,
 )
+from launch.conditions import IfCondition
 from launch.events import Shutdown
 
 from launch_ros.actions import Node
@@ -38,6 +41,13 @@ def _generate_robot_files(
     arm_prefix,
     base_scale,
     arm_scale,
+    model_cache_dir,
+    base_x,
+    base_y,
+    base_z,
+    base_roll,
+    base_pitch,
+    base_yaw,
     arm_x,
     arm_y,
     arm_z,
@@ -53,6 +63,13 @@ def _generate_robot_files(
     arm_prefix_val = arm_prefix.perform(context)
     base_scale_val = base_scale.perform(context)
     arm_scale_val = arm_scale.perform(context)
+    model_cache_dir_val = model_cache_dir.perform(context)
+    base_x_val = base_x.perform(context)
+    base_y_val = base_y.perform(context)
+    base_z_val = base_z.perform(context)
+    base_roll_val = base_roll.perform(context)
+    base_pitch_val = base_pitch.perform(context)
+    base_yaw_val = base_yaw.perform(context)
     arm_x_val = arm_x.perform(context)
     arm_y_val = arm_y.perform(context)
     arm_z_val = arm_z.perform(context)
@@ -60,7 +77,17 @@ def _generate_robot_files(
     arm_pitch_val = arm_pitch.perform(context)
     arm_yaw_val = arm_yaw.perform(context)
 
-    with open('/tmp/mm_base.urdf', 'w', encoding='utf-8') as handle:
+    os.makedirs(model_cache_dir_val, exist_ok=True)
+    base_urdf_path = os.path.join(model_cache_dir_val, 'mm_base.urdf')
+    arm_urdf_path = os.path.join(model_cache_dir_val, 'mm_arm.urdf')
+    assembly_sdf_path = os.path.join(model_cache_dir_val, 'mm_assembly.sdf')
+    legacy_cache_dir = '/tmp/mm_bringup'
+    os.makedirs(legacy_cache_dir, exist_ok=True)
+    legacy_base_urdf = os.path.join(legacy_cache_dir, 'mm_base.urdf')
+    legacy_arm_urdf = os.path.join(legacy_cache_dir, 'mm_arm.urdf')
+    legacy_assembly_sdf = os.path.join(legacy_cache_dir, 'mm_assembly.sdf')
+
+    with open(base_urdf_path, 'w', encoding='utf-8') as handle:
         subprocess.run(
             [
                 'xacro',
@@ -72,8 +99,9 @@ def _generate_robot_files(
             check=True,
             stdout=handle,
         )
+    shutil.copyfile(base_urdf_path, legacy_base_urdf)
 
-    with open('/tmp/mm_arm.urdf', 'w', encoding='utf-8') as handle:
+    with open(arm_urdf_path, 'w', encoding='utf-8') as handle:
         subprocess.run(
             [
                 'xacro',
@@ -85,20 +113,21 @@ def _generate_robot_files(
             check=True,
             stdout=handle,
         )
+    shutil.copyfile(arm_urdf_path, legacy_arm_urdf)
 
     assembly_sdf = '\n'.join(
         [
             '<?xml version="1.0"?>',
             '<sdf version="1.7">',
             '  <model name="mm_assembly">',
-            '    <pose>0 0 0 0 0 0</pose>',
+            f'    <pose>{base_x_val} {base_y_val} {base_z_val} {base_roll_val} {base_pitch_val} {base_yaw_val}</pose>',
             '    <include>',
-            '      <uri>file:///tmp/mm_base.urdf</uri>',
+            f'      <uri>file://{base_urdf_path}</uri>',
             '      <name>mm_base</name>',
             '      <pose>0 0 0 0 0 0</pose>',
             '    </include>',
             '    <include>',
-            '      <uri>file:///tmp/mm_arm.urdf</uri>',
+            f'      <uri>file://{arm_urdf_path}</uri>',
             '      <name>mm_arm</name>',
             f'      <pose>{arm_x_val} {arm_y_val} {arm_z_val} {arm_roll_val} {arm_pitch_val} {arm_yaw_val}</pose>',
             '    </include>',
@@ -110,8 +139,9 @@ def _generate_robot_files(
             '</sdf>',
         ]
     )
-    with open('/tmp/mm_assembly.sdf', 'w', encoding='utf-8') as handle:
+    with open(assembly_sdf_path, 'w', encoding='utf-8') as handle:
         handle.write(assembly_sdf + '\n')
+    shutil.copyfile(assembly_sdf_path, legacy_assembly_sdf)
 
     return []
 
@@ -151,6 +181,16 @@ def generate_launch_description():
     base_scale = LaunchConfiguration('base_scale')
     arm_scale = LaunchConfiguration('arm_scale')
     world = LaunchConfiguration('world')
+    gz_verbosity = LaunchConfiguration('gz_verbosity')
+    model_cache_dir = LaunchConfiguration('model_cache_dir')
+    publish_base_to_arm_tf = LaunchConfiguration('publish_base_to_arm_tf')
+
+    base_x = LaunchConfiguration('base_x')
+    base_y = LaunchConfiguration('base_y')
+    base_z = LaunchConfiguration('base_z')
+    base_roll = LaunchConfiguration('base_roll')
+    base_pitch = LaunchConfiguration('base_pitch')
+    base_yaw = LaunchConfiguration('base_yaw')
 
     arm_x = LaunchConfiguration('arm_x')
     arm_y = LaunchConfiguration('arm_y')
@@ -166,6 +206,9 @@ def generate_launch_description():
     mm_base_share = FindPackageShare('mm_base_description')
     mm_arm_share = FindPackageShare('mm_arm_description')
     ros_gz_sim_share = FindPackageShare('ros_gz_sim')
+    bridge_params = PathJoinSubstitution([mm_bringup_share, 'config', 'bridge_params.yaml'])
+    base_urdf_cache = PathJoinSubstitution([model_cache_dir, 'mm_base.urdf'])
+    arm_urdf_cache = PathJoinSubstitution([model_cache_dir, 'mm_arm.urdf'])
 
     base_xacro = PathJoinSubstitution([mm_base_share, 'urdf', 'mm_base.urdf.xacro'])
     arm_xacro = PathJoinSubstitution([mm_arm_share, 'urdf', 'mm_arm.urdf.xacro'])
@@ -192,6 +235,13 @@ def generate_launch_description():
             arm_prefix,
             base_scale,
             arm_scale,
+            model_cache_dir,
+            base_x,
+            base_y,
+            base_z,
+            base_roll,
+            base_pitch,
+            base_yaw,
             arm_x,
             arm_y,
             arm_z,
@@ -206,7 +256,7 @@ def generate_launch_description():
         executable='robot_description_publisher.py',
         namespace='mm_base',
         output='screen',
-        parameters=[{'urdf_file': '/tmp/mm_base.urdf'}],
+        parameters=[{'urdf_file': base_urdf_cache}],
     )
 
     arm_robot_description_pub = Node(
@@ -214,7 +264,7 @@ def generate_launch_description():
         executable='robot_description_publisher.py',
         namespace='mm_arm',
         output='screen',
-        parameters=[{'urdf_file': '/tmp/mm_arm.urdf'}],
+        parameters=[{'urdf_file': arm_urdf_cache}],
     )
 
 
@@ -228,7 +278,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             [ros_gz_sim_share, '/launch/gz_sim.launch.py']
         ),
-        launch_arguments={'gz_args': ['-r -v 4 ', world]}.items()
+        launch_arguments={'gz_args': ['-r -v ', gz_verbosity, ' ', world]}.items()
     )
 
     gz_launch_late = TimerAction(
@@ -281,6 +331,7 @@ def generate_launch_description():
             '--frame-id', base_link_frame,
             '--child-frame-id', arm_link_frame,
         ],
+        condition=IfCondition(publish_base_to_arm_tf),
     )
 
     base_jsb = Node(
@@ -292,6 +343,7 @@ def generate_launch_description():
             '--controller-manager-timeout', '120'
         ],
         output='screen',
+        parameters=[{'namespace': 'mm_base'}],
     )
 
     base_mecanum = Node(
@@ -314,6 +366,7 @@ def generate_launch_description():
             '--controller-manager-timeout', '120'
         ],
         output='screen',
+        parameters=[{'namespace': 'mm_arm'}],
     )
 
     arm_traj = Node(
@@ -330,33 +383,25 @@ def generate_launch_description():
     base_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=[
-            '/mm_base/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-            '/mm_base/camera@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/mm_base/camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
-            '/mm_base/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
-        ],
+        name='base_bridge',
         output='screen',
-        parameters=[{'use_sim_time': use_sim_time}],
+        parameters=[bridge_params, {'use_sim_time': use_sim_time}],
     )
 
     clock_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'],
+        name='clock_bridge',
         output='screen',
+        parameters=[bridge_params],
     )
 
     arm_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=[
-            '/mm_arm/camera@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/mm_arm/camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
-            '/mm_arm/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
-        ],
+        name='arm_bridge',
         output='screen',
-        parameters=[{'use_sim_time': use_sim_time}],
+        parameters=[bridge_params, {'use_sim_time': use_sim_time}],
     )
 
     start_base_mecanum = RegisterEventHandler(
@@ -387,6 +432,20 @@ def generate_launch_description():
         )
     )
 
+    joint_state_aggregator = Node(
+        package='mm_bringup',
+        executable='joint_state_aggregator.py',
+        name='joint_state_aggregator',
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'base_joint_topic': '/mm_base/joint_states'},
+            {'arm_joint_topic': '/mm_arm/joint_states'},
+            {'output_joint_topic': '/joint_states'},
+            {'publish_rate_hz': 50.0},
+        ],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('base_prefix', default_value='mm_base_'),
@@ -394,6 +453,15 @@ def generate_launch_description():
         DeclareLaunchArgument('base_scale', default_value='1.0'),
         DeclareLaunchArgument('arm_scale', default_value='1.0'),
         DeclareLaunchArgument('world', default_value=world_file),
+        DeclareLaunchArgument('gz_verbosity', default_value='4'),
+        DeclareLaunchArgument('model_cache_dir', default_value='/tmp/mm_bringup'),
+        DeclareLaunchArgument('publish_base_to_arm_tf', default_value='true'),
+        DeclareLaunchArgument('base_x', default_value='0.0'),
+        DeclareLaunchArgument('base_y', default_value='0.0'),
+        DeclareLaunchArgument('base_z', default_value='0.0'),
+        DeclareLaunchArgument('base_roll', default_value='0.0'),
+        DeclareLaunchArgument('base_pitch', default_value='0.0'),
+        DeclareLaunchArgument('base_yaw', default_value='0.0'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.06'),
@@ -412,6 +480,7 @@ def generate_launch_description():
         base_bridge,
         clock_bridge,
         arm_bridge,
+        joint_state_aggregator,
         start_base_mecanum,
         start_arm_jsb,
         start_arm_traj,

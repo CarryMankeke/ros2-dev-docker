@@ -91,7 +91,7 @@ node teleop_bridge
   - Gripper: `/mm_arm/gripper_cmd` (`Float64` posición/esfuerzo).
 - **Diagnóstico**: `/diagnostics` agrega latencia de joy, modo activo y estado del watchdog.
 
-## 6. Launchfiles
+## 6. Launchfiles (versión buenas prácticas 2025)
 
 ### `display.launch.py` (URDF + RViz)
 ```pseudo
@@ -103,15 +103,40 @@ start rviz2 with mm_stack.rviz
 
 ### `sim.launch.py` (Gazebo + controladores)
 ```pseudo
-args: use_sim_time:=true, world:=warehouse.sdf
-start gz_sim with world
-spawn robot (spawner.py)
-load/start controllers via ros2_control
+args:
+  use_sim_time:=true
+  world:=warehouse.sdf
+  base_prefix, arm_prefix
+  base_scale, arm_scale
+  base_pose:={x,y,z,yaw}
+  arm_pose:={x,y,z,roll,pitch,yaw}
+  gz_verbosity:=4
+
+set_env GZ_SIM_RESOURCE_PATH:=<pkg_share>/models
+include gz_sim.launch.py with world
+
+generate URDF/SDF:
+  xacro base (controllers_file:=config/base_controllers.yaml)
+  xacro arm (controllers_file:=config/arm_controllers.yaml)
+  assembly.sdf (incluye base en base_pose y brazo en arm_pose)
+
+spawn robot in Gazebo:
+  include assembly.sdf
+
+TF estático base->arm con arm_pose
+
+load/start controllers via ros2_control (encadenados con eventos):
   joint_state_broadcaster
-  diff_drive_base_controller
-  joint_trajectory_controller
-  gripper_controller
- wait_for /clock and /controller_manager services
+  mecanum_drive_controller
+  arm_trajectory_controller
+  gripper_controller (si aplica)
+
+bridges (parametrizados desde YAML):
+  clock_bridge: /clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock
+  base_sensors: scan, camera, imu (QoS explícito)
+  arm_sensors: camera, camera_info, imu
+
+ wait_for /clock y servicios de controller_manager con timeout claro
 ```
 
 ### `teleop.launch.py`
@@ -123,9 +148,20 @@ start teleop_bridge with params from config/joy_teleop.yaml
 
 ### `modes.launch.py` (entrypoint unificado)
 ```pseudo
-args: launch_sim:=true|false, clock_mode:=sim|real, input:=joy|esp32|gui, teleop_mode:=hybrid
-if launch_sim: include sim.launch.py
-else: start joint_state_publisher_gui
+args:
+  launch_sim:=true|false
+  clock_mode:=sim|real
+  input:=joy|esp32|gui
+  teleop_mode:=hybrid
+  world:=warehouse.sdf
+  base_pose:=...
+  arm_pose:=...
+
+if launch_sim:
+  include sim.launch.py (pasar world, base_pose, arm_pose)
+else:
+  start joint_state_publisher_gui
+
 include display.launch.py (rviz siempre activo)
 if input in {joy, esp32}: include teleop.launch.py
 ```
@@ -162,6 +198,10 @@ teleop_bridge:
 host$ docker compose build && docker compose up -d
 host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && colcon build"
 host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch mm_bringup modes.launch.py"
+
+# Modos más usados:
+# ros2 launch mm_bringup modes.launch.py gz_verbosity:=3 base_x:=0 base_y:=0 base_yaw:=0.0
+# ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=gui
 ```
 
 ## 10. Checklist de integración
@@ -185,3 +225,14 @@ host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash
 - **Logs y diagnóstico**: usar `diagnostic_updater` para exponer estado de joystick, modo activo y latencias de comando; activar `ros2 topic hz` en validaciones.
 - **Calidad de datos**: registrar _bag_ en pruebas críticas con `/joy`, `/cmd_vel`, `/mm_arm/joint_cmd`, `/tf` y `/clock` para reproducibilidad.
 - **Cancelación segura**: permitir `Ctrl+C` o servicio de parada que publique comandos cero y desactive controladores si el watchdog persiste.
+- **Parametrización de poses**: no fijar `base_x/base_y` ni offsets en SDF; pasar `base_pose` y `arm_pose` como argumentos de launch y propagar a los includes de Gazebo/TF para soportar múltiples instancias y CI determinista.
+- **Puentes ROS↔GZ configurables**: describir mappings en `config/bridge_params.yaml` y cargar desde launch, evitando cadenas embebidas. Documentar QoS y tipos exactos por tópico.
+- **Rutas temporales controladas**: generar artefactos (URDF/SDF) en una carpeta cache del workspace (`ros2_ws/tmp` o `~/.cache/mm_bringup`) en lugar de `/tmp`, y limpiar bajo demanda.
+- **Integración MoveIt/Nav2**: mantener configuración de planificación y navegación en archivos dedicados (`config/moveit_*.yaml`, `config/nav2_params.yaml`, `behavior_trees/`), con lanzadores propios e incluidos desde `modes.launch.py`. Ver `docs/arquitectura_moveit_nav2.md` para guía detallada.
+- **Cache de modelos parametrizable**: usar `model_cache_dir` como argumento de launch para los URDF/SDF generados y alinear la ruta con los mundos SDF que incluyan el ensamblaje.
+- **Sensores documentados**: si hay múltiples cámaras (frontal y navegación), reflejarlas en URDF y bridge YAML (`/mm_base/camera`, `/mm_base/nav_camera`) y definir QoS acorde (best_effort aceptable en sim).
+- **BT Nav2 predeterminada**: usar el árbol `navigate_w_replanning_and_recovery.xml` de `nav2_bt_navigator` como valor por defecto (`nav2_bt`) para navegación básica, y versionarlo si se personaliza.
+- **Colisiones en MoveIt**: cargar `config/moveit_planning_scene.yaml` para tener monitor de escena con TF/JointState y ejecución de trayectorias con tolerancias, asegurando que la planificación considere colisiones.
+- **Gripper sin DOF**: por ahora no se define controlador de gripper en ros2_control ni MoveIt; cuando se añada un actuador, crear la junta en URDF y extender los YAML correspondientes antes de activar su spawner.
+- **JointState global fusionado**: publicar `/joint_states` a partir de `/mm_base/joint_states` y `/mm_arm/joint_states` con un agregador (e.g., `joint_state_aggregator.py`) para que herramientas genéricas (RViz/MoveIt) consuman un único flujo manteniendo los namespaces internos.
+- **Docker multi-arquitectura**: la imagen base Jazzy es multi-arch (amd64/arm64) y `docker-compose.yml` no fuerza `platform`, permitiendo host macOS/Windows/Linux sin emulación manual.

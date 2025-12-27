@@ -24,6 +24,11 @@
   <xacro:property name="lidar_z" value="${base_height / 2.0 + 0.18 * scale}"/>
   <xacro:property name="camera_x" value="${base_length / 2.0 + 0.02 * scale}"/>
   <xacro:property name="camera_z" value="${base_height / 2.0 + 0.10 * scale}"/>
+  <xacro:property name="nav_camera_x" value="${0.0}"/>
+  <xacro:property name="nav_camera_z" value="${base_height / 2.0 + 0.22 * scale}"/>
+  <xacro:property name="nav_camera_fov" value="${1.047}"/>
+  <xacro:property name="nav_camera_width" value="640"/>
+  <xacro:property name="nav_camera_height" value="480"/>
 
   <xacro:macro name="simple_inertial" params="mass inertia">
     <inertial>
@@ -159,6 +164,29 @@
     <origin xyz="0 0 ${base_height / 2.0}" rpy="0 0 0"/>
   </joint>
 
+  <link name="${prefix}nav_camera_link">
+    <xacro:simple_inertial mass="0.2" inertia="0.0005"/>
+    <visual>
+      <geometry>
+        <box size="0.05 0.03 0.03"/>
+      </geometry>
+      <material name="CameraBlack">
+        <color rgba="0.05 0.05 0.05 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.03 0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="${prefix}nav_camera_joint" type="fixed">
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}nav_camera_link"/>
+    <origin xyz="${nav_camera_x} 0 ${nav_camera_z}" rpy="0 0 0"/>
+  </joint>
+
   <!-- ros2_control para la base mecanum -->
   <ros2_control name="mm_base_system" type="system">
     <hardware>
@@ -254,6 +282,27 @@
       <topic>/mm_base/imu</topic>
       <update_rate>100</update_rate>
       <always_on>1</always_on>
+    </sensor>
+  </gazebo>
+
+  <gazebo reference="${prefix}nav_camera_link">
+    <sensor name="nav_camera" type="camera">
+      <topic>/mm_base/nav_camera</topic>
+      <update_rate>15</update_rate>
+      <always_on>1</always_on>
+      <visualize>true</visualize>
+      <camera>
+        <horizontal_fov>${nav_camera_fov}</horizontal_fov>
+        <image>
+          <width>${nav_camera_width}</width>
+          <height>${nav_camera_height}</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>60.0</far>
+        </clip>
+      </camera>
     </sensor>
   </gazebo>
 </robot>

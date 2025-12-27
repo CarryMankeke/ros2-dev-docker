@@ -5,6 +5,7 @@ from typing import List, Optional
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
+from rclpy.qos import qos_profile_sensor_data
 from geometry_msgs.msg import Twist, TwistStamped
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String
@@ -36,6 +37,7 @@ class JoyTeleop(Node):
     def __init__(self) -> None:
         super().__init__('joy_teleop')
 
+        self.declare_parameter('use_sim_time', False)
         self._mode = _get_str_param(self, 'mode', 'base').lower()
         self._mode_cycle = ['base', 'arm', 'hybrid']
 
@@ -113,16 +115,16 @@ class JoyTeleop(Node):
         self._arm_positions = {}
         self._home_ready = False
 
-        self._cmd_vel_pub = self.create_publisher(Twist, self._cmd_vel_topic, 10)
+        self._cmd_vel_pub = self.create_publisher(Twist, self._cmd_vel_topic, qos_profile_sensor_data)
         self._cmd_vel_alt_pub = None
         if self._cmd_vel_alt_topic and self._cmd_vel_alt_topic != self._cmd_vel_topic:
-            self._cmd_vel_alt_pub = self.create_publisher(Twist, self._cmd_vel_alt_topic, 10)
+            self._cmd_vel_alt_pub = self.create_publisher(Twist, self._cmd_vel_alt_topic, qos_profile_sensor_data)
 
         self._arm_twist_pub = self.create_publisher(TwistStamped, self._arm_twist_topic, 10)
         self._arm_traj_pub = self.create_publisher(JointTrajectory, self._arm_traj_topic, 10)
         self._gripper_pub = self.create_publisher(String, self._gripper_topic, 10)
 
-        self.create_subscription(Joy, self._joy_topic, self._on_joy, 10)
+        self.create_subscription(Joy, self._joy_topic, self._on_joy, qos_profile_sensor_data)
         self.create_subscription(JointState, '/mm_arm/joint_states', self._on_arm_joint_state, 10)
 
         self._last_base_active = False
