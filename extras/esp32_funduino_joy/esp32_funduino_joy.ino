@@ -1,20 +1,20 @@
 // ESP32 con shield Funduino y micro-ROS por WiFi/UDP que publica /joy.
 //
 // Requisitos (Arduino IDE / PlatformIO):
-// - Placa: ESP32 (núcleo Arduino)
-// - Librería: micro_ros_arduino
-// - Lado ROS: agente micro-ROS en ejecución (udp4 puerto 8888 por defecto)
+// - Placa: ESP32 (nucleo Arduino)
+// - Libreria: micro_ros_arduino
+// - Lado ROS: agente micro-ROS en ejecucion (udp4 puerto 8888 por defecto)
 //
-// Botones del shield:
-//  A,B,C,D,E(Select),F(Start=deadman),SW(click)
+// Layout de botones (shield Funduino):
+// - A/B/C/D (cruceta)
+// - E (cambio de banco de articulaciones)
+// - F (deadman)
+// - SW (click del joystick, cambio de modo)
 //
-// Modos de uso:
-//  0 = BASE
-//  1 = ARM
-//  2 = COMBO
+// Prueba minima: abrir el monitor serial (115200), mover el stick y pulsar botones.
 //
-// Nota: el shield trae pines con nomenclatura de Arduino; aquí se asignan a GPIO reales del ESP32.
-// Ajusta los GPIO más abajo según tu cableado.
+// Nota: el shield trae pines con nomenclatura de Arduino; aqui se asignan a GPIO reales del ESP32.
+// Ajusta los GPIO mas abajo segun tu cableado.
 
 #include <WiFi.h>
 #include <micro_ros_arduino.h>
@@ -38,7 +38,7 @@ static const uint AGENT_PORT = 8888;
 // =======================
 // Frecuencia de publicación
 // =======================
-static const uint32_t PUB_HZ = 50;
+static const uint32_t PUB_HZ = 100;
 static const uint32_t PUB_PERIOD_MS = 1000 / PUB_HZ;
 
 // =======================
@@ -57,8 +57,8 @@ static const int PIN_B  = 27;
 static const int PIN_C  = 14;
 static const int PIN_D  = 12;
 
-static const int PIN_E_SELECT = 13; // Select = cambia de modo
-static const int PIN_F_START  = 33; // Start = botón de seguridad (deadman)
+static const int PIN_E = 13;
+static const int PIN_F = 33;
 
 // =======================
 // Estructura del mensaje Joy
@@ -66,20 +66,19 @@ static const int PIN_F_START  = 33; // Start = botón de seguridad (deadman)
 // ejes:
 //  0: left_stick_x  (-1..1)  eje X del joystick
 //  1: left_stick_y  (-1..1)  eje Y del joystick
-//  2: dpad_x        (-1,0,1) botones A/D (izquierda/derecha)
-//  3: dpad_y        (-1,0,1) botones B/C (abajo/arriba)
-//  4: mode          (0,1,2)  BASE/ARM/COMBO
+//  2: dpad_x        (-1,0,1) A/D
+//  3: dpad_y        (-1,0,1) C/B
 //
 // botones:
 //  0 A
 //  1 B
 //  2 C
 //  3 D
-//  4 E (Select)
-//  5 F (Start / deadman)
-//  6 SW (solicitud de HOME)
+//  4 E
+//  5 F
+//  6 SW
 
-static const size_t AXES_LEN = 5;
+static const size_t AXES_LEN = 4;
 static const size_t BUTTONS_LEN = 7;
 
 // =======================
@@ -96,8 +95,6 @@ rclc_executor_t executor;
 sensor_msgs__msg__Joy joy_msg;
 
 // Estado de la aplicación
-volatile int mode = 0; // 0=BASE,1=ARM,2=COMBO
-bool prev_select = false;
 uint32_t publish_count = 0;
 
 // =============== utilidades de depuración ===============
@@ -146,6 +143,10 @@ static inline int read_button(int pin) {
   return digitalRead(pin) == LOW ? 1 : 0;
 }
 
+static inline void setup_button_pin(int pin) {
+  pinMode(pin, INPUT_PULLUP);
+}
+
 static inline float map_axis_to_unit(int raw, int center, int deadband) {
   int v = raw - center;
   if (abs(v) < deadband) return 0.0f;
@@ -162,20 +163,13 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
   if (timer == NULL) return;
 
   // Lectura de botones
-  int bA  = read_button(PIN_A);
-  int bB  = read_button(PIN_B);
-  int bC  = read_button(PIN_C);
-  int bD  = read_button(PIN_D);
-  int bE  = read_button(PIN_E_SELECT);
-  int bF  = read_button(PIN_F_START);  // botón de seguridad (deadman)
-  int bSW = read_button(PIN_SW);       // petición de retorno a HOME
-
-  // Flanco ascendente para cambiar de modo con Select (E)
-  bool sel = (bE == 1);
-  if (sel && !prev_select) {
-    mode = (mode + 1) % 3; // BASE->ARM->COMBO->...
-  }
-  prev_select = sel;
+  int bA = read_button(PIN_A);
+  int bB = read_button(PIN_B);
+  int bC = read_button(PIN_C);
+  int bD = read_button(PIN_D);
+  int bE = read_button(PIN_E);
+  int bF = read_button(PIN_F);
+  int bSW = read_button(PIN_SW);
 
   // Ejes analógicos
   int rawX = analogRead(PIN_X);
@@ -188,8 +182,7 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
   float x = map_axis_to_unit(rawX, center, deadband);
   float y = map_axis_to_unit(rawY, center, deadband);
 
-  // Cruz direccional virtual con A/D y B/C
-  // A=izquierda, D=derecha, C=arriba, B=abajo
+  // Cruz direccional virtual con A/D y C/B
   int dpad_x = (bD ? 1 : 0) + (bA ? -1 : 0);
   int dpad_y = (bC ? 1 : 0) + (bB ? -1 : 0);
 
@@ -206,7 +199,6 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
   joy_msg.axes.data[1] = y;
   joy_msg.axes.data[2] = (float)dpad_x;
   joy_msg.axes.data[3] = (float)dpad_y;
-  joy_msg.axes.data[4] = (float)mode;
 
   joy_msg.buttons.data[0] = bA;
   joy_msg.buttons.data[1] = bB;
@@ -221,8 +213,8 @@ void timer_cb(rcl_timer_t *timer, int64_t /*last_call_time*/) {
 
   publish_count++;
   if (publish_count % (PUB_HZ * 2) == 0) { // cada ~2 segundos a 50 Hz
-    Serial.printf("[PUB] mode=%d axes: %.2f %.2f dpad=%d,%d deadman=%d\r\n",
-                  mode, x, y, dpad_x, dpad_y, bF);
+    Serial.printf("[PUB] axes: %.2f %.2f dpad=%d,%d deadman=%d\r\n",
+                  x, y, dpad_x, dpad_y, bF);
   }
 }
 
@@ -235,13 +227,13 @@ void setup() {
   // Si está disponible: analogReadResolution(12);
 
   // Botones con resistencia pull-up
-  pinMode(PIN_SW, INPUT_PULLUP);
-  pinMode(PIN_A,  INPUT_PULLUP);
-  pinMode(PIN_B,  INPUT_PULLUP);
-  pinMode(PIN_C,  INPUT_PULLUP);
-  pinMode(PIN_D,  INPUT_PULLUP);
-  pinMode(PIN_E_SELECT, INPUT_PULLUP);
-  pinMode(PIN_F_START,  INPUT_PULLUP);
+  setup_button_pin(PIN_SW);
+  setup_button_pin(PIN_A);
+  setup_button_pin(PIN_B);
+  setup_button_pin(PIN_C);
+  setup_button_pin(PIN_D);
+  setup_button_pin(PIN_E);
+  setup_button_pin(PIN_F);
 
   // Transporte WiFi de micro-ROS sobre UDP
   wait_for_wifi();

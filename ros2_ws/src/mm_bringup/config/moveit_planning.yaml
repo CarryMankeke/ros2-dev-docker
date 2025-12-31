@@ -1,17 +1,22 @@
-planning_pipelines:
-  pipeline_names: ["ompl"]
-
-ompl:
-  planning_plugin: ompl_interface/OMPLPlanner
-  request_adapters: >-
-    default_planner_request_adapters/AddTimeParameterization
-    default_planner_request_adapters/FixWorkspaceBounds
-    default_planner_request_adapters/FixStartStateBounds
-    default_planner_request_adapters/FixStartStateCollision
-    default_planner_request_adapters/FixStartStatePathConstraints
-  start_state_max_bounds_error: 0.1
-  default_planner_config: RRTConnectkConfigDefault
-  planner_configs:
-    RRTConnectkConfigDefault:
-      type: geometric::RRTConnect
-      range: 0.5
+move_group:
+  ros__parameters:
+    planning_pipelines:
+      pipeline_names: ["ompl"]
+    ompl:
+      planning_plugins:
+        - ompl_interface/OMPLPlanner
+      request_adapters:
+        - default_planning_request_adapters/CheckStartStateBounds
+        - default_planning_request_adapters/ValidateWorkspaceBounds
+        - default_planning_request_adapters/CheckStartStateCollision
+        - default_planning_request_adapters/ResolveConstraintFrames
+        - default_planning_request_adapters/CheckForStackedConstraints
+      response_adapters:
+        - default_planning_response_adapters/ValidateSolution
+      progress_topic: ""
+      start_state_max_bounds_error: 0.1
+      default_planner_config: RRTConnectkConfigDefault
+      planner_configs:
+        RRTConnectkConfigDefault:
+          type: geometric::RRTConnect
+          range: 0.5

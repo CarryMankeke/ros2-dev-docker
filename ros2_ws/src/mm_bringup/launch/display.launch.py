@@ -2,12 +2,17 @@ import subprocess
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, TimerAction, OpaqueFunction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command, PythonExpression
 from launch.conditions import IfCondition
+from launch.substitutions import (
+    Command,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    PythonExpression,
+)
 
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.substitutions import FindPackageShare
 
 
 def _generate_urdf_files(
@@ -65,6 +70,7 @@ def generate_launch_description():
     publish_base_to_arm_tf = LaunchConfiguration('publish_base_to_arm_tf')
     use_sim_time = LaunchConfiguration('use_sim_time')
     rviz_config = LaunchConfiguration('rviz_config')
+    launch_state_publishers = LaunchConfiguration('launch_state_publishers')
     base_prefix = LaunchConfiguration('base_prefix')
     arm_prefix = LaunchConfiguration('arm_prefix')
     base_scale = LaunchConfiguration('base_scale')
@@ -82,27 +88,34 @@ def generate_launch_description():
     mm_bringup_share = FindPackageShare('mm_bringup')
     mm_base_share = FindPackageShare('mm_base_description')
     mm_arm_share = FindPackageShare('mm_arm_description')
+    srdf_path = PathJoinSubstitution([mm_bringup_share, 'config', 'mm_arm.srdf'])
+    moveit_controllers = PathJoinSubstitution(
+        [mm_bringup_share, 'config', 'moveit_controllers.yaml']
+    )
+    moveit_planning = PathJoinSubstitution(
+        [mm_bringup_share, 'config', 'moveit_planning.yaml']
+    )
+    moveit_planning_scene = PathJoinSubstitution(
+        [mm_bringup_share, 'config', 'moveit_planning_scene.yaml']
+    )
+    moveit_kinematics = PathJoinSubstitution(
+        [mm_bringup_share, 'config', 'moveit_kinematics.yaml']
+    )
 
     base_xacro = PathJoinSubstitution([mm_base_share, 'urdf', 'mm_base.urdf.xacro'])
     arm_xacro = PathJoinSubstitution([mm_arm_share, 'urdf', 'mm_arm.urdf.xacro'])
 
-    base_controllers_yaml = PathJoinSubstitution(
-        [mm_bringup_share, 'config', 'base_controllers.yaml']
-    )
-    arm_controllers_yaml = PathJoinSubstitution(
-        [mm_bringup_share, 'config', 'arm_controllers.yaml']
-    )
+    base_controllers_yaml = PathJoinSubstitution([mm_bringup_share, 'config', 'base_controllers.yaml'])
+    arm_controllers_yaml = PathJoinSubstitution([mm_bringup_share, 'config', 'arm_controllers.yaml'])
 
-    default_rviz = PathJoinSubstitution(
-        [mm_bringup_share, 'rviz', 'mm_display.rviz']
-    )
+    default_rviz = PathJoinSubstitution([mm_bringup_share, 'rviz', 'mm_display.rviz'])
 
     base_description = ParameterValue(
         Command([
             'xacro ', base_xacro,
             ' prefix:=', base_prefix,
             ' scale:=', base_scale,
-            ' controllers_file:=', base_controllers_yaml
+            ' controllers_file:=', base_controllers_yaml,
         ]),
         value_type=str,
     )
@@ -112,7 +125,7 @@ def generate_launch_description():
             'xacro ', arm_xacro,
             ' prefix:=', arm_prefix,
             ' scale:=', arm_scale,
-            ' controllers_file:=', arm_controllers_yaml
+            ' controllers_file:=', arm_controllers_yaml,
         ]),
         value_type=str,
     )
@@ -140,6 +153,7 @@ def generate_launch_description():
             {'use_sim_time': use_sim_time},
             {'robot_description': base_description},
         ],
+        condition=IfCondition(launch_state_publishers),
     )
 
     base_joint_state_publisher = Node(
@@ -163,6 +177,7 @@ def generate_launch_description():
             {'use_sim_time': use_sim_time},
             {'robot_description': arm_description},
         ],
+        condition=IfCondition(launch_state_publishers),
     )
 
     arm_joint_state_publisher = Node(
@@ -225,7 +240,20 @@ def generate_launch_description():
                 executable='rviz2',
                 output='screen',
                 arguments=['-d', rviz_config],
-                parameters=[{'use_sim_time': use_sim_time}],
+                parameters=[
+                    {'use_sim_time': use_sim_time},
+                    {'robot_description': arm_description},
+                    {
+                        'robot_description_semantic': ParameterValue(
+                            Command(['cat ', srdf_path]),
+                            value_type=str,
+                        )
+                    },
+                    moveit_controllers,
+                    moveit_planning,
+                    moveit_planning_scene,
+                    moveit_kinematics,
+                ],
             )
         ],
     )
@@ -236,6 +264,7 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_base_to_arm_tf', default_value='false'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('rviz_config', default_value=default_rviz),
+        DeclareLaunchArgument('launch_state_publishers', default_value='true'),
         DeclareLaunchArgument('base_prefix', default_value='mm_base_'),
         DeclareLaunchArgument('arm_prefix', default_value='mm_arm_'),
         DeclareLaunchArgument('base_scale', default_value='1.0'),
@@ -246,7 +275,6 @@ def generate_launch_description():
         DeclareLaunchArgument('arm_roll', default_value='0.0'),
         DeclareLaunchArgument('arm_pitch', default_value='0.0'),
         DeclareLaunchArgument('arm_yaw', default_value='0.0'),
-
         generate_files,
         base_state_publisher,
         base_joint_state_publisher,

@@ -1,19 +1,19 @@
-planning_scene_monitor_options:
-  name: planning_scene_monitor
-  robot_description: robot_description
-  joint_state_topic: /mm_arm/joint_states
-  attached_collision_object_topic: /moveit_planning_scene_interface
-  monitored_planning_scene_topic: /monitored_planning_scene
-  publish_planning_scene_topic: /planning_scene
-  publish_geometry_updates: true
-  publish_state_updates: true
-  publish_transforms_updates: true
-
-moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
-moveit_manage_controllers: false
-
-trajectory_execution:
-  allowed_execution_duration_scaling: 1.2
-  allowed_goal_duration_margin: 0.5
-  allowed_start_tolerance: 0.01
-  execution_duration_monitoring: true
+move_group:
+  ros__parameters:
+    planning_scene_monitor_options:
+      name: planning_scene_monitor
+      robot_description: robot_description
+      joint_state_topic: /mm_arm/joint_states
+      attached_collision_object_topic: /moveit_planning_scene_interface
+      monitored_planning_scene_topic: /monitored_planning_scene
+      publish_planning_scene_topic: /planning_scene
+      publish_geometry_updates: true
+      publish_state_updates: true
+      publish_transforms_updates: true
+    moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+    moveit_manage_controllers: false
+    trajectory_execution:
+      allowed_execution_duration_scaling: 1.2
+      allowed_goal_duration_margin: 0.5
+      allowed_start_tolerance: 0.01
+      execution_duration_monitoring: true

@@ -16,6 +16,10 @@ base_bridge:
         ros_type_name: "sensor_msgs/msg/Image"
         gz_type_name: "gz.msgs.Image"
         direction: GZ_TO_ROS
+      - topic_name: "/mm_base/nav_camera/camera_info"
+        ros_type_name: "sensor_msgs/msg/CameraInfo"
+        gz_type_name: "gz.msgs.CameraInfo"
+        direction: GZ_TO_ROS
       - topic_name: "/mm_base/camera/camera_info"
         ros_type_name: "sensor_msgs/msg/CameraInfo"
         gz_type_name: "gz.msgs.CameraInfo"

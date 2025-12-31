@@ -1,0 +1,1 @@
+/home/ros/ros2_ws/build_glx/mm_bringup/ament_cmake_core/mm_bringupConfig.cmake

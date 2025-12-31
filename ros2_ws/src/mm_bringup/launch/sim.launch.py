@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import time
+from jinja2 import Environment, FileSystemLoader
 
 from launch import LaunchDescription
 from launch.actions import (
@@ -61,8 +62,8 @@ def _generate_robot_files(
     arm_controllers_path = arm_controllers_yaml.perform(context)
     base_prefix_val = base_prefix.perform(context)
     arm_prefix_val = arm_prefix.perform(context)
-    base_scale_val = base_scale.perform(context)
-    arm_scale_val = arm_scale.perform(context)
+    base_scale_val = float(base_scale.perform(context))
+    arm_scale_val = float(arm_scale.perform(context))
     model_cache_dir_val = model_cache_dir.perform(context)
     base_x_val = base_x.perform(context)
     base_y_val = base_y.perform(context)
@@ -80,12 +81,44 @@ def _generate_robot_files(
     os.makedirs(model_cache_dir_val, exist_ok=True)
     base_urdf_path = os.path.join(model_cache_dir_val, 'mm_base.urdf')
     arm_urdf_path = os.path.join(model_cache_dir_val, 'mm_arm.urdf')
+    base_controllers_out = os.path.join(model_cache_dir_val, 'base_controllers.yaml')
+    arm_controllers_out = os.path.join(model_cache_dir_val, 'arm_controllers.yaml')
     assembly_sdf_path = os.path.join(model_cache_dir_val, 'mm_assembly.sdf')
     legacy_cache_dir = '/tmp/mm_bringup'
     os.makedirs(legacy_cache_dir, exist_ok=True)
     legacy_base_urdf = os.path.join(legacy_cache_dir, 'mm_base.urdf')
     legacy_arm_urdf = os.path.join(legacy_cache_dir, 'mm_arm.urdf')
     legacy_assembly_sdf = os.path.join(legacy_cache_dir, 'mm_assembly.sdf')
+
+    # Render Jinja2 templates for controllers
+    mm_bringup_share = os.path.dirname(os.path.dirname(os.path.dirname(base_controllers_path)))
+    config_dir = os.path.join(mm_bringup_share, 'config')
+    
+    env = Environment(loader=FileSystemLoader(config_dir))
+    
+    # Render base_controllers template
+    try:
+        base_template = env.get_template('base_controllers.yaml.jinja2')
+        base_rendered = base_template.render(base_scale=base_scale_val)
+        with open(base_controllers_out, 'w', encoding='utf-8') as f:
+            f.write(base_rendered)
+        base_controllers_path_to_use = base_controllers_out
+    except Exception as e:
+        print(f'[WARNING] Failed to render base_controllers.yaml.jinja2: {e}')
+        print('[WARNING] Using static base_controllers.yaml')
+        base_controllers_path_to_use = base_controllers_path
+    
+    # Render arm_controllers template
+    try:
+        arm_template = env.get_template('arm_controllers.yaml.jinja2')
+        arm_rendered = arm_template.render(arm_prefix=arm_prefix_val)
+        with open(arm_controllers_out, 'w', encoding='utf-8') as f:
+            f.write(arm_rendered)
+        arm_controllers_path_to_use = arm_controllers_out
+    except Exception as e:
+        print(f'[WARNING] Failed to render arm_controllers.yaml.jinja2: {e}')
+        print('[WARNING] Using static arm_controllers.yaml')
+        arm_controllers_path_to_use = arm_controllers_path
 
     with open(base_urdf_path, 'w', encoding='utf-8') as handle:
         subprocess.run(
@@ -94,12 +127,13 @@ def _generate_robot_files(
                 base_xacro_path,
                 f'prefix:={base_prefix_val}',
                 f'scale:={base_scale_val}',
-                f'controllers_file:={base_controllers_path}',
+                f'controllers_file:={base_controllers_path_to_use}',
             ],
             check=True,
             stdout=handle,
         )
-    shutil.copyfile(base_urdf_path, legacy_base_urdf)
+    if os.path.abspath(base_urdf_path) != os.path.abspath(legacy_base_urdf):
+        shutil.copyfile(base_urdf_path, legacy_base_urdf)
 
     with open(arm_urdf_path, 'w', encoding='utf-8') as handle:
         subprocess.run(
@@ -108,12 +142,13 @@ def _generate_robot_files(
                 arm_xacro_path,
                 f'prefix:={arm_prefix_val}',
                 f'scale:={arm_scale_val}',
-                f'controllers_file:={arm_controllers_path}',
+                f'controllers_file:={arm_controllers_path_to_use}',
             ],
             check=True,
             stdout=handle,
         )
-    shutil.copyfile(arm_urdf_path, legacy_arm_urdf)
+    if os.path.abspath(arm_urdf_path) != os.path.abspath(legacy_arm_urdf):
+        shutil.copyfile(arm_urdf_path, legacy_arm_urdf)
 
     assembly_sdf = '\n'.join(
         [
@@ -141,7 +176,8 @@ def _generate_robot_files(
     )
     with open(assembly_sdf_path, 'w', encoding='utf-8') as handle:
         handle.write(assembly_sdf + '\n')
-    shutil.copyfile(assembly_sdf_path, legacy_assembly_sdf)
+    if os.path.abspath(assembly_sdf_path) != os.path.abspath(legacy_assembly_sdf):
+        shutil.copyfile(assembly_sdf_path, legacy_assembly_sdf)
 
     return []
 
@@ -182,6 +218,8 @@ def generate_launch_description():
     arm_scale = LaunchConfiguration('arm_scale')
     world = LaunchConfiguration('world')
     gz_verbosity = LaunchConfiguration('gz_verbosity')
+    gz_launch_delay = LaunchConfiguration('gz_launch_delay')
+    launch_gz = LaunchConfiguration('launch_gz')
     model_cache_dir = LaunchConfiguration('model_cache_dir')
     publish_base_to_arm_tf = LaunchConfiguration('publish_base_to_arm_tf')
 
@@ -221,7 +259,7 @@ def generate_launch_description():
     )
 
     world_file = PathJoinSubstitution(
-        [mm_bringup_share, 'worlds', 'warehouse.sdf']
+        [mm_bringup_share, 'worlds', 'minimal.world.sdf']
     )
 
     generate_files = OpaqueFunction(
@@ -273,6 +311,14 @@ def generate_launch_description():
         name='GZ_SIM_RESOURCE_PATH',
         value=models_path,
     )
+    set_gz_system_plugin_path = SetEnvironmentVariable(
+        name='GZ_SIM_SYSTEM_PLUGIN_PATH',
+        value=[
+            '/opt/ros/jazzy/lib',
+            os.pathsep,
+            EnvironmentVariable('GZ_SIM_SYSTEM_PLUGIN_PATH', default_value=''),
+        ],
+    )
 
     gz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -282,8 +328,9 @@ def generate_launch_description():
     )
 
     gz_launch_late = TimerAction(
-        period=5.0,
+        period=gz_launch_delay,
         actions=[gz_launch],
+        condition=IfCondition(launch_gz),
     )
 
     base_state_publisher = Node(
@@ -339,11 +386,19 @@ def generate_launch_description():
         executable='spawner',
         arguments=[
             'joint_state_broadcaster',
-            '--controller-manager', '/mm_base/mm_base_controller_manager',
-            '--controller-manager-timeout', '120'
+            '--controller-manager', '/mm_base/controller_manager',
+            '--controller-manager-timeout', '120',
+            '--switch-timeout', '30',
+            '--service-call-timeout', '30',
+            '--no-switch-asap',
         ],
         output='screen',
         parameters=[{'namespace': 'mm_base'}],
+    )
+
+    start_base_jsb = TimerAction(
+        period=8.0,
+        actions=[base_jsb],
     )
 
     base_mecanum = Node(
@@ -351,10 +406,21 @@ def generate_launch_description():
         executable='spawner',
         arguments=[
             'mecanum_drive_controller',
-            '--controller-manager', '/mm_base/mm_base_controller_manager',
-            '--controller-manager-timeout', '120'
+            '--controller-manager', '/mm_base/controller_manager',
+            '--controller-manager-timeout', '120',
+            '--switch-timeout', '30',
+            '--service-call-timeout', '30',
+            '--no-switch-asap',
         ],
         output='screen',
+        parameters=[
+            {
+                'base_scale': base_scale,
+                'wheel_separation_x': PythonExpression([str(0.33), ' * float("', base_scale, '")']),
+                'wheel_separation_y': PythonExpression([str(0.33), ' * float("', base_scale, '")']),
+                'wheel_radius': PythonExpression([str(0.06), ' * float("', base_scale, '")']),
+            }
+        ],
     )
 
     arm_jsb = Node(
@@ -362,8 +428,11 @@ def generate_launch_description():
         executable='spawner',
         arguments=[
             'joint_state_broadcaster',
-            '--controller-manager', '/mm_arm/mm_arm_controller_manager',
-            '--controller-manager-timeout', '120'
+            '--controller-manager', '/mm_arm/controller_manager',
+            '--controller-manager-timeout', '120',
+            '--switch-timeout', '30',
+            '--service-call-timeout', '30',
+            '--no-switch-asap',
         ],
         output='screen',
         parameters=[{'namespace': 'mm_arm'}],
@@ -374,8 +443,11 @@ def generate_launch_description():
         executable='spawner',
         arguments=[
             'arm_trajectory_controller',
-            '--controller-manager', '/mm_arm/mm_arm_controller_manager',
-            '--controller-manager-timeout', '120'
+            '--controller-manager', '/mm_arm/controller_manager',
+            '--controller-manager-timeout', '120',
+            '--switch-timeout', '30',
+            '--service-call-timeout', '30',
+            '--no-switch-asap',
         ],
         output='screen',
     )
@@ -454,6 +526,8 @@ def generate_launch_description():
         DeclareLaunchArgument('arm_scale', default_value='1.0'),
         DeclareLaunchArgument('world', default_value=world_file),
         DeclareLaunchArgument('gz_verbosity', default_value='4'),
+        DeclareLaunchArgument('gz_launch_delay', default_value='2.0'),
+        DeclareLaunchArgument('launch_gz', default_value='true'),
         DeclareLaunchArgument('model_cache_dir', default_value='/tmp/mm_bringup'),
         DeclareLaunchArgument('publish_base_to_arm_tf', default_value='true'),
         DeclareLaunchArgument('base_x', default_value='0.0'),
@@ -474,6 +548,7 @@ def generate_launch_description():
         arm_robot_description_pub,
         base_to_arm_tf,
         set_gz_resource_path,
+        set_gz_system_plugin_path,
         gz_launch_late,
         base_state_publisher,
         arm_state_publisher,
@@ -481,6 +556,7 @@ def generate_launch_description():
         clock_bridge,
         arm_bridge,
         joint_state_aggregator,
+        start_base_jsb,
         start_base_mecanum,
         start_arm_jsb,
         start_arm_traj,

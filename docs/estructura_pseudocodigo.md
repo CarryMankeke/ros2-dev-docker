@@ -12,8 +12,8 @@ Guía de esqueleto para el sistema de teleoperación y simulación del manipulad
 - `mm_base_description/`: URDF/Xacro de la base, transmisión, plugins Gazebo/Ignition y controladores `ros2_control`.
 - `mm_arm_description/`: URDF/Xacro del brazo 6DOF, límites articulares, transmisiones y frames `tool0`/`ee_link`.
 - `mm_bringup/`: launchfiles, configuraciones de control (`ros2_control`), RViz, Gazebo y teleop (parámetros en YAML, sin hardcodeo).
-- `mm_moveit_config/`: configuración MoveIt 2 (SRDF, OMPL, pipelines, scene monitor) alineada con los controladores de brazo y gripper.
-- `mm_navigation/`: parámetros Nav2 (mapas, BT XML, local/global costmaps) para fases posteriores de autonomía.
+- `mm_bringup/config/`: configuración MoveIt 2 (SRDF, OMPL, pipelines, scene monitor) alineada con los controladores de brazo.
+- `mm_bringup/maps/`: mapas Nav2 y `mm_bringup/config/nav2_params.yaml` para navegación.
 - `extras/esp32_funduino_joy/`: firmware micro-ROS que publica `sensor_msgs/msg/Joy` (opcional).
 - `docs/`: material de diseño y guías (este archivo y anexos), siempre referenciado desde el README.
 
@@ -98,19 +98,21 @@ node teleop_bridge
 include xacro -> robot_description
 start robot_state_publisher
 start joint_state_publisher_gui (opcional)
-start rviz2 with mm_stack.rviz
+start rviz2 with mm_display.rviz
 ```
 
 ### `sim.launch.py` (Gazebo + controladores)
 ```pseudo
 args:
   use_sim_time:=true
-  world:=warehouse.sdf
+  world:=minimal.world.sdf
   base_prefix, arm_prefix
   base_scale, arm_scale
   base_pose:={x,y,z,yaw}
   arm_pose:={x,y,z,roll,pitch,yaw}
   gz_verbosity:=4
+  launch_gz:=true|false
+  model_cache_dir:=/tmp/mm_bringup
 
 set_env GZ_SIM_RESOURCE_PATH:=<pkg_share>/models
 include gz_sim.launch.py with world
@@ -153,7 +155,7 @@ args:
   clock_mode:=sim|real
   input:=joy|esp32|gui
   teleop_mode:=hybrid
-  world:=warehouse.sdf
+  world:=minimal.world.sdf
   base_pose:=...
   arm_pose:=...
 
@@ -197,7 +199,7 @@ teleop_bridge:
 ```pseudo
 host$ docker compose build && docker compose up -d
 host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && colcon build"
-host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch mm_bringup modes.launch.py"
+host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 launch mm_bringup modes.launch.py"
 
 # Modos más usados:
 # ros2 launch mm_bringup modes.launch.py gz_verbosity:=3 base_x:=0 base_y:=0 base_yaw:=0.0
@@ -218,8 +220,8 @@ host$ docker compose exec -T ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash
 - **ros2_control en Harmonic**: cargar primero `joint_state_broadcaster`, luego controladores de la base y el brazo con `spawner.py` desde Gazebo; fijar `use_sim_time:=true` y comprobar que la `controller_manager` responde antes de enviar comandos.
 - **Sincronía reloj**: propagar `/clock` desde Gazebo y usar `rclcpp::Clock(RCL_ROS_TIME)` en nodos de control. RViz y MoveIt 2 deben lanzar con `use_sim_time` habilitado.
 - **QoS y confiabilidad**: usar `SensorDataQoS` para `/joy` y `/cmd_vel` (baja latencia); emplear `Reliable` + `Depth>1` para comandos del brazo (`JointTrajectory`) y TF estático.
-- **Nav2 (fase posterior)**: mantener aislado el stack de navegación en `mm_navigation/` con mapas, BT XML y parámetros. La base debe exponer `/cmd_vel` y `/tf/odom` coherentes; usar el `controller_server` tipo `dwb` u otro que respete límites de velocidad del teleop para pruebas manuales.
-- **MoveIt 2**: generar `mm_moveit_config` con `moveit2_setup_assistant`; alinear nombres de grupos con los controladores `ros2_control` (`arm`, `gripper`). Habilitar `planning_scene_monitor` en sim para consumir TF/JointState.
+- **Nav2 (fase posterior)**: mantener mapas en `mm_bringup/maps/` y parámetros en `mm_bringup/config/nav2_params.yaml`. La base debe exponer `/cmd_vel` y `/tf/odom` coherentes; usar el `controller_server` tipo `dwb` u otro que respete límites de velocidad del teleop para pruebas manuales.
+- **MoveIt 2**: generar `mm_arm.srdf` con `moveit2_setup_assistant`; alinear nombres de grupos con los controladores `ros2_control` (`arm`, `gripper`). Habilitar `planning_scene_monitor` en sim para consumir TF/JointState.
 - **Seguridad en teleop**: aplicar `deadband`, saturación de velocidades y watchdog (p. ej., _timeout_ < 0.5 s sin `/joy` → publicar Twist cero). Para el brazo, validar soluciones IK dentro de límites articulares y respetar `collision_check` cuando MoveIt 2 esté activo.
 - **Layouts configurables**: centralizar mapeos en YAML y documentar equivalencias por gamepad (Xbox/DS4) para evitar _hardcode_.
 - **Logs y diagnóstico**: usar `diagnostic_updater` para exponer estado de joystick, modo activo y latencias de comando; activar `ros2 topic hz` en validaciones.

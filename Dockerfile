@@ -13,13 +13,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     XDG_RUNTIME_DIR=/tmp/runtime-root
 
 RUN apt-get update \
- && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
     # --- Entorno gráfico y escritorio remoto (VNC/noVNC) ---
     xfce4 xfce4-terminal dbus-x11 x11-utils \
     xvfb x11vnc novnc websockify supervisor \
+    xserver-xorg-core xserver-xorg-video-dummy \
     # Utilidades básicas de sistema
-    curl ca-certificates git \
+    curl ca-certificates git python3-jinja2 \
     # --- Paquete desktop de ROS (incluye RViz2) ---
     ros-jazzy-desktop-full \
     # --- Gazebo Harmonic + integración ROS-Gazebo (ros_gz) ---
@@ -30,6 +30,7 @@ RUN apt-get update \
     ros-jazzy-ros2-control \
     ros-jazzy-ros2-controllers \
     ros-jazzy-gz-ros2-control \
+    ros-jazzy-twist-mux \
     # --- MoveIt2 (planificacion y OMPL) ---
     ros-jazzy-moveit \
     # Opcional pero útil para teleoperación con teclado
@@ -42,6 +43,17 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/xorg-dummy.conf /etc/X11/xorg.conf.d/99-dummy.conf
+
+# Crear usuario ros (no-root) para ejecutar servicios
+RUN useradd -m -s /bin/bash -G sudo ros \
+ && echo "ros:ros" | chpasswd \
+ && echo "ros ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Cambiar propiedad de directorios clave a usuario ros
+RUN chown -R ros:ros /etc/supervisor/conf.d \
+ && mkdir -p /home/ros/.config /home/ros/.cache \
+ && chown -R ros:ros /home/ros
 
 EXPOSE 8080
 CMD ["/usr/bin/supervisord","-c","/etc/supervisor/conf.d/supervisord.conf"]

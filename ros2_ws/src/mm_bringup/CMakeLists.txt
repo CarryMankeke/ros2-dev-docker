@@ -5,28 +5,43 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# find dependencies
 find_package(ament_cmake REQUIRED)
+# find_package(xacro REQUIRED)
+# find_package(robot_state_publisher REQUIRED)
+# find_package(joint_state_publisher_gui REQUIRED)
+# find_package(rviz2 REQUIRED)
+# find_package(launch REQUIRED)
+# find_package(launch_ros REQUIRED)
+# find_package(controller_manager REQUIRED)
+# find_package(ros2_controllers REQUIRED)
+# find_package(ros_gz_sim REQUIRED)
+# find_package(ros_gz_bridge REQUIRED)
+# find_package(teleop_twist_keyboard REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # La siguiente línea omite el linter que valida derechos de autor
-  # Bórrala cuando todos los archivos tengan copyright y licencia
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
   set(ament_cmake_copyright_FOUND TRUE)
-  # La siguiente línea desactiva cpplint (solo funciona en repos git)
-  # Elimina la excepción cuando el paquete esté en git y todos los archivos tengan licencia
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 
 
-install(DIRECTORY launch config worlds rviz models
+install(DIRECTORY launch config rviz worlds
   DESTINATION share/${PROJECT_NAME}
 )
-
 install(PROGRAMS
   scripts/robot_description_publisher.py
-  scripts/joy_teleop.py
   scripts/joint_state_aggregator.py
+  scripts/joy_teleop.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+
+# para copiar los launch y configs al share
 ament_package()

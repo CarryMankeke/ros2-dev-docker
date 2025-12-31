@@ -37,7 +37,6 @@ class JoyTeleop(Node):
     def __init__(self) -> None:
         super().__init__('joy_teleop')
 
-        self.declare_parameter('use_sim_time', False)
         self._mode = _get_str_param(self, 'mode', 'base').lower()
         self._mode_cycle = ['base', 'arm', 'hybrid']
 

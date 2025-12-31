@@ -16,7 +16,7 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
    ```bash
    docker compose exec -T ros2-vnc bash -lc '
    source /opt/ros/jazzy/setup.bash
-   cd /root/ros2_ws
+   cd /home/ros/ros2_ws
    colcon build --symlink-install
    '
    ```
@@ -24,7 +24,7 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
    ```bash
    docker compose exec -T ros2-vnc bash -lc '
    source /opt/ros/jazzy/setup.bash
-   source /root/ros2_ws/install/setup.bash
+   source /home/ros/ros2_ws/install/setup.bash
    ros2 launch mm_bringup modes.launch.py
    '
    ```
@@ -33,8 +33,8 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - `ros2_ws/src/mm_base_description`: base omnidireccional (URDF/Xacro + ros2_control).
 - `ros2_ws/src/mm_arm_description`: brazo 6DOF con control por posición.
 - `ros2_ws/src/mm_bringup`: launch files, configuración de teleop (`joy_teleop.py`), configuración de controladores y mundos SDF.
-- `ros2_ws/src/mm_moveit_config`: configuración MoveIt 2 alineada con los controladores de brazo y gripper.
-- `ros2_ws/src/mm_navigation`: parámetros Nav2 (mapas/costmaps/BT) para la fase de autonomía.
+- `ros2_ws/src/mm_bringup/config`: configuración MoveIt 2 (SRDF + planning + controllers) alineada con el brazo.
+- `ros2_ws/src/mm_bringup/maps` + `ros2_ws/src/mm_bringup/config/nav2_params.yaml`: mapas y parámetros Nav2.
 - `ros2_ws/src/mm_bringup/models`: assets locales para ser referenciados como `model://`.
 - `extras/esp32_funduino_joy`: firmware ESP32 para publicar `/joy` por micro-ROS.
 - `Dockerfile/docker-compose/supervisord.conf`: entorno con noVNC + micro-ROS Agent.
@@ -48,12 +48,32 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - Posición inicial: `base_x/base_y/base_yaw` y offsets del brazo `arm_x/arm_y/arm_z/...`.
 - Verbosidad Gazebo: `gz_verbosity:=3`.
 - Caché de modelos: `model_cache_dir:=/tmp/mm_bringup` (el world por defecto apunta ahí).
+- Depuración Gazebo GUI: `launch_gz:=false` y lanzar `gz sim` por separado si el GUI se cierra.
 - Bridges ROS↔Gazebo: definidos en `config/bridge_params.yaml` (LIDAR, IMU, cámaras base/nav, cámara brazo).
-- Nav2/MoveIt están desactivados por defecto (`launch_nav2:=false`, `launch_moveit:=false`); actívalos solo después de la primera entrega.
+- Nav2 está desactivado por defecto (`launch_nav2:=false`); MoveIt está activo en sim.
 
 
 ## Recursos útiles
 - `info.txt`: resumen de comandos más usados.
-- `ros2_ws/src/mm_bringup/worlds/warehouse.sdf`: mundo liviano (plano + cubo) que incluye el ensamblaje generado en `/tmp/mm_bringup/mm_assembly.sdf`.
+- `ros2_ws/src/mm_bringup/worlds/minimal.world.sdf`: mundo liviano (plano + cubo) que incluye el ensamblaje generado en `/tmp/mm_bringup/mm_assembly.sdf`.
 - `ros2_ws/src/mm_bringup/scripts/joy_teleop.py` + `config/joy_teleop.yaml`: lógica del teleop ESP32/joystick.
 - `docs/estructura_pseudocodigo.md`: esqueleto completo en pseudocódigo de nodos, launchfiles y flujo de arranque para la simulación.
+- `docs/arquitectura_moveit_nav2.md`: arquitectura de MoveIt 2 y Nav2 para fases futuras.
+- `AUDIT_REPORT.md`: auditoría exhaustiva del proyecto (problemas críticos, mayores, menores, roadmap).
+- `CHANGELOG.md`: historial de cambios (sigue [Keep a Changelog](https://keepachangelog.com/)).
+- `CONTRIBUTING.md`: guía para colaboradores (flujo de trabajo, estilo de código, convenciones).
+
+## CI/CD y Testing
+
+Este proyecto incluye:
+- **GitHub Actions** (`.github/workflows/ci.yaml`): `colcon build`, linters, smoke tests en cada push/PR a `main` y `develop`.
+- **Local testing**: ejecuta `colcon test` en Docker después de `colcon build`.
+
+Para validar cambios localmente:
+```bash
+docker compose exec -T ros2-vnc bash -lc '
+  source /opt/ros/jazzy/setup.bash
+  cd /home/ros/ros2_ws
+  colcon build --symlink-install && colcon test
+'
+```

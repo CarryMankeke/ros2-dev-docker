@@ -1,11 +1,58 @@
+from pathlib import Path
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import (
+    EnvironmentVariable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    PythonExpression,
+)
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+
+def _validate_config_files(context) -> list:
+    """
+    Valida que los archivos de configuración necesarios existan.
+    Falla con mensaje claro si algo no está.
+    """
+    mm_bringup_share = FindPackageShare('mm_bringup').perform(context)
+    config_dir = Path(mm_bringup_share) / 'config'
+    
+    # Archivos obligatorios
+    required_files = {
+        'bridge_params.yaml': 'Configuración de puentes ROS↔Gazebo',
+        'joy_teleop.yaml': 'Mapeo de joystick/teleop',
+        'base_controllers.yaml': 'Controladores de la base',
+        'arm_controllers.yaml': 'Controladores del brazo',
+        'nav2_params.yaml': 'Parámetros de Nav2',
+        'moveit_planning.yaml': 'Parámetros de planificación MoveIt 2',
+        'moveit_kinematics.yaml': 'IK MoveIt 2',
+        'cmd_vel_mux.yaml': 'Multiplexor de velocidad',
+    }
+    
+    missing_files = []
+    for filename, description in required_files.items():
+        filepath = config_dir / filename
+        if not filepath.exists():
+            missing_files.append(f"  • {filename}: {description}")
+    
+    if missing_files:
+        raise RuntimeError(
+            f"\n{'='*70}\n"
+            f"ERROR: Archivos de configuración no encontrados:\n"
+            f"{chr(10).join(missing_files)}\n\n"
+            f"Ubicación esperada: {config_dir}\n\n"
+            f"Solución: Verifica que el workspace esté compilado:\n"
+            f"  $ colcon build --symlink-install\n"
+            f"{'='*70}\n"
+        )
+    
+    return []
 
 
 def generate_launch_description():
@@ -19,7 +66,10 @@ def generate_launch_description():
     base_scale = LaunchConfiguration('base_scale')
     arm_scale = LaunchConfiguration('arm_scale')
     gz_verbosity = LaunchConfiguration('gz_verbosity')
+    gz_launch_delay = LaunchConfiguration('gz_launch_delay')
+    launch_gz = LaunchConfiguration('launch_gz')
     model_cache_dir = LaunchConfiguration('model_cache_dir')
+    launch_cmd_vel_mux = LaunchConfiguration('launch_cmd_vel_mux')
     launch_nav2 = LaunchConfiguration('launch_nav2')
     nav2_map = LaunchConfiguration('nav2_map')
     nav2_params = LaunchConfiguration('nav2_params')
@@ -30,6 +80,7 @@ def generate_launch_description():
     moveit_planning = LaunchConfiguration('moveit_planning')
     moveit_kinematics = LaunchConfiguration('moveit_kinematics')
     moveit_servo = LaunchConfiguration('moveit_servo')
+    launch_servo = LaunchConfiguration('launch_servo')
     world = LaunchConfiguration('world')
     base_x = LaunchConfiguration('base_x')
     base_y = LaunchConfiguration('base_y')
@@ -50,7 +101,7 @@ def generate_launch_description():
     nav2_launch = PathJoinSubstitution([mm_bringup_share, 'launch', 'nav2.launch.py'])
     moveit_launch = PathJoinSubstitution([mm_bringup_share, 'launch', 'moveit.launch.py'])
     joy_params = PathJoinSubstitution([mm_bringup_share, 'config', 'joy_teleop.yaml'])
-    world_file = PathJoinSubstitution([mm_bringup_share, 'worlds', 'warehouse.sdf'])
+    world_file = PathJoinSubstitution([mm_bringup_share, 'worlds', 'minimal.world.sdf'])
     nav2_map_default = PathJoinSubstitution([mm_bringup_share, 'maps', 'blank.yaml'])
     nav2_params_default = PathJoinSubstitution([mm_bringup_share, 'config', 'nav2_params.yaml'])
     moveit_srdf_default = PathJoinSubstitution([mm_bringup_share, 'config', 'mm_arm.srdf'])
@@ -58,6 +109,7 @@ def generate_launch_description():
     moveit_planning_default = PathJoinSubstitution([mm_bringup_share, 'config', 'moveit_planning.yaml'])
     moveit_kinematics_default = PathJoinSubstitution([mm_bringup_share, 'config', 'moveit_kinematics.yaml'])
     moveit_servo_default = PathJoinSubstitution([mm_bringup_share, 'config', 'moveit_servo.yaml'])
+    cmd_vel_mux_params = PathJoinSubstitution([mm_bringup_share, 'config', 'cmd_vel_mux.yaml'])
 
     use_sim_time = PythonExpression(["'", clock_mode, "' == 'sim'"])
 
@@ -83,6 +135,13 @@ def generate_launch_description():
     is_input_esp32 = PythonExpression(["'", input_mode, "' == 'esp32'"])
     is_nav2 = PythonExpression(["'", launch_nav2, "' == 'true'"])
     is_moveit = PythonExpression(["'", launch_moveit, "' == 'true'"])
+    is_cmd_vel_mux = PythonExpression(["'", launch_cmd_vel_mux, "' == 'true'"])
+    launch_state_publishers = PythonExpression(
+        ["'false' if ('", launch_sim, "' == 'true') else 'true'"]
+    )
+    launch_moveit_state_publisher = PythonExpression(
+        ["'false' if ('", launch_sim, "' == 'true') else 'true'"]
+    )
 
     sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(sim_launch),
@@ -95,6 +154,8 @@ def generate_launch_description():
             'arm_scale': arm_scale,
             'model_cache_dir': model_cache_dir,
             'world': world,
+            'gz_launch_delay': gz_launch_delay,
+            'launch_gz': launch_gz,
             'base_x': base_x,
             'base_y': base_y,
             'base_z': base_z,
@@ -119,6 +180,7 @@ def generate_launch_description():
             'use_joint_state_gui': use_joint_state_gui,
             'publish_base_to_arm_tf': publish_base_to_arm_tf,
             'use_sim_time': use_sim_time,
+            'launch_state_publishers': launch_state_publishers,
         }.items(),
         condition=IfCondition(is_display),
     )
@@ -147,8 +209,23 @@ def generate_launch_description():
             'planning_config': moveit_planning,
             'kinematics_config': moveit_kinematics,
             'servo_config': moveit_servo,
+            'launch_servo': launch_servo,
+            'launch_rviz': 'false',
+            'launch_state_publisher': launch_moveit_state_publisher,
         }.items(),
         condition=IfCondition(is_moveit),
+    )
+
+    cmd_vel_mux = Node(
+        package='twist_mux',
+        executable='twist_mux',
+        name='cmd_vel_mux',
+        output='screen',
+        parameters=[cmd_vel_mux_params, {'use_sim_time': use_sim_time}],
+        remappings=[
+            ('/cmd_vel_out', '/mm_base/mecanum_drive_controller/cmd_vel_unstamped')
+        ],
+        condition=IfCondition(is_cmd_vel_mux),
     )
 
     teleop = Node(
@@ -160,6 +237,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        OpaqueFunction(function=_validate_config_files),
         DeclareLaunchArgument('clock_mode', default_value='sim'),
         DeclareLaunchArgument('launch_sim', default_value='true'),
         DeclareLaunchArgument('launch_display', default_value='true'),
@@ -167,19 +245,28 @@ def generate_launch_description():
         DeclareLaunchArgument('nav2_map', default_value=nav2_map_default),
         DeclareLaunchArgument('nav2_params', default_value=nav2_params_default),
         DeclareLaunchArgument('nav2_bt', default_value=''),
-        DeclareLaunchArgument('launch_moveit', default_value='false'),
+        DeclareLaunchArgument('launch_moveit', default_value='true'),
         DeclareLaunchArgument('moveit_srdf', default_value=moveit_srdf_default),
         DeclareLaunchArgument('moveit_controllers', default_value=moveit_controllers_default),
         DeclareLaunchArgument('moveit_planning', default_value=moveit_planning_default),
         DeclareLaunchArgument('moveit_kinematics', default_value=moveit_kinematics_default),
         DeclareLaunchArgument('moveit_servo', default_value=moveit_servo_default),
+        DeclareLaunchArgument('launch_servo', default_value='false'),
         DeclareLaunchArgument('input', default_value='none'),
         DeclareLaunchArgument('teleop_mode', default_value='hybrid'),
         DeclareLaunchArgument('use_fake_joint_states', default_value='false'),
         DeclareLaunchArgument('use_joint_state_gui', default_value='false'),
         DeclareLaunchArgument('publish_base_to_arm_tf', default_value='true'),
         DeclareLaunchArgument('gz_verbosity', default_value='4'),
-        DeclareLaunchArgument('model_cache_dir', default_value='/tmp/mm_bringup'),
+        DeclareLaunchArgument('gz_launch_delay', default_value='2.0'),
+        DeclareLaunchArgument('launch_gz', default_value='true'),
+        DeclareLaunchArgument(
+            'model_cache_dir',
+            default_value=PathJoinSubstitution(
+                [EnvironmentVariable('HOME'), '.cache', 'mm_bringup']
+            ),
+        ),
+        DeclareLaunchArgument('launch_cmd_vel_mux', default_value='true'),
         DeclareLaunchArgument('base_prefix', default_value='mm_base_'),
         DeclareLaunchArgument('arm_prefix', default_value='mm_arm_'),
         DeclareLaunchArgument('base_scale', default_value='1.0'),
@@ -201,5 +288,6 @@ def generate_launch_description():
         display,
         nav2,
         moveit,
+        cmd_vel_mux,
         teleop,
     ])

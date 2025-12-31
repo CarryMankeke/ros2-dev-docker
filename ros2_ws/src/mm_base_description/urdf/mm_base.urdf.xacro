@@ -222,7 +222,7 @@
         <namespace>mm_base</namespace>
       </ros>
       <parameters>${controllers_file}</parameters>
-      <controller_manager_name>${prefix}controller_manager</controller_manager_name>
+      <controller_manager_name>controller_manager</controller_manager_name>
     </plugin>
   </gazebo>
 

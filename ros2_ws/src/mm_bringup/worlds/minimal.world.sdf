@@ -4,16 +4,50 @@
     <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
       <render_engine>ogre2</render_engine>
     </plugin>
-    <include>
-      <uri>model://sun</uri>
-    </include>
-    <include>
-      <uri>model://ground_plane</uri>
-    </include>
 
-    <!-- Ensamblaje del manipulador móvil (base y brazo unidos con junta fija). -->
+    <scene>
+      <ambient>0.7 0.7 0.7 1</ambient>
+      <background>0.6 0.8 1 1</background>
+      <shadows>false</shadows>
+      <grid>true</grid>
+    </scene>
+
+    <light name="sun" type="directional">
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1</ambient>
+          </material>
+        </visual>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+    </model>
+
+    <!-- Ensamblaje del manipulador movil (base y brazo unidos con junta fija). -->
     <include>
-      <uri>file:///tmp/mm_assembly.sdf</uri>
+      <uri>file:///tmp/mm_bringup/mm_assembly.sdf</uri>
       <name>mm_assembly</name>
       <pose>0 0 0 0 0 0</pose>
     </include>

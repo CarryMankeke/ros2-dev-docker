@@ -32,7 +32,7 @@ docker compose down
 
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
-cd /root/ros2_ws
+cd /home/ros/ros2_ws
 rm -rf build install log
 colcon build --symlink-install
 '
@@ -46,7 +46,7 @@ colcon build --symlink-install
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
+source /home/ros/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py
 '
 
@@ -54,7 +54,7 @@ ros2 launch mm_bringup modes.launch.py
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
+source /home/ros/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid
 '
 
@@ -62,7 +62,7 @@ ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
+source /home/ros/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=gui
 '
 
@@ -70,7 +70,7 @@ ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:
 cd ~/Documents/ros2-sim-vnc
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
+source /home/ros/ros2_ws/install/setup.bash
 ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:=esp32 teleop_mode:=base
 '
 
@@ -79,12 +79,14 @@ ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:
 
 # Ajustes útiles:
 # - Nivel de log de Gazebo: gz_verbosity:=3
+# - Nombre del mundo (para esperar /world/<name>/control): world_name:=empty_box
+# - Timeout de espera de Gazebo: gz_ready_timeout:=60.0
 # - Posición inicial: base_x:=0.0 base_y:=0.0 base_yaw:=0.0 arm_x:=0.0 arm_y:=0.0 arm_z:=0.06
 # - Bridges ROS↔Gazebo: config/bridge_params.yaml (cargado por sim.launch.py)
 #   Incluye cámaras: /mm_base/camera y /mm_base/nav_camera
 # - Nav2 opcional: launch_nav2:=true nav2_map:=<map.yaml> nav2_params:=config/nav2_params.yaml nav2_bt:=<bt.xml> (por defecto usa navigate_w_replanning_and_recovery.xml de nav2_bt_navigator)
-# - MoveIt opcional: launch_moveit:=true (usa config de mm_bringup/config/*moveit*, rviz activable con launch_rviz:=true|false)
-# - Cache de modelos: model_cache_dir:=/tmp/mm_bringup (si cambias, ajusta el world que uses)
+# - MoveIt opcional: launch_moveit:=true (usa config de mm_bringup/config/*moveit*, rviz activable con launch_rviz:=true|false). MoveIt controla solo el brazo; Nav2 controla solo la base.
+# - Cache de modelos: model_cache_dir:=~/.cache/mm_bringup (sim.launch.py copia el ensamblaje a /tmp/mm_bringup para el world por defecto)
 # - Host Mac ARM/Windows/x86: todo corre en Docker Linux con imagen multi-arquitectura; habilita virtualización (Rosetta no necesaria). Rutas /tmp/ son dentro del contenedor.
 
 
@@ -94,7 +96,7 @@ ros2 launch mm_bringup modes.launch.py launch_sim:=false clock_mode:=real input:
 
 docker compose exec -T ros2-vnc bash -lc '
 source /opt/ros/jazzy/setup.bash
-source /root/ros2_ws/install/setup.bash
+source /home/ros/ros2_ws/install/setup.bash
 <ROS2_COMMAND>
 '
 
@@ -138,8 +140,8 @@ docker compose up -d
 # Firmware del ESP32 (micro-ROS /joy):
 # extras/esp32_funduino_joy/esp32_funduino_joy.ino
 
-# El agente micro-ROS (UDP) lo arranca supervisord dentro del contenedor.
-# Si quieres lanzarlo manualmente, detén el contenedor o comenta la entrada en supervisord.conf y luego:
+# El agente micro-ROS (UDP) corre en el servicio micro-ros-agent del docker-compose.
+# Si quieres lanzarlo manualmente, detén ese servicio y luego:
 # cd ~/Documents/ros2-sim-vnc
 # docker compose exec -T ros2-vnc bash -lc '
 # source /opt/ros/jazzy/setup.bash
@@ -162,3 +164,16 @@ cd ~/Documents/ros2-sim-vnc
 
 docker compose ps
 lsof -nP -iTCP:8080 -sTCP:LISTEN
+
+
+
+
+exec for setup asistan moveit2
+docker compose exec -T ros2-vnc bash -lc 'source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run moveit_setup_assistant moveit_setup_assistant'
+
+
+
+exec oara setup asistanse bypas bug for arch arm64
+docker compose exec -T ros2-vnc bash -lc 'source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && export LIBGL_ALWAYS_SOFTWARE=1 LIBGL_DRI3_DISABLE=1 QT_XCB_FORCE_SOFTWARE_OPENGL=1 QT_XCB_GL_INTEGRATION=none QT_QUICK_BACKEND=software MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 && ros2 run moveit_setup_assistant moveit_setup_assistant --urdf_path /home/ros/ros2_ws/tmp/mm_arm_for_moveit.urdf'
+
+

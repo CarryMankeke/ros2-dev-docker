@@ -1,5 +1,6 @@
 services:
   ros2-vnc:
+    platform: linux/arm64
     build: .
     container_name: ros2_vnc_container
     restart: unless-stopped
@@ -11,7 +12,7 @@ services:
       - LIBGL_ALWAYS_SOFTWARE=1
       - QT_X11_NO_MITSHM=1
       - XDG_RUNTIME_DIR=/tmp/runtime-root
-      - ROS2_WS=/root/ros2_ws
+      - ROS2_WS=/home/ros/ros2_ws
       - ROS_DOMAIN_ID=0
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
@@ -23,13 +24,14 @@ services:
       - seccomp:unconfined
 
     volumes:
-      - ./ros2_ws:/root/ros2_ws:rw
+      - ./ros2_ws:/home/ros/ros2_ws:rw
 
     networks:
       - rosnet
 
   micro-ros-agent:
     image: microros/micro-ros-agent:jazzy
+    platform: linux/arm64
     container_name: micro_ros_agent
     restart: unless-stopped
 

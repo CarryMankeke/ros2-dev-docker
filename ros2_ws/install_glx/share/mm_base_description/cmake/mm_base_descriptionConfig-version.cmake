@@ -1,0 +1,1 @@
+/home/ros/ros2_ws/build_glx/mm_base_description/ament_cmake_core/mm_base_descriptionConfig-version.cmake

@@ -1,0 +1,21 @@
+cmd_vel_mux:
+  ros__parameters:
+    use_stamped: false
+    topics:
+      nav2:
+        topic: /mm_base/cmd_vel
+        timeout: 0.5
+        priority: 50
+      teleop:
+        topic: /mm_base/cmd_vel_teleop
+        timeout: 0.5
+        priority: 100
+      keyboard:
+        topic: /mm_base/cmd_vel_keyboard
+        timeout: 0.5
+        priority: 90
+    locks:
+      e_stop:
+        topic: /mm_base/e_stop
+        timeout: 0.0
+        priority: 255
