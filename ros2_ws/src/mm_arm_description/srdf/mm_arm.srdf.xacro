@@ -12,12 +12,12 @@
   
   <!-- Grupo para el brazo (6 joints rotacionales) -->
   <group name="arm">
-    <joint name="${prefix}joint_1"/>
-    <joint name="${prefix}joint_2"/>
-    <joint name="${prefix}joint_3"/>
-    <joint name="${prefix}joint_4"/>
-    <joint name="${prefix}joint_5"/>
-    <joint name="${prefix}joint_6"/>
+    <joint name="${prefix}shoulder_pan_joint"/>
+    <joint name="${prefix}shoulder_lift_joint"/>
+    <joint name="${prefix}elbow_joint"/>
+    <joint name="${prefix}wrist_1_joint"/>
+    <joint name="${prefix}wrist_2_joint"/>
+    <joint name="${prefix}wrist_3_joint"/>
   </group>
 
   <!-- Grupo para el gripper (si existe) -->
@@ -33,7 +33,7 @@
 
   <!-- ==================== DESHABILITAR COLISIONES ==================== -->
   <!-- Deshabilitar colisiones entre links adyacentes (mismo material, no colisionan) -->
-  <disable_collisions link1="${prefix}link_0" link2="${prefix}link_1" reason="Adjacent"/>
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}link_1" reason="Adjacent"/>
   <disable_collisions link1="${prefix}link_1" link2="${prefix}link_2" reason="Adjacent"/>
   <disable_collisions link1="${prefix}link_2" link2="${prefix}link_3" reason="Adjacent"/>
   <disable_collisions link1="${prefix}link_3" link2="${prefix}link_4" reason="Adjacent"/>
@@ -41,7 +41,7 @@
   <disable_collisions link1="${prefix}link_5" link2="${prefix}link_6" reason="Adjacent"/>
   
   <!-- Deshabilitar auto-colisiones (el robot no choca consigo mismo típicamente) -->
-  <disable_collisions link1="${prefix}link_0" link2="${prefix}link_2" reason="Non-adjacent"/>
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}link_2" reason="Non-adjacent"/>
   <disable_collisions link1="${prefix}link_1" link2="${prefix}link_3" reason="Non-adjacent"/>
   <disable_collisions link1="${prefix}link_2" link2="${prefix}link_4" reason="Non-adjacent"/>
   <disable_collisions link1="${prefix}link_3" link2="${prefix}link_5" reason="Non-adjacent"/>

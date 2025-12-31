@@ -91,8 +91,9 @@ def _generate_robot_files(
     legacy_assembly_sdf = os.path.join(legacy_cache_dir, 'mm_assembly.sdf')
 
     # Render Jinja2 templates for controllers
-    mm_bringup_share = os.path.dirname(os.path.dirname(os.path.dirname(base_controllers_path)))
-    config_dir = os.path.join(mm_bringup_share, 'config')
+    # base_controllers_path is: /install/mm_bringup/share/mm_bringup/config/arm_controllers.yaml
+    # We need the config directory which is the parent of the file
+    config_dir = os.path.dirname(base_controllers_path)
     
     env = Environment(loader=FileSystemLoader(config_dir))
     
