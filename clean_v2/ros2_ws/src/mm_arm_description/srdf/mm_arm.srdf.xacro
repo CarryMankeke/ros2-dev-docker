@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<robot name="mm_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="prefix" default="mm1_"/>
+  <xacro:property name="prefix" value="$(arg prefix)"/>
+
+  <!-- Placeholder: SRDF minimo para completar la estructura. -->
+  <virtual_joint name="world_joint" type="fixed" parent_frame="world" child_link="${prefix}root_link"/>
+</robot>

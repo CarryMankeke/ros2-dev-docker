@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="mm_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="prefix" default="mm1_"/>
+  <xacro:arg name="scale" default="1.0"/>
+  <xacro:property name="prefix" value="$(arg prefix)"/>
+  <xacro:property name="scale" value="$(arg scale)"/>
+
+  <!-- Placeholder: se reemplazara por el brazo real en el paso 2. -->
+  <link name="${prefix}root_link"/>
+</robot>
