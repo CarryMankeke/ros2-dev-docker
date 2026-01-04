@@ -3,7 +3,7 @@
   <name>mm_bringup</name>
   <version>0.1.0</version>
   <description>Bringup del manipulador movil con soporte multi-robot.</description>
-  <maintainer email="dev@local">dev</maintainer>
+  <maintainer email="dev@example.com">dev</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,6 +12,7 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>xacro</exec_depend>

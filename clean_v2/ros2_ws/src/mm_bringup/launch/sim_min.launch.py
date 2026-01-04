@@ -1,7 +1,7 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -14,6 +14,16 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     world = LaunchConfiguration('world')
     gz_args = LaunchConfiguration('gz_args')
+    robot_description_topic = PathJoinSubstitution([
+        TextSubstitution(text='/'),
+        namespace,
+        TextSubstitution(text='robot_description'),
+    ])
+    controller_manager_ns = PathJoinSubstitution([
+        TextSubstitution(text='/'),
+        namespace,
+        TextSubstitution(text='controller_manager'),
+    ])
 
     mm_bringup_share = FindPackageShare('mm_bringup')
     ros_gz_sim_share = FindPackageShare('ros_gz_sim')
@@ -65,9 +75,16 @@ def generate_launch_description():
         output='screen',
         arguments=[
             '-name', namespace,
-            '-topic', f'/{namespace}/robot_description',
+            '-topic', robot_description_topic,
             '-z', '0.15',
         ],
+    )
+
+    clock_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        output='screen',
+        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
     )
 
     base_jsb = Node(
@@ -76,18 +93,24 @@ def generate_launch_description():
         output='screen',
         arguments=[
             'joint_state_broadcaster',
-            '--controller-manager', f'/{namespace}/controller_manager',
+            '--controller-manager', controller_manager_ns,
+            '--controller-manager-timeout', '120',
+            '--service-call-timeout', '30',
         ],
     )
+    start_base_jsb = TimerAction(period=3.0, actions=[base_jsb])
 
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
-        DeclareLaunchArgument('gz_args', default_value='-r -v 4'),
+        DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
+        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
         gz_launch,
+        clock_bridge,
         robot_state_publisher,
         spawn_robot,
-        base_jsb,
+        start_base_jsb,
     ])

@@ -24,7 +24,7 @@ services:
       - seccomp:unconfined
 
     volumes:
-      - ./ros2_ws:/home/ros/ros2_ws:rw
+      - ./clean_v2/ros2_ws:/home/ros/ros2_ws:rw
 
     networks:
       - rosnet
