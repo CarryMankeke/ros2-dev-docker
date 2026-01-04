@@ -65,6 +65,10 @@ def _generate_robot_files(
     base_scale,
     arm_scale,
     enable_render_sensors,
+    enable_lidar,
+    enable_base_camera,
+    enable_nav_camera,
+    enable_arm_camera,
     model_cache_dir,
     base_x,
     base_y,
@@ -88,6 +92,10 @@ def _generate_robot_files(
     base_scale_val = float(base_scale.perform(context))
     arm_scale_val = float(arm_scale.perform(context))
     enable_render_sensors_val = enable_render_sensors.perform(context)
+    enable_lidar_val = enable_lidar.perform(context)
+    enable_base_camera_val = enable_base_camera.perform(context)
+    enable_nav_camera_val = enable_nav_camera.perform(context)
+    enable_arm_camera_val = enable_arm_camera.perform(context)
     model_cache_dir_val = model_cache_dir.perform(context)
     base_x_val = base_x.perform(context)
     base_y_val = base_y.perform(context)
@@ -146,6 +154,9 @@ def _generate_robot_files(
                 f'prefix:={base_prefix_val}',
                 f'scale:={base_scale_val}',
                 f'enable_render_sensors:={enable_render_sensors_val}',
+                f'enable_lidar:={enable_lidar_val}',
+                f'enable_base_camera:={enable_base_camera_val}',
+                f'enable_nav_camera:={enable_nav_camera_val}',
                 f'controllers_file:={base_controllers_path_to_use}',
             ],
             check=True,
@@ -161,7 +172,7 @@ def _generate_robot_files(
                 arm_xacro_path,
                 f'prefix:={arm_prefix_val}',
                 f'scale:={arm_scale_val}',
-                f'enable_camera:={enable_render_sensors_val}',
+                f'enable_camera:={enable_arm_camera_val}',
                 f'controllers_file:={arm_controllers_path_to_use}',
             ],
             check=True,
@@ -218,13 +229,14 @@ def _wait_for_service_and_start(context, service_name, timeout_sec, action_to_st
             return [action_to_start]
 
 
-def _chain_or_shutdown(next_action, label):
+def _chain_or_shutdown(next_action, label, shutdown_on_failure):
     def _handler(event, context):
         if event.returncode != 0:
-            return [
-                LogInfo(msg=f'[{label}] spawner failed with code {event.returncode}.'),
-                EmitEvent(event=Shutdown(reason=f'{label} spawner failed')),
-            ]
+            shutdown_requested = shutdown_on_failure.perform(context) == 'true'
+            actions = [LogInfo(msg=f'[{label}] spawner failed with code {event.returncode}.')]
+            if shutdown_requested:
+                actions.append(EmitEvent(event=Shutdown(reason=f'{label} spawner failed')))
+            return actions
         return [next_action] if next_action is not None else []
 
     return _handler
@@ -237,6 +249,10 @@ def generate_launch_description():
     base_scale = LaunchConfiguration('base_scale')
     arm_scale = LaunchConfiguration('arm_scale')
     enable_render_sensors = LaunchConfiguration('enable_render_sensors')
+    enable_lidar = LaunchConfiguration('enable_lidar')
+    enable_base_camera = LaunchConfiguration('enable_base_camera')
+    enable_nav_camera = LaunchConfiguration('enable_nav_camera')
+    enable_arm_camera = LaunchConfiguration('enable_arm_camera')
     world = LaunchConfiguration('world')
     gz_verbosity = LaunchConfiguration('gz_verbosity')
     gz_launch_delay = LaunchConfiguration('gz_launch_delay')
@@ -244,6 +260,7 @@ def generate_launch_description():
     gz_headless = LaunchConfiguration('gz_headless')
     model_cache_dir = LaunchConfiguration('model_cache_dir')
     publish_base_to_arm_tf = LaunchConfiguration('publish_base_to_arm_tf')
+    shutdown_on_spawner_failure = LaunchConfiguration('shutdown_on_spawner_failure')
 
     base_x = LaunchConfiguration('base_x')
     base_y = LaunchConfiguration('base_y')
@@ -296,6 +313,10 @@ def generate_launch_description():
             base_scale,
             arm_scale,
             enable_render_sensors,
+            enable_lidar,
+            enable_base_camera,
+            enable_nav_camera,
+            enable_arm_camera,
             model_cache_dir,
             base_x,
             base_y,
@@ -392,6 +413,9 @@ def generate_launch_description():
                                                           ' prefix:=', base_prefix,
                                                           ' scale:=', base_scale,
                                                           ' enable_render_sensors:=', enable_render_sensors,
+                                                          ' enable_lidar:=', enable_lidar,
+                                                          ' enable_base_camera:=', enable_base_camera,
+                                                          ' enable_nav_camera:=', enable_nav_camera,
                                                           ' controllers_file:=', base_controllers_yaml]),
                                                   value_type=str)}
         ],
@@ -407,7 +431,7 @@ def generate_launch_description():
             {'robot_description': ParameterValue(Command(['xacro ', arm_xacro,
                                                           ' prefix:=', arm_prefix,
                                                           ' scale:=', arm_scale,
-                                                          ' enable_camera:=', enable_render_sensors,
+                                                          ' enable_camera:=', enable_arm_camera,
                                                           ' controllers_file:=', arm_controllers_yaml]),
                                                   value_type=str)}
         ],
@@ -529,28 +553,28 @@ def generate_launch_description():
     start_base_mecanum = RegisterEventHandler(
         OnProcessExit(
             target_action=base_jsb,
-            on_exit=_chain_or_shutdown(base_mecanum, 'mm_base joint_state_broadcaster'),
+            on_exit=_chain_or_shutdown(base_mecanum, 'mm_base joint_state_broadcaster', shutdown_on_spawner_failure),
         )
     )
 
     start_arm_jsb = RegisterEventHandler(
         OnProcessExit(
             target_action=base_mecanum,
-            on_exit=_chain_or_shutdown(arm_jsb, 'mm_base mecanum_drive_controller'),
+            on_exit=_chain_or_shutdown(arm_jsb, 'mm_base mecanum_drive_controller', shutdown_on_spawner_failure),
         )
     )
 
     start_arm_traj = RegisterEventHandler(
         OnProcessExit(
             target_action=arm_jsb,
-            on_exit=_chain_or_shutdown(arm_traj, 'mm_arm joint_state_broadcaster'),
+            on_exit=_chain_or_shutdown(arm_traj, 'mm_arm joint_state_broadcaster', shutdown_on_spawner_failure),
         )
     )
 
     stop_on_arm_traj_failure = RegisterEventHandler(
         OnProcessExit(
             target_action=arm_traj,
-            on_exit=_chain_or_shutdown(None, 'mm_arm arm_trajectory_controller'),
+            on_exit=_chain_or_shutdown(None, 'mm_arm arm_trajectory_controller', shutdown_on_spawner_failure),
         )
     )
 
@@ -579,6 +603,22 @@ def generate_launch_description():
             'enable_render_sensors',
             default_value=PythonExpression(["'false' if '", gz_headless, "' == 'true' else 'true'"]),
         ),
+        DeclareLaunchArgument(
+            'enable_lidar',
+            default_value=PythonExpression(["'true' if '", enable_render_sensors, "' == 'true' else 'false'"]),
+        ),
+        DeclareLaunchArgument(
+            'enable_base_camera',
+            default_value=PythonExpression(["'true' if '", enable_render_sensors, "' == 'true' else 'false'"]),
+        ),
+        DeclareLaunchArgument(
+            'enable_nav_camera',
+            default_value=PythonExpression(["'true' if '", enable_render_sensors, "' == 'true' else 'false'"]),
+        ),
+        DeclareLaunchArgument(
+            'enable_arm_camera',
+            default_value=PythonExpression(["'true' if '", enable_render_sensors, "' == 'true' else 'false'"]),
+        ),
         DeclareLaunchArgument('world', default_value=world_file),
         DeclareLaunchArgument('gz_verbosity', default_value='4'),
         DeclareLaunchArgument('gz_launch_delay', default_value='2.0'),
@@ -586,6 +626,7 @@ def generate_launch_description():
         DeclareLaunchArgument('gz_headless', default_value='true'),
         DeclareLaunchArgument('model_cache_dir', default_value='/tmp/mm_bringup'),
         DeclareLaunchArgument('publish_base_to_arm_tf', default_value='true'),
+        DeclareLaunchArgument('shutdown_on_spawner_failure', default_value='true'),
         DeclareLaunchArgument('base_x', default_value='0.0'),
         DeclareLaunchArgument('base_y', default_value='0.0'),
         DeclareLaunchArgument('base_z', default_value='0.0'),

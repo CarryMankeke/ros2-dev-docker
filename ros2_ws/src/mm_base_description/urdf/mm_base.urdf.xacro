@@ -4,10 +4,16 @@
   <xacro:arg name="scale" default="1.0"/>
   <xacro:arg name="controllers_file" default="$(find-pkg-share mm_bringup)/config/base_controllers.yaml"/>
   <xacro:arg name="enable_render_sensors" default="true"/>
+  <xacro:arg name="enable_lidar" default="true"/>
+  <xacro:arg name="enable_base_camera" default="true"/>
+  <xacro:arg name="enable_nav_camera" default="true"/>
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="scale" value="$(arg scale)"/>
   <xacro:property name="controllers_file" value="$(arg controllers_file)"/>
   <xacro:property name="enable_render_sensors" value="$(arg enable_render_sensors)"/>
+  <xacro:property name="enable_lidar" value="$(arg enable_lidar)"/>
+  <xacro:property name="enable_base_camera" value="$(arg enable_base_camera)"/>
+  <xacro:property name="enable_nav_camera" value="$(arg enable_nav_camera)"/>
 
   <!-- Dimensiones ajustables de la base (usar scale para iterar rápido). -->
   <xacro:property name="base_length" value="${0.45 * scale}"/>
@@ -228,7 +234,7 @@
     </plugin>
   </gazebo>
 
-  <xacro:if value="${enable_render_sensors}">
+  <xacro:if value="${enable_render_sensors and enable_lidar}">
     <gazebo reference="${prefix}lidar_link">
       <sensor name="lidar" type="gpu_lidar">
         <topic>/mm_base/scan</topic>
@@ -258,7 +264,9 @@
         <visualize>true</visualize>
       </sensor>
     </gazebo>
+  </xacro:if>
 
+  <xacro:if value="${enable_render_sensors and enable_base_camera}">
     <gazebo reference="${prefix}camera_link">
       <sensor name="camera" type="camera">
         <topic>/mm_base/camera</topic>
@@ -289,7 +297,7 @@
     </sensor>
   </gazebo>
 
-  <xacro:if value="${enable_render_sensors}">
+  <xacro:if value="${enable_render_sensors and enable_nav_camera}">
     <gazebo reference="${prefix}nav_camera_link">
       <sensor name="nav_camera" type="camera">
         <topic>/mm_base/nav_camera</topic>
