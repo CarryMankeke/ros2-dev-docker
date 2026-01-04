@@ -1,3 +1,5 @@
+# Safety: /mm_base/e_stop lock stops cmd_vel_out immediately.
+# Test minimo: ros2 launch mm_bringup modes.launch.py launch_cmd_vel_mux:=true
 cmd_vel_mux:
   ros__parameters:
     use_stamped: false

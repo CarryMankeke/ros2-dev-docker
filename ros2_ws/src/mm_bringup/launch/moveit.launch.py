@@ -1,23 +1,11 @@
-import subprocess
-import os
-
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
-
-
-def _generate_srdf_from_xacro(context) -> list:
-    """
-    Genera SRDF dinámicamente desde Xacro con parámetros del robot.
-    Esto asegura que el SRDF esté sincronizado con el URDF generado.
-    """
-    # La generación se hace en runtime dentro de los Nodes
-    return []
 
 
 def generate_launch_description():
@@ -39,10 +27,8 @@ def generate_launch_description():
 
     arm_xacro = PathJoinSubstitution([mm_arm_share, 'urdf', 'mm_arm.urdf.xacro'])
     srdf_xacro = PathJoinSubstitution([mm_arm_share, 'srdf', 'mm_arm.srdf.xacro'])
+    srdf_file = LaunchConfiguration('srdf_file')
     default_rviz = PathJoinSubstitution([mm_bringup_share, 'rviz', 'mm_display.rviz'])
-
-    # Generar SRDF dinámicamente desde Xacro
-    srdf_generator = OpaqueFunction(function=_generate_srdf_from_xacro)
 
     robot_description = ParameterValue(
         Command([
@@ -59,7 +45,7 @@ def generate_launch_description():
     robot_description_semantic = ParameterValue(
         Command([
             'xacro ',
-            srdf_xacro,
+            srdf_file,
             ' prefix:=', arm_prefix,
             ' scale:=', arm_scale,
         ]),
@@ -135,7 +121,7 @@ def generate_launch_description():
         DeclareLaunchArgument('planning_scene_config', default_value='moveit_planning_scene.yaml'),
         DeclareLaunchArgument('kinematics_config', default_value='moveit_kinematics.yaml'),
         DeclareLaunchArgument('servo_config', default_value='moveit_servo.yaml'),
-        DeclareLaunchArgument('srdf_file', default_value='mm_arm.srdf'),
+        DeclareLaunchArgument('srdf_file', default_value=srdf_xacro),
         DeclareLaunchArgument('launch_rviz', default_value='true'),
         DeclareLaunchArgument('rviz_config', default_value=default_rviz),
         DeclareLaunchArgument('launch_servo', default_value='false'),

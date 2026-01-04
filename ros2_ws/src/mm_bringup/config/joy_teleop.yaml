@@ -1,3 +1,5 @@
+# Safety: deadman_buttons + joy_timeout enforce watchdog in joy_teleop.py.
+# Test minimo: ros2 launch mm_bringup modes.launch.py input:=esp32 teleop_mode:=hybrid
 joy_teleop:
   ros__parameters:
     mode: base

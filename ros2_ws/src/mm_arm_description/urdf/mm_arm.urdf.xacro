@@ -3,9 +3,11 @@
   <xacro:arg name="prefix" default="mm_arm_"/>
   <xacro:arg name="scale" default="1.0"/>
   <xacro:arg name="controllers_file" default="$(find-pkg-share mm_bringup)/config/arm_controllers.yaml"/>
+  <xacro:arg name="enable_camera" default="true"/>
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="scale" value="$(arg scale)"/>
   <xacro:property name="controllers_file" value="$(arg controllers_file)"/>
+  <xacro:property name="enable_camera" value="$(arg enable_camera)"/>
 
   <!-- Geometría provisional; usar scale para iterar rápidamente. -->
   <xacro:property name="link1_len" value="${0.22 * scale}"/>
@@ -331,26 +333,28 @@
     </plugin>
   </gazebo>
 
-  <gazebo reference="${prefix}ee_camera_link">
-    <sensor name="ee_camera" type="camera">
-      <topic>/mm_arm/camera</topic>
-      <update_rate>30</update_rate>
-      <always_on>1</always_on>
-      <visualize>true</visualize>
-      <camera>
-        <horizontal_fov>1.047</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.05</near>
-          <far>20.0</far>
-        </clip>
-      </camera>
-    </sensor>
-  </gazebo>
+  <xacro:if value="${enable_camera}">
+    <gazebo reference="${prefix}ee_camera_link">
+      <sensor name="ee_camera" type="camera">
+        <topic>/mm_arm/camera</topic>
+        <update_rate>30</update_rate>
+        <always_on>1</always_on>
+        <visualize>true</visualize>
+        <camera>
+          <horizontal_fov>1.047</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>20.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo>
+  </xacro:if>
 
   <gazebo reference="${prefix}ee_imu_link">
     <sensor name="ee_imu" type="imu">

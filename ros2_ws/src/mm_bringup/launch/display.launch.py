@@ -88,7 +88,7 @@ def generate_launch_description():
     mm_bringup_share = FindPackageShare('mm_bringup')
     mm_base_share = FindPackageShare('mm_base_description')
     mm_arm_share = FindPackageShare('mm_arm_description')
-    srdf_path = PathJoinSubstitution([mm_bringup_share, 'config', 'mm_arm.srdf'])
+    srdf_xacro = PathJoinSubstitution([mm_arm_share, 'srdf', 'mm_arm.srdf.xacro'])
     moveit_controllers = PathJoinSubstitution(
         [mm_bringup_share, 'config', 'moveit_controllers.yaml']
     )
@@ -245,7 +245,12 @@ def generate_launch_description():
                     {'robot_description': arm_description},
                     {
                         'robot_description_semantic': ParameterValue(
-                            Command(['cat ', srdf_path]),
+                            Command([
+                                'xacro ',
+                                srdf_xacro,
+                                ' prefix:=', arm_prefix,
+                                ' scale:=', arm_scale,
+                            ]),
                             value_type=str,
                         )
                     },

@@ -1,8 +1,9 @@
 import os
+from pathlib import Path
 import shutil
 import subprocess
 import time
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from launch import LaunchDescription
 from launch.actions import (
@@ -32,6 +33,27 @@ from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
 
+def _require_file(path_value: str, label: str) -> None:
+    path = Path(path_value)
+    if not path.exists():
+        raise RuntimeError(f'Archivo requerido no encontrado: {label} -> {path}')
+
+
+def _validate_sim_assets(context) -> list:
+    mm_bringup_share = FindPackageShare('mm_bringup').perform(context)
+    _require_file(LaunchConfiguration('world').perform(context), 'world')
+    _require_file(str(Path(mm_bringup_share) / 'config' / 'bridge_params.yaml'), 'bridge_params.yaml')
+    _require_file(
+        str(Path(mm_bringup_share) / 'config' / 'base_controllers.yaml.jinja2'),
+        'base_controllers.yaml.jinja2',
+    )
+    _require_file(
+        str(Path(mm_bringup_share) / 'config' / 'arm_controllers.yaml.jinja2'),
+        'arm_controllers.yaml.jinja2',
+    )
+    return []
+
+
 def _generate_robot_files(
     context,
     base_xacro,
@@ -42,6 +64,7 @@ def _generate_robot_files(
     arm_prefix,
     base_scale,
     arm_scale,
+    enable_render_sensors,
     model_cache_dir,
     base_x,
     base_y,
@@ -64,6 +87,7 @@ def _generate_robot_files(
     arm_prefix_val = arm_prefix.perform(context)
     base_scale_val = float(base_scale.perform(context))
     arm_scale_val = float(arm_scale.perform(context))
+    enable_render_sensors_val = enable_render_sensors.perform(context)
     model_cache_dir_val = model_cache_dir.perform(context)
     base_x_val = base_x.perform(context)
     base_y_val = base_y.perform(context)
@@ -95,31 +119,24 @@ def _generate_robot_files(
     # We need the config directory which is the parent of the file
     config_dir = os.path.dirname(base_controllers_path)
     
-    env = Environment(loader=FileSystemLoader(config_dir))
-    
+    env = Environment(loader=FileSystemLoader(config_dir), undefined=StrictUndefined)
+
     # Render base_controllers template
-    try:
-        base_template = env.get_template('base_controllers.yaml.jinja2')
-        base_rendered = base_template.render(base_scale=base_scale_val)
-        with open(base_controllers_out, 'w', encoding='utf-8') as f:
-            f.write(base_rendered)
-        base_controllers_path_to_use = base_controllers_out
-    except Exception as e:
-        print(f'[WARNING] Failed to render base_controllers.yaml.jinja2: {e}')
-        print('[WARNING] Using static base_controllers.yaml')
-        base_controllers_path_to_use = base_controllers_path
-    
+    base_template = env.get_template('base_controllers.yaml.jinja2')
+    base_rendered = base_template.render(
+        base_scale=base_scale_val,
+        base_prefix=base_prefix_val,
+    )
+    with open(base_controllers_out, 'w', encoding='utf-8') as f:
+        f.write(base_rendered)
+    base_controllers_path_to_use = base_controllers_out
+
     # Render arm_controllers template
-    try:
-        arm_template = env.get_template('arm_controllers.yaml.jinja2')
-        arm_rendered = arm_template.render(arm_prefix=arm_prefix_val)
-        with open(arm_controllers_out, 'w', encoding='utf-8') as f:
-            f.write(arm_rendered)
-        arm_controllers_path_to_use = arm_controllers_out
-    except Exception as e:
-        print(f'[WARNING] Failed to render arm_controllers.yaml.jinja2: {e}')
-        print('[WARNING] Using static arm_controllers.yaml')
-        arm_controllers_path_to_use = arm_controllers_path
+    arm_template = env.get_template('arm_controllers.yaml.jinja2')
+    arm_rendered = arm_template.render(arm_prefix=arm_prefix_val)
+    with open(arm_controllers_out, 'w', encoding='utf-8') as f:
+        f.write(arm_rendered)
+    arm_controllers_path_to_use = arm_controllers_out
 
     with open(base_urdf_path, 'w', encoding='utf-8') as handle:
         subprocess.run(
@@ -128,6 +145,7 @@ def _generate_robot_files(
                 base_xacro_path,
                 f'prefix:={base_prefix_val}',
                 f'scale:={base_scale_val}',
+                f'enable_render_sensors:={enable_render_sensors_val}',
                 f'controllers_file:={base_controllers_path_to_use}',
             ],
             check=True,
@@ -143,6 +161,7 @@ def _generate_robot_files(
                 arm_xacro_path,
                 f'prefix:={arm_prefix_val}',
                 f'scale:={arm_scale_val}',
+                f'enable_camera:={enable_render_sensors_val}',
                 f'controllers_file:={arm_controllers_path_to_use}',
             ],
             check=True,
@@ -217,10 +236,12 @@ def generate_launch_description():
     arm_prefix = LaunchConfiguration('arm_prefix')
     base_scale = LaunchConfiguration('base_scale')
     arm_scale = LaunchConfiguration('arm_scale')
+    enable_render_sensors = LaunchConfiguration('enable_render_sensors')
     world = LaunchConfiguration('world')
     gz_verbosity = LaunchConfiguration('gz_verbosity')
     gz_launch_delay = LaunchConfiguration('gz_launch_delay')
     launch_gz = LaunchConfiguration('launch_gz')
+    gz_headless = LaunchConfiguration('gz_headless')
     model_cache_dir = LaunchConfiguration('model_cache_dir')
     publish_base_to_arm_tf = LaunchConfiguration('publish_base_to_arm_tf')
 
@@ -260,7 +281,7 @@ def generate_launch_description():
     )
 
     world_file = PathJoinSubstitution(
-        [mm_bringup_share, 'worlds', 'minimal.world.sdf']
+        [mm_bringup_share, 'worlds', 'minimal.headless.world.sdf']
     )
 
     generate_files = OpaqueFunction(
@@ -274,6 +295,7 @@ def generate_launch_description():
             arm_prefix,
             base_scale,
             arm_scale,
+            enable_render_sensors,
             model_cache_dir,
             base_x,
             base_y,
@@ -320,12 +342,37 @@ def generate_launch_description():
             EnvironmentVariable('GZ_SIM_SYSTEM_PLUGIN_PATH', default_value=''),
         ],
     )
+    set_gz_headless_env = SetEnvironmentVariable(
+        name='GZ_SIM_HEADLESS',
+        value='1',
+    )
+    set_gz_software_gl = SetEnvironmentVariable(
+        name='LIBGL_ALWAYS_SOFTWARE',
+        value='1',
+    )
+
+    gz_args = [
+        '-r -v ',
+        gz_verbosity,
+        ' ',
+        PythonExpression([
+            "'-s ' if '",
+            gz_headless,
+            "' == 'true' else ''",
+        ]),
+        PythonExpression([
+            "'--headless-rendering ' if '",
+            gz_headless,
+            "' == 'true' else ''",
+        ]),
+        world,
+    ]
 
     gz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [ros_gz_sim_share, '/launch/gz_sim.launch.py']
         ),
-        launch_arguments={'gz_args': ['-r -v ', gz_verbosity, ' ', world]}.items()
+        launch_arguments={'gz_args': gz_args}.items()
     )
 
     gz_launch_late = TimerAction(
@@ -344,6 +391,7 @@ def generate_launch_description():
             {'robot_description': ParameterValue(Command(['xacro ', base_xacro,
                                                           ' prefix:=', base_prefix,
                                                           ' scale:=', base_scale,
+                                                          ' enable_render_sensors:=', enable_render_sensors,
                                                           ' controllers_file:=', base_controllers_yaml]),
                                                   value_type=str)}
         ],
@@ -359,6 +407,7 @@ def generate_launch_description():
             {'robot_description': ParameterValue(Command(['xacro ', arm_xacro,
                                                           ' prefix:=', arm_prefix,
                                                           ' scale:=', arm_scale,
+                                                          ' enable_camera:=', enable_render_sensors,
                                                           ' controllers_file:=', arm_controllers_yaml]),
                                                   value_type=str)}
         ],
@@ -520,15 +569,21 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        OpaqueFunction(function=_validate_sim_assets),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('base_prefix', default_value='mm_base_'),
         DeclareLaunchArgument('arm_prefix', default_value='mm_arm_'),
         DeclareLaunchArgument('base_scale', default_value='1.0'),
         DeclareLaunchArgument('arm_scale', default_value='1.0'),
+        DeclareLaunchArgument(
+            'enable_render_sensors',
+            default_value=PythonExpression(["'false' if '", gz_headless, "' == 'true' else 'true'"]),
+        ),
         DeclareLaunchArgument('world', default_value=world_file),
         DeclareLaunchArgument('gz_verbosity', default_value='4'),
         DeclareLaunchArgument('gz_launch_delay', default_value='2.0'),
         DeclareLaunchArgument('launch_gz', default_value='true'),
+        DeclareLaunchArgument('gz_headless', default_value='true'),
         DeclareLaunchArgument('model_cache_dir', default_value='/tmp/mm_bringup'),
         DeclareLaunchArgument('publish_base_to_arm_tf', default_value='true'),
         DeclareLaunchArgument('base_x', default_value='0.0'),
@@ -550,6 +605,8 @@ def generate_launch_description():
         base_to_arm_tf,
         set_gz_resource_path,
         set_gz_system_plugin_path,
+        set_gz_headless_env,
+        set_gz_software_gl,
         gz_launch_late,
         base_state_publisher,
         arm_state_publisher,

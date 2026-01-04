@@ -15,43 +15,73 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
-def _validate_config_files(context) -> list:
-    """
-    Valida que los archivos de configuración necesarios existan.
-    Falla con mensaje claro si algo no está.
-    """
-    mm_bringup_share = FindPackageShare('mm_bringup').perform(context)
-    config_dir = Path(mm_bringup_share) / 'config'
-    
-    # Archivos obligatorios
-    required_files = {
-        'bridge_params.yaml': 'Configuración de puentes ROS↔Gazebo',
-        'joy_teleop.yaml': 'Mapeo de joystick/teleop',
-        'base_controllers.yaml': 'Controladores de la base',
-        'arm_controllers.yaml': 'Controladores del brazo',
-        'nav2_params.yaml': 'Parámetros de Nav2',
-        'moveit_planning.yaml': 'Parámetros de planificación MoveIt 2',
-        'moveit_kinematics.yaml': 'IK MoveIt 2',
-        'cmd_vel_mux.yaml': 'Multiplexor de velocidad',
-    }
-    
-    missing_files = []
-    for filename, description in required_files.items():
-        filepath = config_dir / filename
-        if not filepath.exists():
-            missing_files.append(f"  • {filename}: {description}")
-    
-    if missing_files:
+def _require_file(path_value: str, label: str) -> None:
+    path = Path(path_value)
+    if not path.exists():
         raise RuntimeError(
             f"\n{'='*70}\n"
-            f"ERROR: Archivos de configuración no encontrados:\n"
-            f"{chr(10).join(missing_files)}\n\n"
-            f"Ubicación esperada: {config_dir}\n\n"
-            f"Solución: Verifica que el workspace esté compilado:\n"
-            f"  $ colcon build --symlink-install\n"
+            f"ERROR: Archivo requerido no encontrado: {label}\n"
+            f"Ruta: {path}\n"
+            f"Solución: Verifica la ruta o recompila el workspace.\n"
             f"{'='*70}\n"
         )
-    
+
+
+def _validate_config_files(context) -> list:
+    """
+    Valida archivos requeridos según los modos activados.
+    """
+    mm_bringup_share = FindPackageShare('mm_bringup').perform(context)
+    launch_sim = LaunchConfiguration('launch_sim').perform(context).lower() == 'true'
+    launch_display = LaunchConfiguration('launch_display').perform(context).lower() == 'true'
+    launch_nav2 = LaunchConfiguration('launch_nav2').perform(context).lower() == 'true'
+    launch_moveit = LaunchConfiguration('launch_moveit').perform(context).lower() == 'true'
+    launch_cmd_vel_mux = LaunchConfiguration('launch_cmd_vel_mux').perform(context).lower() == 'true'
+    input_mode = LaunchConfiguration('input').perform(context).lower()
+
+    if launch_sim:
+        _require_file(LaunchConfiguration('world').perform(context), 'world')
+        _require_file(
+            str(Path(mm_bringup_share) / 'config' / 'bridge_params.yaml'),
+            'bridge_params.yaml',
+        )
+
+    if launch_display:
+        _require_file(
+            str(Path(mm_bringup_share) / 'config' / 'base_controllers.yaml'),
+            'base_controllers.yaml',
+        )
+        _require_file(
+            str(Path(mm_bringup_share) / 'config' / 'arm_controllers.yaml'),
+            'arm_controllers.yaml',
+        )
+
+    if launch_cmd_vel_mux:
+        _require_file(
+            str(Path(mm_bringup_share) / 'config' / 'cmd_vel_mux.yaml'),
+            'cmd_vel_mux.yaml',
+        )
+
+    if input_mode in ('esp32', 'joy', 'joystick'):
+        _require_file(
+            str(Path(mm_bringup_share) / 'config' / 'joy_teleop.yaml'),
+            'joy_teleop.yaml',
+        )
+
+    if launch_nav2:
+        _require_file(LaunchConfiguration('nav2_map').perform(context), 'nav2_map')
+        _require_file(LaunchConfiguration('nav2_params').perform(context), 'nav2_params')
+        nav2_bt = LaunchConfiguration('nav2_bt').perform(context)
+        if nav2_bt:
+            _require_file(nav2_bt, 'nav2_bt')
+
+    if launch_moveit:
+        _require_file(LaunchConfiguration('moveit_srdf').perform(context), 'moveit_srdf')
+        _require_file(LaunchConfiguration('moveit_controllers').perform(context), 'moveit_controllers')
+        _require_file(LaunchConfiguration('moveit_planning').perform(context), 'moveit_planning')
+        _require_file(LaunchConfiguration('moveit_kinematics').perform(context), 'moveit_kinematics')
+        _require_file(LaunchConfiguration('moveit_servo').perform(context), 'moveit_servo')
+
     return []
 
 
@@ -68,6 +98,7 @@ def generate_launch_description():
     gz_verbosity = LaunchConfiguration('gz_verbosity')
     gz_launch_delay = LaunchConfiguration('gz_launch_delay')
     launch_gz = LaunchConfiguration('launch_gz')
+    gz_headless = LaunchConfiguration('gz_headless')
     model_cache_dir = LaunchConfiguration('model_cache_dir')
     launch_cmd_vel_mux = LaunchConfiguration('launch_cmd_vel_mux')
     launch_nav2 = LaunchConfiguration('launch_nav2')
@@ -96,15 +127,16 @@ def generate_launch_description():
     arm_yaw = LaunchConfiguration('arm_yaw')
 
     mm_bringup_share = FindPackageShare('mm_bringup')
+    mm_arm_share = FindPackageShare('mm_arm_description')
     sim_launch = PathJoinSubstitution([mm_bringup_share, 'launch', 'sim.launch.py'])
     display_launch = PathJoinSubstitution([mm_bringup_share, 'launch', 'display.launch.py'])
     nav2_launch = PathJoinSubstitution([mm_bringup_share, 'launch', 'nav2.launch.py'])
     moveit_launch = PathJoinSubstitution([mm_bringup_share, 'launch', 'moveit.launch.py'])
     joy_params = PathJoinSubstitution([mm_bringup_share, 'config', 'joy_teleop.yaml'])
-    world_file = PathJoinSubstitution([mm_bringup_share, 'worlds', 'minimal.world.sdf'])
+    world_file = PathJoinSubstitution([mm_bringup_share, 'worlds', 'minimal.headless.world.sdf'])
     nav2_map_default = PathJoinSubstitution([mm_bringup_share, 'maps', 'blank.yaml'])
     nav2_params_default = PathJoinSubstitution([mm_bringup_share, 'config', 'nav2_params.yaml'])
-    moveit_srdf_default = PathJoinSubstitution([mm_bringup_share, 'config', 'mm_arm.srdf'])
+    moveit_srdf_default = PathJoinSubstitution([mm_arm_share, 'srdf', 'mm_arm.srdf.xacro'])
     moveit_controllers_default = PathJoinSubstitution([mm_bringup_share, 'config', 'moveit_controllers.yaml'])
     moveit_planning_default = PathJoinSubstitution([mm_bringup_share, 'config', 'moveit_planning.yaml'])
     moveit_kinematics_default = PathJoinSubstitution([mm_bringup_share, 'config', 'moveit_kinematics.yaml'])
@@ -156,6 +188,7 @@ def generate_launch_description():
             'world': world,
             'gz_launch_delay': gz_launch_delay,
             'launch_gz': launch_gz,
+            'gz_headless': gz_headless,
             'base_x': base_x,
             'base_y': base_y,
             'base_z': base_z,
@@ -237,7 +270,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        OpaqueFunction(function=_validate_config_files),
         DeclareLaunchArgument('clock_mode', default_value='sim'),
         DeclareLaunchArgument('launch_sim', default_value='true'),
         DeclareLaunchArgument('launch_display', default_value='true'),
@@ -260,6 +292,7 @@ def generate_launch_description():
         DeclareLaunchArgument('gz_verbosity', default_value='4'),
         DeclareLaunchArgument('gz_launch_delay', default_value='2.0'),
         DeclareLaunchArgument('launch_gz', default_value='true'),
+        DeclareLaunchArgument('gz_headless', default_value='true'),
         DeclareLaunchArgument(
             'model_cache_dir',
             default_value=PathJoinSubstitution(
@@ -284,6 +317,7 @@ def generate_launch_description():
         DeclareLaunchArgument('arm_roll', default_value='0.0'),
         DeclareLaunchArgument('arm_pitch', default_value='0.0'),
         DeclareLaunchArgument('arm_yaw', default_value='0.0'),
+        OpaqueFunction(function=_validate_config_files),
         sim,
         display,
         nav2,
