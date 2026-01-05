@@ -18,6 +18,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
+# Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2
 def _render_dual_controllers(context):
     mm_bringup_share = FindPackageShare('mm_bringup').perform(context)
     template_path = Path(mm_bringup_share) / 'config' / 'mm_controllers.yaml.in'
@@ -426,7 +427,6 @@ def generate_launch_description():
         DeclareLaunchArgument('mm2_spawn_y', default_value='0.0'),
         DeclareLaunchArgument('spawn_z', default_value='0.15'),
         SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1', condition=IfCondition(headless)),
-        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1', condition=IfCondition(sim)),
         OpaqueFunction(function=_render_dual_controllers),
         OpaqueFunction(function=_set_lidar_bridge_args),
         OpaqueFunction(function=_create_camera_bridges),

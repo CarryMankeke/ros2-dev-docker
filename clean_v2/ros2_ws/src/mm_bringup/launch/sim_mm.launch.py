@@ -3,6 +3,7 @@ from pathlib import Path
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    GroupAction,
     IncludeLaunchDescription,
     OpaqueFunction,
     SetEnvironmentVariable,
@@ -18,6 +19,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
+# Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2
 def _render_mm_controllers(context):
     prefix = LaunchConfiguration('prefix').perform(context)
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
@@ -307,12 +309,18 @@ def generate_launch_description():
     start_rviz = TimerAction(
         period=11.0,
         actions=[
-            Node(
-                package='rviz2',
-                executable='rviz2',
-                output='screen',
-                parameters=[{'use_sim_time': use_sim_time}],
-                arguments=['-d', rviz_config],
+            GroupAction(
+                actions=[
+                    SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
+                    SetEnvironmentVariable(name='QT_XCB_GL_INTEGRATION', value='none'),
+                    Node(
+                        package='rviz2',
+                        executable='rviz2',
+                        output='screen',
+                        parameters=[{'use_sim_time': use_sim_time}],
+                        arguments=['-d', rviz_config],
+                    ),
+                ]
             ),
         ],
     )
@@ -341,7 +349,6 @@ def generate_launch_description():
             value='1',
             condition=IfCondition(headless),
         ),
-        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1', condition=IfCondition(sim)),
         OpaqueFunction(function=_render_mm_controllers),
         OpaqueFunction(function=_render_rviz_config),
         OpaqueFunction(function=_set_lidar_bridge_arg),
