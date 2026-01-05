@@ -76,7 +76,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         __PREFIX__base_link:
           Alpha: 1
           Show Axes: false
@@ -102,11 +102,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        __PREFIX__lidar_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         __PREFIX__cam_front_link:
           Alpha: 1
           Show Axes: false
@@ -123,6 +118,71 @@ Visualization Manager:
           Show Trail: false
           Value: true
         __PREFIX__cam_rear_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_root_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_link_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_link_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__ee_cam_mount_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__ee_cam_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__gripper_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__lidar_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -149,6 +209,56 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: ""
+        __PREFIX__base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__front_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__front_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__rear_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_rear_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         __PREFIX__arm_root_link:
           Alpha: 1
           Show Axes: false
@@ -194,11 +304,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        __PREFIX__gripper_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         __PREFIX__ee_cam_mount_link:
           Alpha: 1
           Show Axes: false
@@ -209,6 +314,16 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        __PREFIX__gripper_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__lidar_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -305,3 +420,124 @@ Window Geometry:
   Width: 1910
   X: 0
   Y: 27
+      Links:
+        All Links Enabled: false
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: ""
+        __PREFIX__base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__front_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__front_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__rear_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__cam_rear_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        __PREFIX__arm_root_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_link_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__arm_link_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__ee_cam_mount_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__ee_cam_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__gripper_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        __PREFIX__lidar_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
