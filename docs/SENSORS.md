@@ -47,8 +47,8 @@ EE (ejemplo de defaults):
 1. Las camaras publican en Gazebo con sufijo `image_raw` (definido en URDF).
 2. `ros_gz_bridge` publica:
    - `/<ns>/camera/<name>/image_raw`
-   - `/<ns>/camera/<name>/camera_info`
-3. `mm_bringup/scripts/camera_frame_republisher.py` re-publica el `image_raw` a `image` y corrige `frame_id` en Image/CameraInfo.
+   - `/<ns>/camera/<name>/camera_info_raw` (via remap del bridge)
+3. `mm_bringup/scripts/camera_frame_republisher.py` re-publica a `image` y `camera_info` corrigiendo `frame_id`.
 
 ## Validacion minima (sim_time)
 1. Verificar TF de camaras:

@@ -72,6 +72,13 @@ def _create_camera_bridges(context):
             f'{camera_prefix}/ee/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
             f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         ]
+        remaps = [
+            (f'{camera_prefix}/front/camera_info', f'{camera_prefix}/front/camera_info_raw'),
+            (f'{camera_prefix}/left/camera_info', f'{camera_prefix}/left/camera_info_raw'),
+            (f'{camera_prefix}/right/camera_info', f'{camera_prefix}/right/camera_info_raw'),
+            (f'{camera_prefix}/rear/camera_info', f'{camera_prefix}/rear/camera_info_raw'),
+            (f'{camera_prefix}/ee/camera_info', f'{camera_prefix}/ee/camera_info_raw'),
+        ]
         actions.append(
             Node(
                 package='ros_gz_bridge',
@@ -79,6 +86,7 @@ def _create_camera_bridges(context):
                 name=f'camera_bridge_{key}',
                 output='screen',
                 arguments=bridge_args,
+                remappings=remaps,
             )
         )
     return actions

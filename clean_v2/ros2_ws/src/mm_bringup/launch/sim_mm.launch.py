@@ -89,6 +89,13 @@ def _create_camera_bridge(context):
         f'{camera_prefix}/ee/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
         f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
     ]
+    remaps = [
+        (f'{camera_prefix}/front/camera_info', f'{camera_prefix}/front/camera_info_raw'),
+        (f'{camera_prefix}/left/camera_info', f'{camera_prefix}/left/camera_info_raw'),
+        (f'{camera_prefix}/right/camera_info', f'{camera_prefix}/right/camera_info_raw'),
+        (f'{camera_prefix}/rear/camera_info', f'{camera_prefix}/rear/camera_info_raw'),
+        (f'{camera_prefix}/ee/camera_info', f'{camera_prefix}/ee/camera_info_raw'),
+    ]
 
     return [
         Node(
@@ -97,6 +104,7 @@ def _create_camera_bridge(context):
             name='camera_bridge',
             output='screen',
             arguments=bridge_args,
+            remappings=remaps,
         )
     ]
 
