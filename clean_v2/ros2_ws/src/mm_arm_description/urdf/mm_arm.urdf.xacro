@@ -23,37 +23,37 @@
         </hardware>
 
         <joint name="${prefix}arm_shoulder_pan_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_shoulder_lift_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_elbow_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_wrist_1_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_wrist_2_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_wrist_3_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}gripper_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>

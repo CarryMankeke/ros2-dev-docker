@@ -1,0 +1,7 @@
+planning_scene_monitor:
+  publish_planning_scene: true
+  publish_geometry_updates: true
+  publish_state_updates: true
+  publish_transforms_updates: true
+  publish_robot_description: true
+  publish_robot_description_semantic: true

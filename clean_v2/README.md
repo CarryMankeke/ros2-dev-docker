@@ -11,6 +11,10 @@ Base limpia para un manipulador movil (base omni + brazo) con soporte multi-robo
 - `ros2_ws/`: workspace ROS 2.
 - `docs/`: documentacion tecnica y guias de pruebas.
 
+## Documentacion clave
+- `docs/MOVEIT2_BASE.md`
+- `docs/NAV2_BASE.md`
+
 ## Ejecucion minima
 1. Construir:
    - `cd clean_v2/ros2_ws && colcon build --symlink-install`
@@ -27,6 +31,21 @@ Base limpia para un manipulador movil (base omni + brazo) con soporte multi-robo
    - `ros2 launch mm_bringup sim_mm.launch.py namespace:=mm1 prefix:=mm1_`
    - Verificar controladores:
      - `ros2 control list_controllers --controller-manager /mm1/controller_manager`
-   - El brazo y el gripper usan interfaces de velocidad (JTC) para mantener compatibilidad con `gz_ros2_control`.
+   - El brazo y el gripper usan interfaces de posicion (JTC) para integracion con MoveIt 2.
 
 Nota: para evitar saltos de tiempo, ejecuta un solo launch a la vez (un solo `/clock`).
+
+## MoveIt 2 (brazo + gripper)
+1. Lanzar MoveIt (solo move_group):
+   - `source install/setup.bash`
+   - `ros2 launch mm_moveit_config moveit.launch.py namespace:=mm1 prefix:=mm1_`
+
+## Nav2 (base omni)
+1. Lanzar Nav2 con SLAM:
+   - `source install/setup.bash`
+   - `ros2 launch mm_bringup nav2_min.launch.py namespace:=mm1 prefix:=mm1_ slam:=true`
+
+## Multi-robot (mm1 + mm2)
+1. Lanzar dos robots en Gazebo:
+   - `source install/setup.bash`
+   - `ros2 launch mm_bringup sim_mm_dual.launch.py`

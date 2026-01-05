@@ -15,11 +15,16 @@
   <xacro:arg name="arm_roll" default="0.0"/>
   <xacro:arg name="arm_pitch" default="0.0"/>
   <xacro:arg name="arm_yaw" default="0.0"/>
+  <xacro:arg name="enable_lidar" default="true"/>
+  <xacro:arg name="lidar_x" default="0.20"/>
+  <xacro:arg name="lidar_y" default="0.0"/>
+  <xacro:arg name="lidar_z" default="0.15"/>
 
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="namespace" value="$(arg namespace)"/>
   <xacro:property name="scale" value="$(arg scale)"/>
   <xacro:property name="controllers_file" value="$(arg controllers_file)"/>
+  <xacro:property name="lidar_topic" value="$(eval '/' + namespace + '/scan' if namespace != '' else '/scan')"/>
 
   <xacro:mm_base prefix="${prefix}" scale="${scale}"/>
   <xacro:mm_arm prefix="${prefix}" scale="${scale}"/>
@@ -29,6 +34,61 @@
     <child link="${prefix}arm_root_link"/>
     <origin xyz="$(arg arm_x) $(arg arm_y) $(arg arm_z)" rpy="$(arg arm_roll) $(arg arm_pitch) $(arg arm_yaw)"/>
   </joint>
+
+  <xacro:if value="$(arg enable_lidar)">
+    <link name="${prefix}lidar_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.2"/>
+        <inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+      </inertial>
+      <visual>
+        <geometry>
+          <cylinder radius="0.03" length="0.05"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.03" length="0.05"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}lidar_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}lidar_link"/>
+      <origin xyz="$(arg lidar_x) $(arg lidar_y) $(arg lidar_z)" rpy="0 0 0"/>
+    </joint>
+
+    <gazebo reference="${prefix}lidar_link">
+      <sensor name="${prefix}lidar" type="gpu_lidar">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>false</visualize>
+        <update_rate>10</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.05</min>
+            <max>20.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </ray>
+        <topic>${lidar_topic}</topic>
+      </sensor>
+    </gazebo>
+  </xacro:if>
 
   <xacro:if value="$(arg enable_ros2_control)">
     <xacro:if value="$(eval controllers_file != '')">
@@ -59,37 +119,37 @@
         </joint>
 
         <joint name="${prefix}arm_shoulder_pan_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_shoulder_lift_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_elbow_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_wrist_1_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_wrist_2_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}arm_wrist_3_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>
         <joint name="${prefix}gripper_joint">
-          <command_interface name="velocity"/>
+          <command_interface name="position"/>
           <state_interface name="position"/>
           <state_interface name="velocity"/>
         </joint>

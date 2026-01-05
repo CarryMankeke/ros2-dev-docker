@@ -1,0 +1,60 @@
+joint_limits:
+  __PREFIX__arm_shoulder_pan_joint:
+    has_position_limits: true
+    min_position: -3.14
+    max_position: 3.14
+    has_velocity_limits: true
+    max_velocity: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  __PREFIX__arm_shoulder_lift_joint:
+    has_position_limits: true
+    min_position: -1.57
+    max_position: 1.57
+    has_velocity_limits: true
+    max_velocity: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  __PREFIX__arm_elbow_joint:
+    has_position_limits: true
+    min_position: -2.0
+    max_position: 2.0
+    has_velocity_limits: true
+    max_velocity: 1.2
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  __PREFIX__arm_wrist_1_joint:
+    has_position_limits: true
+    min_position: -2.5
+    max_position: 2.5
+    has_velocity_limits: true
+    max_velocity: 1.5
+    has_acceleration_limits: true
+    max_acceleration: 2.5
+  __PREFIX__arm_wrist_2_joint:
+    has_position_limits: true
+    min_position: -3.14
+    max_position: 3.14
+    has_velocity_limits: true
+    max_velocity: 1.8
+    has_acceleration_limits: true
+    max_acceleration: 3.0
+  __PREFIX__arm_wrist_3_joint:
+    has_position_limits: true
+    min_position: -3.14
+    max_position: 3.14
+    has_velocity_limits: true
+    max_velocity: 2.0
+    has_acceleration_limits: true
+    max_acceleration: 3.0
+  __PREFIX__gripper_joint:
+    has_position_limits: true
+    min_position: 0.0
+    max_position: 0.04
+    has_velocity_limits: true
+    max_velocity: 0.2
+    has_acceleration_limits: true
+    max_acceleration: 0.5
+
+# Prueba minima:
+# ros2 launch mm_moveit_config moveit.launch.py namespace:=mm1 prefix:=mm1_

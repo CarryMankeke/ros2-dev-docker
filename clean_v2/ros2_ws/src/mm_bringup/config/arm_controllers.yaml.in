@@ -27,7 +27,7 @@ __NAMESPACE__/arm_trajectory_controller:
       - __PREFIX__arm_wrist_2_joint
       - __PREFIX__arm_wrist_3_joint
     command_interfaces:
-      - velocity
+      - position
     state_interfaces:
       - position
       - velocity
@@ -40,7 +40,7 @@ __NAMESPACE__/gripper_trajectory_controller:
     joints:
       - __PREFIX__gripper_joint
     command_interfaces:
-      - velocity
+      - position
     state_interfaces:
       - position
       - velocity

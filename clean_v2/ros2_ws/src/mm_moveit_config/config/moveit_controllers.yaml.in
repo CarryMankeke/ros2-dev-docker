@@ -1,0 +1,28 @@
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - arm_trajectory_controller
+    - gripper_trajectory_controller
+
+  arm_trajectory_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - __PREFIX__arm_shoulder_pan_joint
+      - __PREFIX__arm_shoulder_lift_joint
+      - __PREFIX__arm_elbow_joint
+      - __PREFIX__arm_wrist_1_joint
+      - __PREFIX__arm_wrist_2_joint
+      - __PREFIX__arm_wrist_3_joint
+
+  gripper_trajectory_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - __PREFIX__gripper_joint
+
+# Prueba minima:
+# ros2 launch mm_moveit_config moveit.launch.py namespace:=mm1 prefix:=mm1_

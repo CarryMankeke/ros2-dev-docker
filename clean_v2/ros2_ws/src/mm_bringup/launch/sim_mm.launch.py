@@ -1,7 +1,15 @@
 from pathlib import Path
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, SetEnvironmentVariable, TimerAction
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+    SetEnvironmentVariable,
+    SetLaunchConfiguration,
+    TimerAction,
+)
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
@@ -32,12 +40,25 @@ def _render_mm_controllers(context):
     return []
 
 
+def _set_lidar_bridge_arg(context):
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    topic = f'/{namespace}/scan' if namespace else '/scan'
+    return [
+        SetLaunchConfiguration(
+            'lidar_bridge_arg',
+            f'{topic}@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+        )
+    ]
+
+
 def generate_launch_description():
     namespace = LaunchConfiguration('namespace')
     prefix = LaunchConfiguration('prefix')
     use_sim_time = LaunchConfiguration('use_sim_time')
     world = LaunchConfiguration('world')
     gz_args = LaunchConfiguration('gz_args')
+    enable_lidar = LaunchConfiguration('enable_lidar')
+    enable_lidar_bridge = LaunchConfiguration('enable_lidar_bridge')
 
     arm_x = LaunchConfiguration('arm_x')
     arm_y = LaunchConfiguration('arm_y')
@@ -45,6 +66,9 @@ def generate_launch_description():
     arm_roll = LaunchConfiguration('arm_roll')
     arm_pitch = LaunchConfiguration('arm_pitch')
     arm_yaw = LaunchConfiguration('arm_yaw')
+    lidar_x = LaunchConfiguration('lidar_x')
+    lidar_y = LaunchConfiguration('lidar_y')
+    lidar_z = LaunchConfiguration('lidar_z')
 
     robot_description_topic = PathJoinSubstitution([
         TextSubstitution(text='/'),
@@ -86,6 +110,10 @@ def generate_launch_description():
             ' arm_roll:=', arm_roll,
             ' arm_pitch:=', arm_pitch,
             ' arm_yaw:=', arm_yaw,
+            ' enable_lidar:=', enable_lidar,
+            ' lidar_x:=', lidar_x,
+            ' lidar_y:=', lidar_y,
+            ' lidar_z:=', lidar_z,
         ]),
         value_type=str,
     )
@@ -122,8 +150,18 @@ def generate_launch_description():
     clock_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
+        name='clock_bridge',
         output='screen',
         arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+    )
+
+    lidar_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='lidar_bridge',
+        output='screen',
+        arguments=[LaunchConfiguration('lidar_bridge_arg')],
+        condition=IfCondition(enable_lidar_bridge),
     )
 
     base_jsb = Node(
@@ -185,17 +223,24 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('enable_lidar', default_value='true'),
+        DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.30'),
         DeclareLaunchArgument('arm_roll', default_value='0.0'),
         DeclareLaunchArgument('arm_pitch', default_value='0.0'),
         DeclareLaunchArgument('arm_yaw', default_value='0.0'),
+        DeclareLaunchArgument('lidar_x', default_value='0.20'),
+        DeclareLaunchArgument('lidar_y', default_value='0.0'),
+        DeclareLaunchArgument('lidar_z', default_value='0.15'),
         SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
         OpaqueFunction(function=_render_mm_controllers),
+        OpaqueFunction(function=_set_lidar_bridge_arg),
         gz_launch,
         clock_bridge,
+        lidar_bridge,
         robot_state_publisher,
         spawn_robot,
         start_jsb,
