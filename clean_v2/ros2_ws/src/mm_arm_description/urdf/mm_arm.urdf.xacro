@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2 -->
 <robot name="mm_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:include filename="$(find mm_arm_description)/urdf/mm_arm_macro.xacro"/>
 
@@ -7,15 +8,17 @@
   <xacro:arg name="scale" default="1.0"/>
   <xacro:arg name="controllers_file" default=""/>
   <xacro:arg name="enable_ros2_control" default="true"/>
-  <xacro:arg name="ee_cam_mount_x" default="0.02"/>
+  <xacro:arg name="arm_mount_height" default="0.02"/>
+  <xacro:arg name="visual_mode" default="full"/>
+  <xacro:arg name="ee_cam_mount_x" default="0.055"/>
   <xacro:arg name="ee_cam_mount_y" default="0.0"/>
   <xacro:arg name="ee_cam_mount_z" default="0.02"/>
   <xacro:arg name="ee_cam_mount_roll" default="0.0"/>
   <xacro:arg name="ee_cam_mount_pitch" default="0.0"/>
   <xacro:arg name="ee_cam_mount_yaw" default="0.0"/>
-  <xacro:arg name="ee_cam_x" default="0.08"/>
+  <xacro:arg name="ee_cam_x" default="0.035"/>
   <xacro:arg name="ee_cam_y" default="0.0"/>
-  <xacro:arg name="ee_cam_z" default="0.02"/>
+  <xacro:arg name="ee_cam_z" default="0.0"/>
   <xacro:arg name="ee_cam_roll" default="0.0"/>
   <xacro:arg name="ee_cam_pitch" default="0.0"/>
   <xacro:arg name="ee_cam_yaw" default="0.0"/>
@@ -28,6 +31,8 @@
   <xacro:mm_arm
     prefix="${prefix}"
     scale="${scale}"
+    arm_mount_height="$(arg arm_mount_height)"
+    visual_mode="$(arg visual_mode)"
     ee_cam_mount_x="$(arg ee_cam_mount_x)"
     ee_cam_mount_y="$(arg ee_cam_mount_y)"
     ee_cam_mount_z="$(arg ee_cam_mount_z)"

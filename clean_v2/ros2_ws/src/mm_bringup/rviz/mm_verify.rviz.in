@@ -9,7 +9,7 @@ Panels:
         - /BaseModel1
         - /ArmModel1
       Splitter Ratio: 0.5
-    Tree Height: 503
+    Tree Height: 450
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -30,7 +30,7 @@ Visualization Manager:
       Color: 160; 160; 160
       Enabled: true
       Line Style:
-        Line Width: 0.029999999329447746
+        Line Width: 0.03
         Value: Lines
       Name: Grid
       Normal Cell Count: 0
@@ -53,7 +53,7 @@ Visualization Manager:
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
         {}
       Update Interval: 0
@@ -64,129 +64,14 @@ Visualization Manager:
       Description File: ""
       Description Source: Topic
       Description Topic:
-        Value: __NS__/robot_description
+        Value: /rviz_visual_descriptions/robot_description_base_visual
       Enabled: true
       Links:
-        All Links Enabled: false
+        All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: ""
-        __PREFIX__base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__cam_front_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__cam_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__cam_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__cam_rear_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_root_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_link_1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_link_2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_link_3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_link_4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_link_5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_link_6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__ee_cam_mount_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__ee_cam_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__gripper_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__lidar_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Mass Properties:
         Inertia: false
         Mass: false
@@ -201,155 +86,26 @@ Visualization Manager:
       Description File: ""
       Description Source: Topic
       Description Topic:
-        Value: __NS__/robot_description
+        Value: /rviz_visual_descriptions/robot_description_arm_visual
       Enabled: true
       Links:
-        All Links Enabled: false
+        All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: ""
-        __PREFIX__base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_front_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_rear_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_root_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__ee_cam_mount_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__ee_cam_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__gripper_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__lidar_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
       Mass Properties:
         Inertia: false
         Mass: false
       Name: ArmModel
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
-    - Alpha: 1
-      Class: rviz_default_plugins/LaserScan
-      Color: 255; 255; 0
-      Enabled: true
-      Name: LidarScan
-      Queue Size: 10
-      Size (Pixels): 3
-      Style: Points
-      Topic:
-        Depth: 10
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: __NS__/scan
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: __PREFIX__base_footprint
+    Fixed Frame: __PREFIX__base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -360,23 +116,6 @@ Visualization Manager:
     - Class: rviz_default_plugins/FocusCamera
     - Class: rviz_default_plugins/Measure
       Line color: 128; 128; 0
-    - Class: rviz_default_plugins/SetInitialPose
-      Covariance x: 0.25
-      Covariance y: 0.25
-      Covariance yaw: 0.06853891909122467
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: initialpose
-    - Class: rviz_default_plugins/SetGoal
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: goal_pose
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
@@ -386,7 +125,7 @@ Visualization Manager:
       Class: rviz_default_plugins/Orbit
       Distance: 1.6
       Enable Stereo Rendering:
-        Stereo Eye Separation: 0.05999999865889549
+        Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
@@ -395,19 +134,19 @@ Visualization Manager:
         Y: 0.0
         Z: 0.0
       Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
+      Focal Shape Size: 0.05
       Invert Z Axis: false
       Name: Current View
-      Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4000000059604645
-      Target Frame: __PREFIX__base_footprint
+      Near Clip Distance: 0.01
+      Pitch: 0.4
+      Target Frame: __PREFIX__base_link
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.6899999976158142
+      Yaw: 0.69
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1025
+  Height: 800
   Hide Left Dock: false
   Hide Right Dock: false
   Selection:
@@ -416,127 +155,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1910
+  Width: 1200
   X: 0
-  Y: 27
-      Links:
-        All Links Enabled: false
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: ""
-        __PREFIX__base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_front_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__cam_rear_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
-        __PREFIX__arm_root_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__arm_link_6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__ee_cam_mount_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__ee_cam_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__gripper_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        __PREFIX__lidar_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
+  Y: 0

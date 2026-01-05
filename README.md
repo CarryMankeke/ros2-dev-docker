@@ -3,7 +3,6 @@
 Autor: Camilo Soto Villegas  
 Contacto: camilo.soto.v@usach.cl  
 Proyecto: clean_v2
-Target: ROS 2 Jazzy + Gazebo Harmonic
 
 Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidireccional **mm_base** con el brazo 6DOF **mm_arm** y teleoperación micro-ROS.
 
@@ -40,11 +39,10 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
    docker compose exec -T ros2-vnc bash -lc '
    source /opt/ros/jazzy/setup.bash
    source /home/ros/ros2_ws/install/setup.bash
-   ros2 launch mm_bringup sim_mm.launch.py headless:=false gz_args:="-r -v 4" rviz_mode:=verify
+   ros2 launch mm_bringup sim_mm.launch.py headless:=false gz_args:="-r -v 4"
    '
    ```
    Nota: `sim:=false` desactiva Gazebo, bridges y republisher (modo real preparado).
-   `rviz_mode` opciones: `verify` (base+brazo), `nav2` (stub), `moveit` (stub).
 2. Ejecutar smoke tests (mm1 por defecto):
    ```bash
    docker compose exec -T ros2-vnc bash -lc '

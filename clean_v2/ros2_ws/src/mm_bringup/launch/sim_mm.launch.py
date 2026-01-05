@@ -2,6 +2,7 @@
 # Contacto: camilo.soto.v@usach.cl
 # Proyecto: clean_v2
 from pathlib import Path
+import shlex
 
 from launch import LaunchDescription
 from launch.actions import (
@@ -49,12 +50,7 @@ def _render_rviz_config(context):
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     namespace_key = f'/{namespace}' if namespace else ''
     rviz_mode = LaunchConfiguration('rviz_mode').perform(context).strip().lower()
-    mode_map = {
-        'verify': 'mm_verify.rviz.in',
-        'nav2': 'mm_nav2.rviz.in',
-        'moveit': 'mm_moveit.rviz.in',
-    }
-    template_name = mode_map.get(rviz_mode, 'mm_verify.rviz.in')
+    template_name = 'mm_verify.rviz.in' if rviz_mode == 'verify' else 'mm_verify.rviz.in'
     template_path = PathJoinSubstitution([
         FindPackageShare('mm_bringup'),
         'rviz',
@@ -71,6 +67,20 @@ def _render_rviz_config(context):
     output_file.write_text(content, encoding='utf-8')
 
     return [SetLaunchConfiguration('rviz_config', str(output_file))]
+
+
+def _set_gz_args(context):
+    headless = LaunchConfiguration('headless').perform(context).lower() in ('true', '1')
+    base_args = LaunchConfiguration('gz_args').perform(context).strip()
+    tokens = shlex.split(base_args) if base_args else ['-r', '-v', '4']
+    if headless:
+        if '-s' not in tokens:
+            tokens.append('-s')
+        if '--headless-rendering' not in tokens:
+            tokens.append('--headless-rendering')
+    else:
+        tokens = [token for token in tokens if token not in ('-s', '--headless-rendering')]
+    return [SetLaunchConfiguration('gz_args', ' '.join(tokens))]
 
 
 def _set_lidar_bridge_arg(context):
@@ -219,6 +229,27 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, {'robot_description': robot_description}],
     )
 
+    rviz_visual_descriptions = Node(
+        package='mm_bringup',
+        executable='rviz_visual_descriptions.py',
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'prefix': prefix},
+            {'namespace': namespace},
+            {'arm_x': arm_x},
+            {'arm_y': arm_y},
+            {'arm_z': arm_z},
+            {'arm_roll': arm_roll},
+            {'arm_pitch': arm_pitch},
+            {'arm_yaw': arm_yaw},
+            {'enable_lidar': enable_lidar},
+            {'lidar_x': lidar_x},
+            {'lidar_y': lidar_y},
+            {'lidar_z': lidar_z},
+        ],
+    )
+
     gz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             ros_gz_sim_share,
@@ -342,20 +373,20 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('rviz_mode', default_value='verify'),
         DeclareLaunchArgument('world', default_value=default_world),
-        DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('gz_args', default_value='-r -v 4'),
         DeclareLaunchArgument('sim', default_value='true'),
         DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
-        DeclareLaunchArgument('arm_z', default_value='0.05'),
+        DeclareLaunchArgument('arm_z', default_value='0.02'),
         DeclareLaunchArgument('arm_roll', default_value='0.0'),
         DeclareLaunchArgument('arm_pitch', default_value='0.0'),
         DeclareLaunchArgument('arm_yaw', default_value='0.0'),
         DeclareLaunchArgument('lidar_x', default_value='0.20'),
         DeclareLaunchArgument('lidar_y', default_value='0.0'),
-        DeclareLaunchArgument('lidar_z', default_value='0.15'),
+        DeclareLaunchArgument('lidar_z', default_value='0.125'),
         SetEnvironmentVariable(
             name='GZ_SIM_HEADLESS',
             value='1',
@@ -363,12 +394,14 @@ def generate_launch_description():
         ),
         OpaqueFunction(function=_render_mm_controllers),
         OpaqueFunction(function=_render_rviz_config),
+        OpaqueFunction(function=_set_gz_args),
         OpaqueFunction(function=_set_lidar_bridge_arg),
         OpaqueFunction(function=_create_camera_bridge),
         OpaqueFunction(function=_create_lidar_bridge),
         gz_launch,
         clock_bridge,
         robot_state_publisher,
+        rviz_visual_descriptions,
         spawn_robot,
         start_jsb,
         start_omni,

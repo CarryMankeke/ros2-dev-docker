@@ -9,31 +9,46 @@
     </inertial>
   </xacro:macro>
 
-  <xacro:macro name="mm_arm" params="prefix scale ee_cam_mount_x ee_cam_mount_y ee_cam_mount_z ee_cam_mount_roll ee_cam_mount_pitch ee_cam_mount_yaw ee_cam_x ee_cam_y ee_cam_z ee_cam_roll ee_cam_pitch ee_cam_yaw">
+  <xacro:macro name="mm_arm" params="prefix scale visual_mode arm_mount_height ee_cam_mount_x ee_cam_mount_y ee_cam_mount_z ee_cam_mount_roll ee_cam_mount_pitch ee_cam_mount_yaw ee_cam_x ee_cam_y ee_cam_z ee_cam_roll ee_cam_pitch ee_cam_yaw">
     <xacro:property name="link1_len" value="${0.22 * scale}"/>
     <xacro:property name="link2_len" value="${0.22 * scale}"/>
     <xacro:property name="link3_len" value="${0.18 * scale}"/>
     <xacro:property name="link4_len" value="${0.14 * scale}"/>
     <xacro:property name="link5_len" value="${0.12 * scale}"/>
     <xacro:property name="link6_len" value="${0.10 * scale}"/>
+    <xacro:property name="arm_mount_height" value="${arm_mount_height}"/>
+    <xacro:property name="tool_length" value="${0.04 * scale}"/>
+    <xacro:property name="tool_width" value="${0.04 * scale}"/>
+    <xacro:property name="tool_height" value="${0.04 * scale}"/>
+    <xacro:property name="tool_visual_x" value="${tool_length / 2.0}"/>
+    <xacro:property name="gripper_length" value="${0.08 * scale}"/>
+    <xacro:property name="gripper_width" value="${0.02 * scale}"/>
+    <xacro:property name="gripper_height" value="${0.02 * scale}"/>
+    <xacro:property name="gripper_visual_x" value="${gripper_length / 2.0}"/>
+
+    <xacro:property name="arm_visual_enabled" value="${visual_mode == 'full' or visual_mode == 'arm_only'}"/>
 
     <link name="${prefix}arm_root_link">
-      <visual>
-        <origin xyz="0 0 0.01" rpy="0 0 0"/>
-        <geometry>
-          <cylinder radius="0.05" length="0.02"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 0.01" rpy="0 0 0"/>
+          <geometry>
+            <cylinder radius="0.05" length="0.02"/>
+          </geometry>
+        </visual>
+      </xacro:if>
     </link>
 
     <link name="${prefix}arm_base_link">
       <xacro:mm_arm_simple_inertial mass="4.0" inertia="0.02" origin_z="0.02"/>
-      <visual>
-        <origin xyz="0 0 0.02" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.12 0.12 0.04"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 0.02" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.12 0.12 0.04"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 0.02" rpy="0 0 0"/>
         <geometry>
@@ -50,12 +65,14 @@
 
     <link name="${prefix}arm_link_1">
       <xacro:mm_arm_simple_inertial mass="1.2" inertia="0.01" origin_z="${link1_len / 2.0}"/>
-      <visual>
-        <origin xyz="0 0 ${link1_len / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.06 0.06 ${link1_len}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${link1_len / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.06 0.06 ${link1_len}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${link1_len / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -74,12 +91,14 @@
 
     <link name="${prefix}arm_link_2">
       <xacro:mm_arm_simple_inertial mass="1.0" inertia="0.01" origin_z="${link2_len / 2.0}"/>
-      <visual>
-        <origin xyz="0 0 ${link2_len / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.05 0.05 ${link2_len}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${link2_len / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.05 0.05 ${link2_len}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${link2_len / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -98,12 +117,14 @@
 
     <link name="${prefix}arm_link_3">
       <xacro:mm_arm_simple_inertial mass="0.8" inertia="0.008" origin_z="${link3_len / 2.0}"/>
-      <visual>
-        <origin xyz="0 0 ${link3_len / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.05 0.05 ${link3_len}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${link3_len / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.05 0.05 ${link3_len}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${link3_len / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -122,12 +143,14 @@
 
     <link name="${prefix}arm_link_4">
       <xacro:mm_arm_simple_inertial mass="0.6" inertia="0.006" origin_z="${link4_len / 2.0}"/>
-      <visual>
-        <origin xyz="0 0 ${link4_len / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.045 0.045 ${link4_len}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${link4_len / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.045 0.045 ${link4_len}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${link4_len / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -146,12 +169,14 @@
 
     <link name="${prefix}arm_link_5">
       <xacro:mm_arm_simple_inertial mass="0.4" inertia="0.004" origin_z="${link5_len / 2.0}"/>
-      <visual>
-        <origin xyz="0 0 ${link5_len / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.04 0.04 ${link5_len}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${link5_len / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.04 0.04 ${link5_len}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${link5_len / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -170,12 +195,14 @@
 
     <link name="${prefix}arm_link_6">
       <xacro:mm_arm_simple_inertial mass="0.3" inertia="0.003" origin_z="${link6_len / 2.0}"/>
-      <visual>
-        <origin xyz="0 0 ${link6_len / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.035 0.035 ${link6_len}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${link6_len / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.035 0.035 ${link6_len}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${link6_len / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -193,12 +220,14 @@
     </joint>
 
     <link name="${prefix}tool0">
-      <visual>
-        <origin xyz="0.02 0 0" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.04 0.04 0.04"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="${tool_visual_x} 0 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="${tool_length} ${tool_width} ${tool_height}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
     </link>
     <joint name="${prefix}tool_joint" type="fixed">
       <parent link="${prefix}arm_link_6"/>
@@ -208,11 +237,13 @@
 
     <link name="${prefix}ee_cam_mount_link">
       <xacro:mm_arm_simple_inertial mass="0.2" inertia="0.001" origin_z="0.0"/>
-      <visual>
-        <geometry>
-          <cylinder radius="0.015" length="0.03"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <geometry>
+            <cylinder radius="0.015" length="0.03"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <cylinder radius="0.015" length="0.03"/>
@@ -228,11 +259,13 @@
 
     <link name="${prefix}ee_cam_link">
       <xacro:mm_arm_simple_inertial mass="0.2" inertia="0.001" origin_z="0.0"/>
-      <visual>
-        <geometry>
-          <box size="0.04 0.03 0.03"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <geometry>
+            <box size="0.04 0.03 0.03"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <box size="0.04 0.03 0.03"/>
@@ -248,16 +281,18 @@
 
     <link name="${prefix}gripper_link">
       <xacro:mm_arm_simple_inertial mass="0.2" inertia="0.0005" origin_z="0.0"/>
-      <visual>
-        <origin xyz="0.04 0 0" rpy="0 0 0"/>
-        <geometry>
-          <box size="0.08 0.02 0.02"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${arm_visual_enabled}">
+        <visual>
+          <origin xyz="${gripper_visual_x} 0 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="${gripper_length} ${gripper_width} ${gripper_height}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
-        <origin xyz="0.04 0 0" rpy="0 0 0"/>
+        <origin xyz="${gripper_visual_x} 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="0.08 0.02 0.02"/>
+          <box size="${gripper_length} ${gripper_width} ${gripper_height}"/>
         </geometry>
       </collision>
     </link>
