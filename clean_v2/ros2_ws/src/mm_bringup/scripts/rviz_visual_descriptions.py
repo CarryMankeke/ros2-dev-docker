@@ -18,7 +18,6 @@ class RvizVisualDescriptions(Node):
     def __init__(self) -> None:
         super().__init__('rviz_visual_descriptions')
 
-        self.declare_parameter('use_sim_time', True)
         self.declare_parameter('prefix', 'mm1_')
         self.declare_parameter('namespace', 'mm1')
         self.declare_parameter('arm_x', 0.0)
