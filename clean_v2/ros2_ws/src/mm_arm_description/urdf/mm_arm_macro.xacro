@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="mm_arm_simple_inertial" params="mass inertia origin_z">
+    <inertial>
+      <origin xyz="0 0 ${origin_z}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${inertia}" ixy="0" ixz="0" iyy="${inertia}" iyz="0" izz="${inertia}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="mm_arm" params="prefix scale">
+    <xacro:property name="link1_len" value="${0.22 * scale}"/>
+    <xacro:property name="link2_len" value="${0.22 * scale}"/>
+    <xacro:property name="link3_len" value="${0.18 * scale}"/>
+    <xacro:property name="link4_len" value="${0.14 * scale}"/>
+    <xacro:property name="link5_len" value="${0.12 * scale}"/>
+    <xacro:property name="link6_len" value="${0.10 * scale}"/>
+
+    <link name="${prefix}arm_root_link"/>
+
+    <link name="${prefix}arm_base_link">
+      <xacro:mm_arm_simple_inertial mass="4.0" inertia="0.02" origin_z="0.02"/>
+      <visual>
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.12 0.12 0.04"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.12 0.12 0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_root_joint" type="fixed">
+      <parent link="${prefix}arm_root_link"/>
+      <child link="${prefix}arm_base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}arm_link_1">
+      <xacro:mm_arm_simple_inertial mass="1.2" inertia="0.01" origin_z="${link1_len / 2.0}"/>
+      <visual>
+        <origin xyz="0 0 ${link1_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.06 ${link1_len}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${link1_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.06 ${link1_len}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_shoulder_pan_joint" type="revolute">
+      <parent link="${prefix}arm_base_link"/>
+      <child link="${prefix}arm_link_1"/>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-3.14" upper="3.14" effort="50" velocity="1.0"/>
+    </joint>
+
+    <link name="${prefix}arm_link_2">
+      <xacro:mm_arm_simple_inertial mass="1.0" inertia="0.01" origin_z="${link2_len / 2.0}"/>
+      <visual>
+        <origin xyz="0 0 ${link2_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.05 ${link2_len}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${link2_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.05 ${link2_len}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_shoulder_lift_joint" type="revolute">
+      <parent link="${prefix}arm_link_1"/>
+      <child link="${prefix}arm_link_2"/>
+      <origin xyz="0 0 ${link1_len}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="50" velocity="1.0"/>
+    </joint>
+
+    <link name="${prefix}arm_link_3">
+      <xacro:mm_arm_simple_inertial mass="0.8" inertia="0.008" origin_z="${link3_len / 2.0}"/>
+      <visual>
+        <origin xyz="0 0 ${link3_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.05 ${link3_len}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${link3_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.05 ${link3_len}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_elbow_joint" type="revolute">
+      <parent link="${prefix}arm_link_2"/>
+      <child link="${prefix}arm_link_3"/>
+      <origin xyz="0 0 ${link2_len}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-2.0" upper="2.0" effort="40" velocity="1.2"/>
+    </joint>
+
+    <link name="${prefix}arm_link_4">
+      <xacro:mm_arm_simple_inertial mass="0.6" inertia="0.006" origin_z="${link4_len / 2.0}"/>
+      <visual>
+        <origin xyz="0 0 ${link4_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.045 0.045 ${link4_len}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${link4_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.045 0.045 ${link4_len}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_wrist_1_joint" type="revolute">
+      <parent link="${prefix}arm_link_3"/>
+      <child link="${prefix}arm_link_4"/>
+      <origin xyz="0 0 ${link3_len}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-2.5" upper="2.5" effort="20" velocity="1.5"/>
+    </joint>
+
+    <link name="${prefix}arm_link_5">
+      <xacro:mm_arm_simple_inertial mass="0.4" inertia="0.004" origin_z="${link5_len / 2.0}"/>
+      <visual>
+        <origin xyz="0 0 ${link5_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.04 0.04 ${link5_len}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${link5_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.04 0.04 ${link5_len}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_wrist_2_joint" type="revolute">
+      <parent link="${prefix}arm_link_4"/>
+      <child link="${prefix}arm_link_5"/>
+      <origin xyz="0 0 ${link4_len}" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit lower="-3.14" upper="3.14" effort="15" velocity="1.8"/>
+    </joint>
+
+    <link name="${prefix}arm_link_6">
+      <xacro:mm_arm_simple_inertial mass="0.3" inertia="0.003" origin_z="${link6_len / 2.0}"/>
+      <visual>
+        <origin xyz="0 0 ${link6_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.035 0.035 ${link6_len}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${link6_len / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.035 0.035 ${link6_len}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}arm_wrist_3_joint" type="revolute">
+      <parent link="${prefix}arm_link_5"/>
+      <child link="${prefix}arm_link_6"/>
+      <origin xyz="0 0 ${link5_len}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-3.14" upper="3.14" effort="10" velocity="2.0"/>
+    </joint>
+
+    <link name="${prefix}tool0"/>
+    <joint name="${prefix}tool_joint" type="fixed">
+      <parent link="${prefix}arm_link_6"/>
+      <child link="${prefix}tool0"/>
+      <origin xyz="0 0 ${link6_len}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}gripper_link">
+      <xacro:mm_arm_simple_inertial mass="0.2" inertia="0.0005" origin_z="0.0"/>
+      <visual>
+        <origin xyz="0.04 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.08 0.02 0.02"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0.04 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.08 0.02 0.02"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}gripper_joint" type="prismatic">
+      <parent link="${prefix}tool0"/>
+      <child link="${prefix}gripper_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit lower="0.0" upper="0.04" effort="20" velocity="0.2"/>
+    </joint>
+  </xacro:macro>
+</robot>

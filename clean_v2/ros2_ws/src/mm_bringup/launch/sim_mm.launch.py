@@ -10,19 +10,19 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
-def _render_base_controllers(context):
+def _render_mm_controllers(context):
     prefix = LaunchConfiguration('prefix').perform(context)
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     namespace_key = f'/{namespace}' if namespace else ''
     template_path = PathJoinSubstitution([
         FindPackageShare('mm_bringup'),
         'config',
-        'base_controllers.yaml.in',
+        'mm_controllers.yaml.in',
     ]).perform(context)
 
     output_dir = Path('/tmp/mm_bringup') / prefix
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / 'base_controllers.yaml'
+    output_file = output_dir / 'mm_controllers.yaml'
 
     content = Path(template_path).read_text(encoding='utf-8')
     content = content.replace('__PREFIX__', prefix)
@@ -38,6 +38,14 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     world = LaunchConfiguration('world')
     gz_args = LaunchConfiguration('gz_args')
+
+    arm_x = LaunchConfiguration('arm_x')
+    arm_y = LaunchConfiguration('arm_y')
+    arm_z = LaunchConfiguration('arm_z')
+    arm_roll = LaunchConfiguration('arm_roll')
+    arm_pitch = LaunchConfiguration('arm_pitch')
+    arm_yaw = LaunchConfiguration('arm_yaw')
+
     robot_description_topic = PathJoinSubstitution([
         TextSubstitution(text='/'),
         namespace,
@@ -51,15 +59,16 @@ def generate_launch_description():
 
     mm_bringup_share = FindPackageShare('mm_bringup')
     ros_gz_sim_share = FindPackageShare('ros_gz_sim')
-    base_xacro = PathJoinSubstitution([
-        FindPackageShare('mm_base_description'),
+
+    robot_xacro = PathJoinSubstitution([
+        FindPackageShare('mm_robot_description'),
         'urdf',
-        'mm_base.urdf.xacro',
+        'mm_robot.urdf.xacro',
     ])
-    base_controllers = PathJoinSubstitution([
+    controllers_file = PathJoinSubstitution([
         TextSubstitution(text='/tmp/mm_bringup/'),
         prefix,
-        TextSubstitution(text='base_controllers.yaml'),
+        TextSubstitution(text='mm_controllers.yaml'),
     ])
 
     default_world = PathJoinSubstitution([mm_bringup_share, 'worlds', 'minimal.world.sdf'])
@@ -67,10 +76,16 @@ def generate_launch_description():
     robot_description = ParameterValue(
         Command([
             'xacro ',
-            base_xacro,
+            robot_xacro,
             ' prefix:=', prefix,
             ' namespace:=', namespace,
-            ' controllers_file:=', base_controllers,
+            ' controllers_file:=', controllers_file,
+            ' arm_x:=', arm_x,
+            ' arm_y:=', arm_y,
+            ' arm_z:=', arm_z,
+            ' arm_roll:=', arm_roll,
+            ' arm_pitch:=', arm_pitch,
+            ' arm_yaw:=', arm_yaw,
         ]),
         value_type=str,
     )
@@ -122,9 +137,8 @@ def generate_launch_description():
             '--service-call-timeout', '30',
         ],
     )
-    start_base_jsb = TimerAction(period=3.0, actions=[base_jsb])
 
-    base_controller = Node(
+    omni_controller = Node(
         package='controller_manager',
         executable='spawner',
         output='screen',
@@ -135,7 +149,35 @@ def generate_launch_description():
             '--service-call-timeout', '30',
         ],
     )
-    start_base_controller = TimerAction(period=5.0, actions=[base_controller])
+
+    arm_controller = Node(
+        package='controller_manager',
+        executable='spawner',
+        output='screen',
+        arguments=[
+            'arm_trajectory_controller',
+            '--controller-manager', controller_manager_ns,
+            '--controller-manager-timeout', '120',
+            '--service-call-timeout', '30',
+        ],
+    )
+
+    gripper_controller = Node(
+        package='controller_manager',
+        executable='spawner',
+        output='screen',
+        arguments=[
+            'gripper_trajectory_controller',
+            '--controller-manager', controller_manager_ns,
+            '--controller-manager-timeout', '120',
+            '--service-call-timeout', '30',
+        ],
+    )
+
+    start_jsb = TimerAction(period=3.0, actions=[base_jsb])
+    start_omni = TimerAction(period=5.0, actions=[omni_controller])
+    start_arm = TimerAction(period=7.0, actions=[arm_controller])
+    start_gripper = TimerAction(period=9.0, actions=[gripper_controller])
 
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
@@ -143,13 +185,21 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('arm_x', default_value='0.0'),
+        DeclareLaunchArgument('arm_y', default_value='0.0'),
+        DeclareLaunchArgument('arm_z', default_value='0.30'),
+        DeclareLaunchArgument('arm_roll', default_value='0.0'),
+        DeclareLaunchArgument('arm_pitch', default_value='0.0'),
+        DeclareLaunchArgument('arm_yaw', default_value='0.0'),
         SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
-        OpaqueFunction(function=_render_base_controllers),
+        OpaqueFunction(function=_render_mm_controllers),
         gz_launch,
         clock_bridge,
         robot_state_publisher,
         spawn_robot,
-        start_base_jsb,
-        start_base_controller,
+        start_jsb,
+        start_omni,
+        start_arm,
+        start_gripper,
     ])

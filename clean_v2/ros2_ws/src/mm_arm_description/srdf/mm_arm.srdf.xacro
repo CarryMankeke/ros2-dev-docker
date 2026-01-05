@@ -3,6 +3,35 @@
   <xacro:arg name="prefix" default="mm1_"/>
   <xacro:property name="prefix" value="$(arg prefix)"/>
 
-  <!-- Placeholder: SRDF minimo para completar la estructura. -->
-  <virtual_joint name="world_joint" type="fixed" parent_frame="world" child_link="${prefix}root_link"/>
+  <group name="arm">
+    <joint name="${prefix}arm_shoulder_pan_joint"/>
+    <joint name="${prefix}arm_shoulder_lift_joint"/>
+    <joint name="${prefix}arm_elbow_joint"/>
+    <joint name="${prefix}arm_wrist_1_joint"/>
+    <joint name="${prefix}arm_wrist_2_joint"/>
+    <joint name="${prefix}arm_wrist_3_joint"/>
+  </group>
+
+  <group name="gripper">
+    <joint name="${prefix}gripper_joint"/>
+  </group>
+
+  <group name="mm_arm_full">
+    <group name="arm"/>
+    <group name="gripper"/>
+  </group>
+
+  <group_state name="home" group="arm">
+    <joint name="${prefix}arm_shoulder_pan_joint" value="0.0"/>
+    <joint name="${prefix}arm_shoulder_lift_joint" value="0.0"/>
+    <joint name="${prefix}arm_elbow_joint" value="0.0"/>
+    <joint name="${prefix}arm_wrist_1_joint" value="0.0"/>
+    <joint name="${prefix}arm_wrist_2_joint" value="0.0"/>
+    <joint name="${prefix}arm_wrist_3_joint" value="0.0"/>
+  </group_state>
+
+  <end_effector name="ee" parent_link="${prefix}tool0" parent_group="arm" group="gripper"/>
+  <virtual_joint name="world_joint" type="fixed" parent_frame="world" child_link="${prefix}arm_root_link"/>
+
+  <!-- Prueba minima: xacro mm_arm.srdf.xacro prefix:=mm1_ -->
 </robot>

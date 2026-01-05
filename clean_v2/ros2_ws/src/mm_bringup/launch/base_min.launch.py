@@ -1,10 +1,34 @@
+from pathlib import Path
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+
+
+def _render_base_controllers(context):
+    prefix = LaunchConfiguration('prefix').perform(context)
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    namespace_key = f'/{namespace}' if namespace else ''
+    template_path = PathJoinSubstitution([
+        FindPackageShare('mm_bringup'),
+        'config',
+        'base_controllers.yaml.in',
+    ]).perform(context)
+
+    output_dir = Path('/tmp/mm_bringup') / prefix
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / 'base_controllers.yaml'
+
+    content = Path(template_path).read_text(encoding='utf-8')
+    content = content.replace('__PREFIX__', prefix)
+    content = content.replace('__NAMESPACE__', namespace_key)
+    output_file.write_text(content, encoding='utf-8')
+
+    return []
 
 
 def generate_launch_description():
@@ -18,9 +42,9 @@ def generate_launch_description():
         'mm_base.urdf.xacro',
     ])
     base_controllers = PathJoinSubstitution([
-        FindPackageShare('mm_bringup'),
-        'config',
-        'base_controllers.yaml',
+        TextSubstitution(text='/tmp/mm_bringup/'),
+        prefix,
+        TextSubstitution(text='base_controllers.yaml'),
     ])
 
     robot_description = ParameterValue(
@@ -46,5 +70,6 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        OpaqueFunction(function=_render_base_controllers),
         robot_state_publisher,
     ])

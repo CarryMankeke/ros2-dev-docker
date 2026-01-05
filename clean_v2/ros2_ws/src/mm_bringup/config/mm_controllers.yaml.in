@@ -1,0 +1,77 @@
+__NAMESPACE__/controller_manager:
+  ros__parameters:
+    update_rate: 100
+    use_sim_time: true
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    omni_wheel_controller:
+      type: omni_wheel_drive_controller/OmniWheelDriveController
+
+    arm_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    gripper_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+__NAMESPACE__/joint_state_broadcaster:
+  ros__parameters:
+    use_sim_time: true
+
+__NAMESPACE__/omni_wheel_controller:
+  ros__parameters:
+    use_sim_time: true
+    wheel_names:
+      - __PREFIX__front_left_wheel_joint
+      - __PREFIX__rear_left_wheel_joint
+      - __PREFIX__rear_right_wheel_joint
+      - __PREFIX__front_right_wheel_joint
+    wheel_offset: 0.611
+    robot_radius: 0.305
+    wheel_radius: 0.07
+    base_frame_id: __PREFIX__base_link
+    odom_frame_id: __PREFIX__odom
+    enable_odom_tf: true
+    tf_frame_prefix_enable: false
+    open_loop: false
+    position_feedback: true
+    cmd_vel_timeout: 0.5
+    diagonal_covariance:
+      pose: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+      twist: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+
+__NAMESPACE__/arm_trajectory_controller:
+  ros__parameters:
+    use_sim_time: true
+    joints:
+      - __PREFIX__arm_shoulder_pan_joint
+      - __PREFIX__arm_shoulder_lift_joint
+      - __PREFIX__arm_elbow_joint
+      - __PREFIX__arm_wrist_1_joint
+      - __PREFIX__arm_wrist_2_joint
+      - __PREFIX__arm_wrist_3_joint
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+
+__NAMESPACE__/gripper_trajectory_controller:
+  ros__parameters:
+    use_sim_time: true
+    joints:
+      - __PREFIX__gripper_joint
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+
+# Prueba minima:
+# ros2 run controller_manager spawner omni_wheel_controller --controller-manager /mm1/controller_manager
+# ros2 run controller_manager spawner arm_trajectory_controller --controller-manager /mm1/controller_manager

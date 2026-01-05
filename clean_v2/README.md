@@ -21,3 +21,12 @@ Base limpia para un manipulador movil (base omni + brazo) con soporte multi-robo
 3. Lanzar simulacion minima (Gazebo):
    - `source install/setup.bash`
    - `ros2 launch mm_bringup sim_min.launch.py namespace:=mm1 prefix:=mm1_`
+
+4. Lanzar manipulador movil (base + brazo + gripper) en Gazebo:
+   - `source install/setup.bash`
+   - `ros2 launch mm_bringup sim_mm.launch.py namespace:=mm1 prefix:=mm1_`
+   - Verificar controladores:
+     - `ros2 control list_controllers --controller-manager /mm1/controller_manager`
+   - El brazo y el gripper usan interfaces de velocidad (JTC) para mantener compatibilidad con `gz_ros2_control`.
+
+Nota: para evitar saltos de tiempo, ejecuta un solo launch a la vez (un solo `/clock`).
