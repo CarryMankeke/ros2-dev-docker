@@ -7,13 +7,64 @@
   <xacro:arg name="scale" default="1.0"/>
   <xacro:arg name="controllers_file" default=""/>
   <xacro:arg name="enable_ros2_control" default="true"/>
+  <xacro:arg name="cam_front_x" default="0.26"/>
+  <xacro:arg name="cam_front_y" default="0.0"/>
+  <xacro:arg name="cam_front_z" default="0.12"/>
+  <xacro:arg name="cam_front_roll" default="0.0"/>
+  <xacro:arg name="cam_front_pitch" default="0.0"/>
+  <xacro:arg name="cam_front_yaw" default="0.0"/>
+  <xacro:arg name="cam_left_x" default="0.0"/>
+  <xacro:arg name="cam_left_y" default="0.185"/>
+  <xacro:arg name="cam_left_z" default="0.12"/>
+  <xacro:arg name="cam_left_roll" default="0.0"/>
+  <xacro:arg name="cam_left_pitch" default="0.0"/>
+  <xacro:arg name="cam_left_yaw" default="1.5708"/>
+  <xacro:arg name="cam_right_x" default="0.0"/>
+  <xacro:arg name="cam_right_y" default="-0.185"/>
+  <xacro:arg name="cam_right_z" default="0.12"/>
+  <xacro:arg name="cam_right_roll" default="0.0"/>
+  <xacro:arg name="cam_right_pitch" default="0.0"/>
+  <xacro:arg name="cam_right_yaw" default="-1.5708"/>
+  <xacro:arg name="cam_rear_x" default="-0.26"/>
+  <xacro:arg name="cam_rear_y" default="0.0"/>
+  <xacro:arg name="cam_rear_z" default="0.12"/>
+  <xacro:arg name="cam_rear_roll" default="0.0"/>
+  <xacro:arg name="cam_rear_pitch" default="0.0"/>
+  <xacro:arg name="cam_rear_yaw" default="3.1416"/>
 
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="namespace" value="$(arg namespace)"/>
   <xacro:property name="scale" value="$(arg scale)"/>
   <xacro:property name="controllers_file" value="$(arg controllers_file)"/>
 
-  <xacro:mm_base prefix="${prefix}" scale="${scale}"/>
+  <xacro:mm_base
+    prefix="${prefix}"
+    scale="${scale}"
+    cam_front_x="$(arg cam_front_x)"
+    cam_front_y="$(arg cam_front_y)"
+    cam_front_z="$(arg cam_front_z)"
+    cam_front_roll="$(arg cam_front_roll)"
+    cam_front_pitch="$(arg cam_front_pitch)"
+    cam_front_yaw="$(arg cam_front_yaw)"
+    cam_left_x="$(arg cam_left_x)"
+    cam_left_y="$(arg cam_left_y)"
+    cam_left_z="$(arg cam_left_z)"
+    cam_left_roll="$(arg cam_left_roll)"
+    cam_left_pitch="$(arg cam_left_pitch)"
+    cam_left_yaw="$(arg cam_left_yaw)"
+    cam_right_x="$(arg cam_right_x)"
+    cam_right_y="$(arg cam_right_y)"
+    cam_right_z="$(arg cam_right_z)"
+    cam_right_roll="$(arg cam_right_roll)"
+    cam_right_pitch="$(arg cam_right_pitch)"
+    cam_right_yaw="$(arg cam_right_yaw)"
+    cam_rear_x="$(arg cam_rear_x)"
+    cam_rear_y="$(arg cam_rear_y)"
+    cam_rear_z="$(arg cam_rear_z)"
+    cam_rear_roll="$(arg cam_rear_roll)"
+    cam_rear_pitch="$(arg cam_rear_pitch)"
+    cam_rear_yaw="$(arg cam_rear_yaw)"
+  />
 
   <xacro:if value="$(arg enable_ros2_control)">
     <xacro:if value="$(eval controllers_file != '')">

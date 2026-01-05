@@ -72,6 +72,7 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - `ros2_ws/src/mm_bringup/scripts/joy_teleop.py` + `config/joy_teleop.yaml`: lógica del teleop ESP32/joystick.
 - `docs/estructura_pseudocodigo.md`: esqueleto completo en pseudocódigo de nodos, launchfiles y flujo de arranque para la simulación.
 - `docs/arquitectura_moveit_nav2.md`: arquitectura de MoveIt 2 y Nav2 para fases futuras.
+- `docs/SENSORS.md`: convenciones de camaras, frames y topicos para simulacion.
 
 ## CI/CD y Testing
 

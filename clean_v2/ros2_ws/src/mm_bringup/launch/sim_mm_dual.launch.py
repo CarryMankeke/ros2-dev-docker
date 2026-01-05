@@ -54,6 +54,36 @@ def _set_lidar_bridge_args(context):
     return actions
 
 
+def _create_camera_bridges(context):
+    actions = []
+    for key in ('mm1', 'mm2'):
+        namespace = LaunchConfiguration(f'{key}_namespace').perform(context).strip('/')
+        ns_prefix = f'/{namespace}' if namespace else ''
+        camera_prefix = f'{ns_prefix}/camera'
+        bridge_args = [
+            f'{camera_prefix}/front/image@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/front/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/right/image@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/rear/image@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/rear/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/ee/image@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        ]
+        actions.append(
+            Node(
+                package='ros_gz_bridge',
+                executable='parameter_bridge',
+                name=f'camera_bridge_{key}',
+                output='screen',
+                arguments=bridge_args,
+            )
+        )
+    return actions
+
+
 def generate_launch_description():
     mm1_namespace = LaunchConfiguration('mm1_namespace')
     mm2_namespace = LaunchConfiguration('mm2_namespace')
@@ -362,6 +392,7 @@ def generate_launch_description():
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
         OpaqueFunction(function=_render_dual_controllers),
         OpaqueFunction(function=_set_lidar_bridge_args),
+        OpaqueFunction(function=_create_camera_bridges),
         gz_launch,
         clock_bridge,
         mm1_lidar_bridge,

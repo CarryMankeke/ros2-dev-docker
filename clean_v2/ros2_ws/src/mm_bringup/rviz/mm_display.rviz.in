@@ -116,6 +116,61 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: __NS__/scan
+    - Class: rviz_default_plugins/Image
+      Enabled: false
+      Name: CamFront
+      Image Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: __NS__/camera/front/image
+      Queue Size: 2
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: false
+      Name: CamLeft
+      Image Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: __NS__/camera/left/image
+      Queue Size: 2
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: false
+      Name: CamRight
+      Image Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: __NS__/camera/right/image
+      Queue Size: 2
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: false
+      Name: CamRear
+      Image Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: __NS__/camera/rear/image
+      Queue Size: 2
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: false
+      Name: CamEE
+      Image Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: __NS__/camera/ee/image
+      Queue Size: 2
+      Transport Hint: raw
     - Class: moveit_rviz_plugin/MotionPlanning
       Name: MotionPlanning
       Planned Path:

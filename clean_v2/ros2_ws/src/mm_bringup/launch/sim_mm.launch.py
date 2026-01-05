@@ -73,6 +73,34 @@ def _set_lidar_bridge_arg(context):
     ]
 
 
+def _create_camera_bridge(context):
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    ns_prefix = f'/{namespace}' if namespace else ''
+    camera_prefix = f'{ns_prefix}/camera'
+    bridge_args = [
+        f'{camera_prefix}/front/image@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/front/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/right/image@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/rear/image@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/rear/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/ee/image@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+    ]
+
+    return [
+        Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            name='camera_bridge',
+            output='screen',
+            arguments=bridge_args,
+        )
+    ]
+
+
 def generate_launch_description():
     namespace = LaunchConfiguration('namespace')
     prefix = LaunchConfiguration('prefix')
@@ -280,6 +308,7 @@ def generate_launch_description():
         OpaqueFunction(function=_render_mm_controllers),
         OpaqueFunction(function=_render_rviz_config),
         OpaqueFunction(function=_set_lidar_bridge_arg),
+        OpaqueFunction(function=_create_camera_bridge),
         gz_launch,
         clock_bridge,
         lidar_bridge,
