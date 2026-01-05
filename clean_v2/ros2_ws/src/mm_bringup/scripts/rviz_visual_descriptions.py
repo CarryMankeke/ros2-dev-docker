@@ -20,6 +20,8 @@ class RvizVisualDescriptions(Node):
 
         self.declare_parameter('prefix', 'mm1_')
         self.declare_parameter('namespace', 'mm1')
+        self.declare_parameter('robot_description_base_visual', '')
+        self.declare_parameter('robot_description_arm_visual', '')
         self.declare_parameter('arm_x', 0.0)
         self.declare_parameter('arm_y', 0.0)
         self.declare_parameter('arm_z', 0.05)
