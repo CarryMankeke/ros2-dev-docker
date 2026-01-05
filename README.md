@@ -1,5 +1,9 @@
 # ros2-sim-vnc
 
+Autor: Camilo Soto Villegas  
+Contacto: camilo.soto.v@usach.cl  
+Proyecto: clean_v2
+
 Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidireccional **mm_base** con el brazo 6DOF **mm_arm** y teleoperación micro-ROS.
 
 ## Requisitos locales
@@ -26,6 +30,32 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
    source /opt/ros/jazzy/setup.bash
    source /home/ros/ros2_ws/install/setup.bash
    ros2 launch mm_bringup modes.launch.py
+   '
+   ```
+
+## Simulacion reproducible (one-liners)
+1. Levantar simulacion (Gazebo + RViz):
+   ```bash
+   docker compose exec -T ros2-vnc bash -lc '
+   source /opt/ros/jazzy/setup.bash
+   source /home/ros/ros2_ws/install/setup.bash
+   ros2 launch mm_bringup sim_mm.launch.py headless:=false gz_args:="-r -v 4"
+   '
+   ```
+2. Ejecutar smoke tests (mm1 por defecto):
+   ```bash
+   docker compose exec -T ros2-vnc bash -lc '
+   source /opt/ros/jazzy/setup.bash
+   source /home/ros/ros2_ws/install/setup.bash
+   ros2 run mm_bringup run_smoke_tests.sh
+   '
+   ```
+3. Ejecutar smoke tests para mm2:
+   ```bash
+   docker compose exec -T ros2-vnc bash -lc '
+   source /opt/ros/jazzy/setup.bash
+   source /home/ros/ros2_ws/install/setup.bash
+   SMOKE_NS=mm2 SMOKE_PREFIX=mm2_ ros2 run mm_bringup run_smoke_tests.sh
    '
    ```
 
@@ -73,6 +103,8 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
 - `docs/estructura_pseudocodigo.md`: esqueleto completo en pseudocódigo de nodos, launchfiles y flujo de arranque para la simulación.
 - `docs/arquitectura_moveit_nav2.md`: arquitectura de MoveIt 2 y Nav2 para fases futuras.
 - `docs/SENSORS.md`: convenciones de camaras, frames y topicos para simulacion.
+- `docs/TF_CONTRACT.md`: contrato de TF por robot (frames y jerarquia).
+- `docs/CONTROLLERS.md`: contrato de controladores y validacion por namespace.
 
 ## CI/CD y Testing
 
