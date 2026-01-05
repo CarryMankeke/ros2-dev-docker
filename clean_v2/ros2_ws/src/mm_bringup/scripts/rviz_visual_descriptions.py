@@ -24,14 +24,14 @@ class RvizVisualDescriptions(Node):
         self.declare_parameter('robot_description_arm_visual', '')
         self.declare_parameter('arm_x', 0.0)
         self.declare_parameter('arm_y', 0.0)
-        self.declare_parameter('arm_z', 0.05)
+        self.declare_parameter('arm_z', 0.02)
         self.declare_parameter('arm_roll', 0.0)
         self.declare_parameter('arm_pitch', 0.0)
         self.declare_parameter('arm_yaw', 0.0)
         self.declare_parameter('enable_lidar', True)
         self.declare_parameter('lidar_x', 0.20)
         self.declare_parameter('lidar_y', 0.0)
-        self.declare_parameter('lidar_z', 0.15)
+        self.declare_parameter('lidar_z', 0.125)
 
         qos = QoSProfile(depth=1)
         qos.durability = DurabilityPolicy.TRANSIENT_LOCAL

@@ -9,27 +9,27 @@
   <xacro:arg name="controllers_file" default=""/>
   <xacro:arg name="enable_ros2_control" default="true"/>
   <xacro:arg name="visual_mode" default="full"/>
-  <xacro:arg name="cam_front_x" default="0.26"/>
+  <xacro:arg name="cam_front_x" default="0.27"/>
   <xacro:arg name="cam_front_y" default="0.0"/>
-  <xacro:arg name="cam_front_z" default="0.12"/>
+  <xacro:arg name="cam_front_z" default="0.085"/>
   <xacro:arg name="cam_front_roll" default="0.0"/>
   <xacro:arg name="cam_front_pitch" default="0.0"/>
   <xacro:arg name="cam_front_yaw" default="0.0"/>
   <xacro:arg name="cam_left_x" default="0.0"/>
-  <xacro:arg name="cam_left_y" default="0.185"/>
-  <xacro:arg name="cam_left_z" default="0.12"/>
+  <xacro:arg name="cam_left_y" default="0.19"/>
+  <xacro:arg name="cam_left_z" default="0.085"/>
   <xacro:arg name="cam_left_roll" default="0.0"/>
   <xacro:arg name="cam_left_pitch" default="0.0"/>
   <xacro:arg name="cam_left_yaw" default="1.5708"/>
   <xacro:arg name="cam_right_x" default="0.0"/>
-  <xacro:arg name="cam_right_y" default="-0.185"/>
-  <xacro:arg name="cam_right_z" default="0.12"/>
+  <xacro:arg name="cam_right_y" default="-0.19"/>
+  <xacro:arg name="cam_right_z" default="0.085"/>
   <xacro:arg name="cam_right_roll" default="0.0"/>
   <xacro:arg name="cam_right_pitch" default="0.0"/>
   <xacro:arg name="cam_right_yaw" default="-1.5708"/>
-  <xacro:arg name="cam_rear_x" default="-0.26"/>
+  <xacro:arg name="cam_rear_x" default="-0.27"/>
   <xacro:arg name="cam_rear_y" default="0.0"/>
-  <xacro:arg name="cam_rear_z" default="0.12"/>
+  <xacro:arg name="cam_rear_z" default="0.085"/>
   <xacro:arg name="cam_rear_roll" default="0.0"/>
   <xacro:arg name="cam_rear_pitch" default="0.0"/>
   <xacro:arg name="cam_rear_yaw" default="3.1416"/>

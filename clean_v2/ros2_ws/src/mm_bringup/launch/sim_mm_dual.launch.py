@@ -2,6 +2,7 @@
 # Contacto: camilo.soto.v@usach.cl
 # Proyecto: clean_v2
 from pathlib import Path
+import shlex
 
 from launch import LaunchDescription
 from launch.actions import (
@@ -55,6 +56,20 @@ def _set_lidar_bridge_args(context):
             )
         )
     return actions
+
+
+def _set_gz_args(context):
+    headless = LaunchConfiguration('headless').perform(context).lower() in ('true', '1')
+    base_args = LaunchConfiguration('gz_args').perform(context).strip()
+    tokens = shlex.split(base_args) if base_args else ['-r', '-v', '4']
+    if headless:
+        if '-s' not in tokens:
+            tokens.append('-s')
+        if '--headless-rendering' not in tokens:
+            tokens.append('--headless-rendering')
+    else:
+        tokens = [token for token in tokens if token not in ('-s', '--headless-rendering')]
+    return [SetLaunchConfiguration('gz_args', ' '.join(tokens))]
 
 
 def _create_camera_bridges(context):
@@ -409,20 +424,20 @@ def generate_launch_description():
         DeclareLaunchArgument('mm2_prefix', default_value='mm2_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
-        DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('gz_args', default_value='-r -v 4'),
         DeclareLaunchArgument('sim', default_value='true'),
         DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
-        DeclareLaunchArgument('arm_z', default_value='0.05'),
+        DeclareLaunchArgument('arm_z', default_value='0.02'),
         DeclareLaunchArgument('arm_roll', default_value='0.0'),
         DeclareLaunchArgument('arm_pitch', default_value='0.0'),
         DeclareLaunchArgument('arm_yaw', default_value='0.0'),
         DeclareLaunchArgument('lidar_x', default_value='0.20'),
         DeclareLaunchArgument('lidar_y', default_value='0.0'),
-        DeclareLaunchArgument('lidar_z', default_value='0.15'),
+        DeclareLaunchArgument('lidar_z', default_value='0.125'),
         DeclareLaunchArgument('mm1_spawn_x', default_value='0.0'),
         DeclareLaunchArgument('mm1_spawn_y', default_value='0.0'),
         DeclareLaunchArgument('mm2_spawn_x', default_value='1.0'),
@@ -430,6 +445,7 @@ def generate_launch_description():
         DeclareLaunchArgument('spawn_z', default_value='0.15'),
         SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1', condition=IfCondition(headless)),
         OpaqueFunction(function=_render_dual_controllers),
+        OpaqueFunction(function=_set_gz_args),
         OpaqueFunction(function=_set_lidar_bridge_args),
         OpaqueFunction(function=_create_camera_bridges),
         OpaqueFunction(function=_create_lidar_bridges),
