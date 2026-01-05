@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2 -->
 <robot name="mm_base" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:include filename="$(find mm_base_description)/urdf/mm_base_macro.xacro"/>
 
@@ -7,6 +8,7 @@
   <xacro:arg name="scale" default="1.0"/>
   <xacro:arg name="controllers_file" default=""/>
   <xacro:arg name="enable_ros2_control" default="true"/>
+  <xacro:arg name="visual_mode" default="full"/>
   <xacro:arg name="cam_front_x" default="0.26"/>
   <xacro:arg name="cam_front_y" default="0.0"/>
   <xacro:arg name="cam_front_z" default="0.12"/>
@@ -40,6 +42,7 @@
   <xacro:mm_base
     prefix="${prefix}"
     scale="${scale}"
+    visual_mode="$(arg visual_mode)"
     cam_front_x="$(arg cam_front_x)"
     cam_front_y="$(arg cam_front_y)"
     cam_front_z="$(arg cam_front_z)"

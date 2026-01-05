@@ -9,7 +9,7 @@
     </inertial>
   </xacro:macro>
 
-  <xacro:macro name="mm_base" params="prefix scale cam_front_x cam_front_y cam_front_z cam_front_roll cam_front_pitch cam_front_yaw cam_left_x cam_left_y cam_left_z cam_left_roll cam_left_pitch cam_left_yaw cam_right_x cam_right_y cam_right_z cam_right_roll cam_right_pitch cam_right_yaw cam_rear_x cam_rear_y cam_rear_z cam_rear_roll cam_rear_pitch cam_rear_yaw">
+  <xacro:macro name="mm_base" params="prefix scale visual_mode cam_front_x cam_front_y cam_front_z cam_front_roll cam_front_pitch cam_front_yaw cam_left_x cam_left_y cam_left_z cam_left_roll cam_left_pitch cam_left_yaw cam_right_x cam_right_y cam_right_z cam_right_roll cam_right_pitch cam_right_yaw cam_rear_x cam_rear_y cam_rear_z cam_rear_roll cam_rear_pitch cam_rear_yaw">
     <xacro:property name="base_length" value="${0.50 * scale}"/>
     <xacro:property name="base_width" value="${0.35 * scale}"/>
     <xacro:property name="base_height" value="${0.10 * scale}"/>
@@ -21,17 +21,21 @@
 
     <link name="${prefix}base_footprint"/>
 
+    <xacro:property name="base_visual_enabled" value="${visual_mode == 'full' or visual_mode == 'base_only'}"/>
+
     <link name="${prefix}base_link">
       <xacro:mm_base_simple_inertial mass="15.0" ixz="0.25"/>
-      <visual>
-        <origin xyz="0 0 ${base_visual_height / 2.0}" rpy="0 0 0"/>
-        <geometry>
-          <box size="${base_visual_length} ${base_visual_width} ${base_visual_height}"/>
-        </geometry>
-        <material name="BaseBlue">
-          <color rgba="0.1 0.2 0.6 1.0"/>
-        </material>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <origin xyz="0 0 ${base_visual_height / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <box size="${base_visual_length} ${base_visual_width} ${base_visual_height}"/>
+          </geometry>
+          <material name="BaseBlue">
+            <color rgba="0.1 0.2 0.6 1.0"/>
+          </material>
+        </visual>
+      </xacro:if>
       <collision>
         <origin xyz="0 0 ${base_height / 2.0}" rpy="0 0 0"/>
         <geometry>
@@ -48,11 +52,13 @@
 
     <link name="${prefix}front_left_wheel_link">
       <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
-      <visual>
-        <geometry>
-          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
@@ -62,11 +68,13 @@
 
     <link name="${prefix}front_right_wheel_link">
       <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
-      <visual>
-        <geometry>
-          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
@@ -76,11 +84,13 @@
 
     <link name="${prefix}rear_left_wheel_link">
       <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
-      <visual>
-        <geometry>
-          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
@@ -90,11 +100,13 @@
 
     <link name="${prefix}rear_right_wheel_link">
       <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
-      <visual>
-        <geometry>
-          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
@@ -132,11 +144,13 @@
 
     <link name="${prefix}cam_front_link">
       <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
-      <visual>
-        <geometry>
-          <box size="0.04 0.03 0.03"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <box size="0.04 0.03 0.03"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <box size="0.04 0.03 0.03"/>
@@ -152,11 +166,13 @@
 
     <link name="${prefix}cam_left_link">
       <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
-      <visual>
-        <geometry>
-          <box size="0.04 0.03 0.03"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <box size="0.04 0.03 0.03"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <box size="0.04 0.03 0.03"/>
@@ -172,11 +188,13 @@
 
     <link name="${prefix}cam_right_link">
       <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
-      <visual>
-        <geometry>
-          <box size="0.04 0.03 0.03"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <box size="0.04 0.03 0.03"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <box size="0.04 0.03 0.03"/>
@@ -192,11 +210,13 @@
 
     <link name="${prefix}cam_rear_link">
       <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
-      <visual>
-        <geometry>
-          <box size="0.04 0.03 0.03"/>
-        </geometry>
-      </visual>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <box size="0.04 0.03 0.03"/>
+          </geometry>
+        </visual>
+      </xacro:if>
       <collision>
         <geometry>
           <box size="0.04 0.03 0.03"/>
