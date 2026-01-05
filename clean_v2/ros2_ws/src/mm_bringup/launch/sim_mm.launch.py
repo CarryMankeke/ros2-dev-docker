@@ -40,6 +40,28 @@ def _render_mm_controllers(context):
     return []
 
 
+def _render_rviz_config(context):
+    prefix = LaunchConfiguration('prefix').perform(context)
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    namespace_key = f'/{namespace}' if namespace else ''
+    template_path = PathJoinSubstitution([
+        FindPackageShare('mm_bringup'),
+        'rviz',
+        'mm_display.rviz.in',
+    ]).perform(context)
+
+    output_dir = Path('/tmp/mm_bringup') / prefix
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / 'mm_display.rviz'
+
+    content = Path(template_path).read_text(encoding='utf-8')
+    content = content.replace('__PREFIX__', prefix)
+    content = content.replace('__NS__', namespace_key)
+    output_file.write_text(content, encoding='utf-8')
+
+    return []
+
+
 def _set_lidar_bridge_arg(context):
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     topic = f'/{namespace}/scan' if namespace else '/scan'
@@ -94,6 +116,11 @@ def generate_launch_description():
         TextSubstitution(text='/tmp/mm_bringup/'),
         prefix,
         TextSubstitution(text='mm_controllers.yaml'),
+    ])
+    rviz_config = PathJoinSubstitution([
+        TextSubstitution(text='/tmp/mm_bringup/'),
+        prefix,
+        TextSubstitution(text='mm_display.rviz'),
     ])
 
     default_world = PathJoinSubstitution([mm_bringup_share, 'worlds', 'minimal.world.sdf'])
@@ -217,6 +244,18 @@ def generate_launch_description():
     start_omni = TimerAction(period=5.0, actions=[omni_controller])
     start_arm = TimerAction(period=7.0, actions=[arm_controller])
     start_gripper = TimerAction(period=9.0, actions=[gripper_controller])
+    start_rviz = TimerAction(
+        period=11.0,
+        actions=[
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                output='screen',
+                parameters=[{'use_sim_time': use_sim_time}],
+                arguments=['-d', rviz_config],
+            ),
+        ],
+    )
 
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
@@ -239,6 +278,7 @@ def generate_launch_description():
         SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1', condition=IfCondition(headless)),
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
         OpaqueFunction(function=_render_mm_controllers),
+        OpaqueFunction(function=_render_rviz_config),
         OpaqueFunction(function=_set_lidar_bridge_arg),
         gz_launch,
         clock_bridge,
@@ -249,4 +289,5 @@ def generate_launch_description():
         start_omni,
         start_arm,
         start_gripper,
+        start_rviz,
     ])
