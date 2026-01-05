@@ -31,7 +31,7 @@ class CameraFrameRepublisher(Node):
                 frame_id = f'{prefix}cam_{name}_link'
 
             src_image = f'{ns_prefix}/camera/{name}/image_raw'
-            src_info = f'{ns_prefix}/camera/{name}/camera_info_raw'
+            src_info = f'{ns_prefix}/camera/{name}/camera_info'
             dst_image = f'{ns_prefix}/camera/{name}/image'
             dst_info = f'{ns_prefix}/camera/{name}/camera_info'
 

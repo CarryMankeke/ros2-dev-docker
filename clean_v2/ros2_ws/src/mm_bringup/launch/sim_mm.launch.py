@@ -79,15 +79,15 @@ def _create_camera_bridge(context):
     camera_prefix = f'{ns_prefix}/camera'
     bridge_args = [
         f'{camera_prefix}/front/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/front/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/front/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         f'{camera_prefix}/left/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/left/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         f'{camera_prefix}/right/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/right/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         f'{camera_prefix}/rear/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/rear/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/rear/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         f'{camera_prefix}/ee/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/ee/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
     ]
 
     return [
