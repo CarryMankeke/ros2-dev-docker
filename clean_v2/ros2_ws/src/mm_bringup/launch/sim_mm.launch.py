@@ -320,6 +320,11 @@ def generate_launch_description():
                         output='screen',
                         parameters=[{'use_sim_time': use_sim_time}],
                         arguments=['-d', rviz_config],
+                        additional_env={
+                            'LIBGL_ALWAYS_SOFTWARE': '1',
+                            'QT_XCB_GL_INTEGRATION': 'none',
+                            'GALLIUM_DRIVER': 'llvmpipe',
+                        },
                     ),
                 ]
             ),
