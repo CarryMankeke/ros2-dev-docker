@@ -48,22 +48,29 @@ def _render_rviz_config(context):
     prefix = LaunchConfiguration('prefix').perform(context)
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     namespace_key = f'/{namespace}' if namespace else ''
+    rviz_mode = LaunchConfiguration('rviz_mode').perform(context).strip().lower()
+    mode_map = {
+        'verify': 'mm_verify.rviz.in',
+        'nav2': 'mm_nav2.rviz.in',
+        'moveit': 'mm_moveit.rviz.in',
+    }
+    template_name = mode_map.get(rviz_mode, 'mm_verify.rviz.in')
     template_path = PathJoinSubstitution([
         FindPackageShare('mm_bringup'),
         'rviz',
-        'mm_display.rviz.in',
+        template_name,
     ]).perform(context)
 
     output_dir = Path('/tmp/mm_bringup') / prefix
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / 'mm_display.rviz'
+    output_file = output_dir / template_name.replace('.in', '')
 
     content = Path(template_path).read_text(encoding='utf-8')
     content = content.replace('__PREFIX__', prefix)
     content = content.replace('__NS__', namespace_key)
     output_file.write_text(content, encoding='utf-8')
 
-    return []
+    return [SetLaunchConfiguration('rviz_config', str(output_file))]
 
 
 def _set_lidar_bridge_arg(context):
@@ -179,11 +186,7 @@ def generate_launch_description():
         prefix,
         TextSubstitution(text='mm_controllers.yaml'),
     ])
-    rviz_config = PathJoinSubstitution([
-        TextSubstitution(text='/tmp/mm_bringup/'),
-        prefix,
-        TextSubstitution(text='mm_display.rviz'),
-    ])
+    rviz_config = LaunchConfiguration('rviz_config')
 
     default_world = PathJoinSubstitution([mm_bringup_share, 'worlds', 'minimal.world.sdf'])
 
@@ -337,6 +340,7 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('rviz_mode', default_value='verify'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
         DeclareLaunchArgument('sim', default_value='true'),
