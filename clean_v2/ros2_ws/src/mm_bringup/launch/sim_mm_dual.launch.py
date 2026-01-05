@@ -11,7 +11,13 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
+from launch.substitutions import (
+    Command,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    PythonExpression,
+    TextSubstitution,
+)
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -55,6 +61,10 @@ def _set_lidar_bridge_args(context):
 
 
 def _create_camera_bridges(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    if sim in ('false', '0'):
+        return []
+
     actions = []
     for key in ('mm1', 'mm2'):
         namespace = LaunchConfiguration(f'{key}_namespace').perform(context).strip('/')
@@ -98,8 +108,10 @@ def generate_launch_description():
     mm1_prefix = LaunchConfiguration('mm1_prefix')
     mm2_prefix = LaunchConfiguration('mm2_prefix')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    sim = LaunchConfiguration('sim')
     world = LaunchConfiguration('world')
     gz_args = LaunchConfiguration('gz_args')
+    headless = LaunchConfiguration('headless')
     enable_lidar = LaunchConfiguration('enable_lidar')
     enable_lidar_bridge = LaunchConfiguration('enable_lidar_bridge')
 
@@ -191,6 +203,7 @@ def generate_launch_description():
         launch_arguments={
             'gz_args': [gz_args, ' ', world],
         }.items(),
+        condition=IfCondition(sim),
     )
 
     clock_bridge = Node(
@@ -199,6 +212,7 @@ def generate_launch_description():
         name='clock_bridge',
         output='screen',
         arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        condition=IfCondition(sim),
     )
 
     mm1_lidar_bridge = Node(
@@ -207,7 +221,7 @@ def generate_launch_description():
         name='lidar_bridge_mm1',
         output='screen',
         arguments=[LaunchConfiguration('mm1_lidar_bridge_arg')],
-        condition=IfCondition(enable_lidar_bridge),
+        condition=IfCondition(PythonExpression([sim, ' and ', enable_lidar_bridge])),
     )
 
     mm2_lidar_bridge = Node(
@@ -216,7 +230,7 @@ def generate_launch_description():
         name='lidar_bridge_mm2',
         output='screen',
         arguments=[LaunchConfiguration('mm2_lidar_bridge_arg')],
-        condition=IfCondition(enable_lidar_bridge),
+        condition=IfCondition(PythonExpression([sim, ' and ', enable_lidar_bridge])),
     )
 
     mm1_state_publisher = Node(
@@ -250,6 +264,7 @@ def generate_launch_description():
             '-y', mm1_spawn_y,
             '-z', spawn_z,
         ],
+        condition=IfCondition(sim),
     )
 
     mm2_spawn = Node(
@@ -267,6 +282,7 @@ def generate_launch_description():
             '-y', mm2_spawn_y,
             '-z', spawn_z,
         ],
+        condition=IfCondition(sim),
     )
 
     mm1_controller_manager = PathJoinSubstitution([
@@ -395,6 +411,8 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('sim', default_value='true'),
+        DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
@@ -411,8 +429,12 @@ def generate_launch_description():
         DeclareLaunchArgument('mm2_spawn_x', default_value='1.0'),
         DeclareLaunchArgument('mm2_spawn_y', default_value='0.0'),
         DeclareLaunchArgument('spawn_z', default_value='0.15'),
-        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
-        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
+        SetEnvironmentVariable(
+            name='GZ_SIM_HEADLESS',
+            value='1',
+            condition=IfCondition(PythonExpression([sim, ' and ', headless])),
+        ),
+        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1', condition=IfCondition(sim)),
         OpaqueFunction(function=_render_dual_controllers),
         OpaqueFunction(function=_set_lidar_bridge_args),
         OpaqueFunction(function=_create_camera_bridges),

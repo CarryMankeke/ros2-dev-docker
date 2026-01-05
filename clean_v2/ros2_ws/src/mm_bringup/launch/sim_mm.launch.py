@@ -11,7 +11,13 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
+from launch.substitutions import (
+    Command,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    PythonExpression,
+    TextSubstitution,
+)
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -74,6 +80,10 @@ def _set_lidar_bridge_arg(context):
 
 
 def _create_camera_bridge(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    if sim in ('false', '0'):
+        return []
+
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     ns_prefix = f'/{namespace}' if namespace else ''
     camera_prefix = f'{ns_prefix}/camera'
@@ -113,6 +123,7 @@ def generate_launch_description():
     namespace = LaunchConfiguration('namespace')
     prefix = LaunchConfiguration('prefix')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    sim = LaunchConfiguration('sim')
     world = LaunchConfiguration('world')
     gz_args = LaunchConfiguration('gz_args')
     enable_lidar = LaunchConfiguration('enable_lidar')
@@ -198,6 +209,7 @@ def generate_launch_description():
         launch_arguments={
             'gz_args': [gz_args, ' ', world],
         }.items(),
+        condition=IfCondition(sim),
     )
 
     spawn_robot = Node(
@@ -209,6 +221,7 @@ def generate_launch_description():
             '-topic', robot_description_topic,
             '-z', '0.15',
         ],
+        condition=IfCondition(sim),
     )
 
     clock_bridge = Node(
@@ -217,6 +230,7 @@ def generate_launch_description():
         name='clock_bridge',
         output='screen',
         arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        condition=IfCondition(sim),
     )
 
     lidar_bridge = Node(
@@ -225,7 +239,7 @@ def generate_launch_description():
         name='lidar_bridge',
         output='screen',
         arguments=[LaunchConfiguration('lidar_bridge_arg')],
-        condition=IfCondition(enable_lidar_bridge),
+        condition=IfCondition(PythonExpression([sim, ' and ', enable_lidar_bridge])),
     )
 
     base_jsb = Node(
@@ -286,6 +300,7 @@ def generate_launch_description():
         namespace=namespace,
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
+        condition=IfCondition(sim),
     )
     start_rviz = TimerAction(
         period=11.0,
@@ -306,6 +321,7 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('sim', default_value='true'),
         DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
@@ -318,8 +334,12 @@ def generate_launch_description():
         DeclareLaunchArgument('lidar_x', default_value='0.20'),
         DeclareLaunchArgument('lidar_y', default_value='0.0'),
         DeclareLaunchArgument('lidar_z', default_value='0.15'),
-        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1', condition=IfCondition(headless)),
-        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
+        SetEnvironmentVariable(
+            name='GZ_SIM_HEADLESS',
+            value='1',
+            condition=IfCondition(PythonExpression([sim, ' and ', headless])),
+        ),
+        SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1', condition=IfCondition(sim)),
         OpaqueFunction(function=_render_mm_controllers),
         OpaqueFunction(function=_render_rviz_config),
         OpaqueFunction(function=_set_lidar_bridge_arg),
