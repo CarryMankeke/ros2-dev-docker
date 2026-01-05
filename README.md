@@ -42,6 +42,7 @@ Contenedor Docker + workspace ROS 2 (jazzy) para simular el robot móvil omnidir
    ros2 launch mm_bringup sim_mm.launch.py headless:=false gz_args:="-r -v 4"
    '
    ```
+   Nota: `sim:=false` desactiva Gazebo, bridges y republisher (modo real preparado).
 2. Ejecutar smoke tests (mm1 por defecto):
    ```bash
    docker compose exec -T ros2-vnc bash -lc '
