@@ -1,4 +1,7 @@
 # Estructura en pseudocódigo para el stack ROS 2 (Jazzy)
+Autor: Camilo Soto Villegas
+Contacto: camilo.soto.v@usach.cl
+Proyecto: clean_v2
 
 Guía de esqueleto para el sistema de teleoperación y simulación del manipulador móvil (base omnidireccional + brazo 6DOF + gripper) en ROS 2 Jazzy. No es código ejecutable; organiza paquetes, nodos, tópicos y launchfiles conforme a la documentación oficial de ROS 2, Gazebo Harmonic, Nav2 y MoveIt 2.
 

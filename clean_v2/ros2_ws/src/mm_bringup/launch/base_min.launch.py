@@ -1,5 +1,8 @@
 from pathlib import Path
 
+# Autor: Camilo Soto Villegas
+# Contacto: camilo.soto.v@usach.cl
+# Proyecto: clean_v2
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution

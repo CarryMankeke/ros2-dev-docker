@@ -1,4 +1,7 @@
 # Nav2 base para mm_bringup
+Autor: Camilo Soto Villegas
+Contacto: camilo.soto.v@usach.cl
+Proyecto: clean_v2
 
 ## Objetivo
 1. Preparar una configuracion base de Nav2 para una base omni.

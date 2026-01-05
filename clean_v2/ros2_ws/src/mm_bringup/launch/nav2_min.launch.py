@@ -1,3 +1,6 @@
+# Autor: Camilo Soto Villegas
+# Contacto: camilo.soto.v@usach.cl
+# Proyecto: clean_v2
 from pathlib import Path
 
 from launch import LaunchDescription

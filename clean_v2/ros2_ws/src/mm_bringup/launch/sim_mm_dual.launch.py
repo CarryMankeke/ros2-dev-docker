@@ -1,3 +1,6 @@
+# Autor: Camilo Soto Villegas
+# Contacto: camilo.soto.v@usach.cl
+# Proyecto: clean_v2
 from pathlib import Path
 
 from launch import LaunchDescription
@@ -18,7 +21,6 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
-# Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2
 def _render_dual_controllers(context):
     mm_bringup_share = FindPackageShare('mm_bringup').perform(context)
     template_path = Path(mm_bringup_share) / 'config' / 'mm_controllers.yaml.in'

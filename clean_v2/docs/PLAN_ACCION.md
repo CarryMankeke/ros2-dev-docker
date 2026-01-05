@@ -1,4 +1,7 @@
 # Plan de accion (clean_v2)
+Autor: Camilo Soto Villegas
+Contacto: camilo.soto.v@usach.cl
+Proyecto: clean_v2
 
 ## 1) Base minima (mm1)
 1. URDF/Xacro de base omni (4 ruedas) con prefijo `mm1_`.

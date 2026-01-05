@@ -1,4 +1,7 @@
 # MoveIt 2 base para mm_moveit_config
+Autor: Camilo Soto Villegas
+Contacto: camilo.soto.v@usach.cl
+Proyecto: clean_v2
 
 ## Objetivo
 1. Habilitar planeacion y ejecucion para el brazo y el gripper con MoveIt 2.

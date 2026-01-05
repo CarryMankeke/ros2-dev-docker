@@ -1,3 +1,6 @@
+# Autor: Camilo Soto Villegas
+# Contacto: camilo.soto.v@usach.cl
+# Proyecto: clean_v2
 from pathlib import Path
 
 from launch import LaunchDescription
@@ -19,7 +22,6 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
-# Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2
 def _render_mm_controllers(context):
     prefix = LaunchConfiguration('prefix').perform(context)
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
