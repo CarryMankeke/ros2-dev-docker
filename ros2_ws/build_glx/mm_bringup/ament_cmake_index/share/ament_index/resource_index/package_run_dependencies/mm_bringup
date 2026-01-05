@@ -1,1 +1,0 @@
-launch;launch_ros;xacro;robot_state_publisher;joint_state_publisher_gui;rviz2;controller_manager;ros2_controllers;ros_gz_sim;ros_gz_bridge;teleop_twist_keyboard;rclpy;std_msgs;ament_lint_auto;ament_lint_common
