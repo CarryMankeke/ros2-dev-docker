@@ -11,13 +11,7 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    Command,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-    PythonExpression,
-    TextSubstitution,
-)
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -115,6 +109,23 @@ def _create_camera_bridge(context):
             output='screen',
             arguments=bridge_args,
             remappings=remaps,
+        )
+    ]
+
+
+def _create_lidar_bridge(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    enable = LaunchConfiguration('enable_lidar_bridge').perform(context).lower()
+    if sim in ('false', '0') or enable in ('false', '0'):
+        return []
+
+    return [
+        Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            name='lidar_bridge',
+            output='screen',
+            arguments=[LaunchConfiguration('lidar_bridge_arg')],
         )
     ]
 
@@ -233,15 +244,6 @@ def generate_launch_description():
         condition=IfCondition(sim),
     )
 
-    lidar_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        name='lidar_bridge',
-        output='screen',
-        arguments=[LaunchConfiguration('lidar_bridge_arg')],
-        condition=IfCondition(PythonExpression([sim, ' and ', enable_lidar_bridge])),
-    )
-
     base_jsb = Node(
         package='controller_manager',
         executable='spawner',
@@ -337,16 +339,16 @@ def generate_launch_description():
         SetEnvironmentVariable(
             name='GZ_SIM_HEADLESS',
             value='1',
-            condition=IfCondition(PythonExpression([sim, ' and ', headless])),
+            condition=IfCondition(headless),
         ),
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1', condition=IfCondition(sim)),
         OpaqueFunction(function=_render_mm_controllers),
         OpaqueFunction(function=_render_rviz_config),
         OpaqueFunction(function=_set_lidar_bridge_arg),
         OpaqueFunction(function=_create_camera_bridge),
+        OpaqueFunction(function=_create_lidar_bridge),
         gz_launch,
         clock_bridge,
-        lidar_bridge,
         robot_state_publisher,
         spawn_robot,
         start_jsb,

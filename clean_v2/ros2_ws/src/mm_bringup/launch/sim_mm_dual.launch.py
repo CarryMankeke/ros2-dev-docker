@@ -11,13 +11,7 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    Command,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-    PythonExpression,
-    TextSubstitution,
-)
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -97,6 +91,26 @@ def _create_camera_bridges(context):
                 output='screen',
                 arguments=bridge_args,
                 remappings=remaps,
+            )
+        )
+    return actions
+
+
+def _create_lidar_bridges(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    enable = LaunchConfiguration('enable_lidar_bridge').perform(context).lower()
+    if sim in ('false', '0') or enable in ('false', '0'):
+        return []
+
+    actions = []
+    for key in ('mm1', 'mm2'):
+        actions.append(
+            Node(
+                package='ros_gz_bridge',
+                executable='parameter_bridge',
+                name=f'lidar_bridge_{key}',
+                output='screen',
+                arguments=[LaunchConfiguration(f'{key}_lidar_bridge_arg')],
             )
         )
     return actions
@@ -213,24 +227,6 @@ def generate_launch_description():
         output='screen',
         arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
         condition=IfCondition(sim),
-    )
-
-    mm1_lidar_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        name='lidar_bridge_mm1',
-        output='screen',
-        arguments=[LaunchConfiguration('mm1_lidar_bridge_arg')],
-        condition=IfCondition(PythonExpression([sim, ' and ', enable_lidar_bridge])),
-    )
-
-    mm2_lidar_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        name='lidar_bridge_mm2',
-        output='screen',
-        arguments=[LaunchConfiguration('mm2_lidar_bridge_arg')],
-        condition=IfCondition(PythonExpression([sim, ' and ', enable_lidar_bridge])),
     )
 
     mm1_state_publisher = Node(
@@ -429,19 +425,14 @@ def generate_launch_description():
         DeclareLaunchArgument('mm2_spawn_x', default_value='1.0'),
         DeclareLaunchArgument('mm2_spawn_y', default_value='0.0'),
         DeclareLaunchArgument('spawn_z', default_value='0.15'),
-        SetEnvironmentVariable(
-            name='GZ_SIM_HEADLESS',
-            value='1',
-            condition=IfCondition(PythonExpression([sim, ' and ', headless])),
-        ),
+        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1', condition=IfCondition(headless)),
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1', condition=IfCondition(sim)),
         OpaqueFunction(function=_render_dual_controllers),
         OpaqueFunction(function=_set_lidar_bridge_args),
         OpaqueFunction(function=_create_camera_bridges),
+        OpaqueFunction(function=_create_lidar_bridges),
         gz_launch,
         clock_bridge,
-        mm1_lidar_bridge,
-        mm2_lidar_bridge,
         mm1_state_publisher,
         mm2_state_publisher,
         mm1_spawn,
