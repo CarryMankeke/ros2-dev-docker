@@ -17,6 +17,8 @@ class SimTimeChecker(Node):
         super().__init__('smoke_sim_time')
         self.declare_parameter('timeout_sec', 5.0)
         self.declare_parameter('min_samples', 3)
+        self.declare_parameter('namespace', 'mm1')
+        self.declare_parameter('prefix', 'mm1_')
         self._times = []
 
         qos = QoSProfile(depth=10)
