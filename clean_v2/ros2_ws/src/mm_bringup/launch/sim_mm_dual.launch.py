@@ -346,7 +346,7 @@ def generate_launch_description():
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
-        DeclareLaunchArgument('arm_z', default_value='0.30'),
+        DeclareLaunchArgument('arm_z', default_value='0.05'),
         DeclareLaunchArgument('arm_roll', default_value='0.0'),
         DeclareLaunchArgument('arm_pitch', default_value='0.0'),
         DeclareLaunchArgument('arm_yaw', default_value='0.0'),

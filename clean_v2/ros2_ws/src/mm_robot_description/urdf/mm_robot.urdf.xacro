@@ -11,7 +11,7 @@
 
   <xacro:arg name="arm_x" default="0.0"/>
   <xacro:arg name="arm_y" default="0.0"/>
-  <xacro:arg name="arm_z" default="0.30"/>
+  <xacro:arg name="arm_z" default="0.05"/>
   <xacro:arg name="arm_roll" default="0.0"/>
   <xacro:arg name="arm_pitch" default="0.0"/>
   <xacro:arg name="arm_yaw" default="0.0"/>
