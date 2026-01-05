@@ -313,6 +313,7 @@ def generate_launch_description():
                 actions=[
                     SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
                     SetEnvironmentVariable(name='QT_XCB_GL_INTEGRATION', value='none'),
+                    SetEnvironmentVariable(name='GALLIUM_DRIVER', value='llvmpipe'),
                     Node(
                         package='rviz2',
                         executable='rviz2',
