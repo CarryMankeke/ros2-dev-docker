@@ -61,11 +61,11 @@
   <xacro:property name="scale" value="$(arg scale)"/>
   <xacro:property name="controllers_file" value="$(arg controllers_file)"/>
   <xacro:property name="lidar_topic" value="$(eval '/' + namespace + '/scan' if namespace != '' else '/scan')"/>
-  <xacro:property name="cam_front_topic" value="$(eval '/' + namespace + '/camera/front/image' if namespace != '' else '/camera/front/image')"/>
-  <xacro:property name="cam_left_topic" value="$(eval '/' + namespace + '/camera/left/image' if namespace != '' else '/camera/left/image')"/>
-  <xacro:property name="cam_right_topic" value="$(eval '/' + namespace + '/camera/right/image' if namespace != '' else '/camera/right/image')"/>
-  <xacro:property name="cam_rear_topic" value="$(eval '/' + namespace + '/camera/rear/image' if namespace != '' else '/camera/rear/image')"/>
-  <xacro:property name="ee_cam_topic" value="$(eval '/' + namespace + '/camera/ee/image' if namespace != '' else '/camera/ee/image')"/>
+  <xacro:property name="cam_front_topic" value="$(eval '/' + namespace + '/camera/front/image_raw' if namespace != '' else '/camera/front/image_raw')"/>
+  <xacro:property name="cam_left_topic" value="$(eval '/' + namespace + '/camera/left/image_raw' if namespace != '' else '/camera/left/image_raw')"/>
+  <xacro:property name="cam_right_topic" value="$(eval '/' + namespace + '/camera/right/image_raw' if namespace != '' else '/camera/right/image_raw')"/>
+  <xacro:property name="cam_rear_topic" value="$(eval '/' + namespace + '/camera/rear/image_raw' if namespace != '' else '/camera/rear/image_raw')"/>
+  <xacro:property name="ee_cam_topic" value="$(eval '/' + namespace + '/camera/ee/image_raw' if namespace != '' else '/camera/ee/image_raw')"/>
 
   <xacro:mm_base
     prefix="${prefix}"
