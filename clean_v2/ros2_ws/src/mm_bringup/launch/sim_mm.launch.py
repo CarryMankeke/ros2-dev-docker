@@ -59,6 +59,7 @@ def generate_launch_description():
     gz_args = LaunchConfiguration('gz_args')
     enable_lidar = LaunchConfiguration('enable_lidar')
     enable_lidar_bridge = LaunchConfiguration('enable_lidar_bridge')
+    headless = LaunchConfiguration('headless')
 
     arm_x = LaunchConfiguration('arm_x')
     arm_y = LaunchConfiguration('arm_y')
@@ -223,6 +224,7 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4 -s --headless-rendering'),
+        DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
@@ -234,7 +236,7 @@ def generate_launch_description():
         DeclareLaunchArgument('lidar_x', default_value='0.20'),
         DeclareLaunchArgument('lidar_y', default_value='0.0'),
         DeclareLaunchArgument('lidar_z', default_value='0.15'),
-        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
+        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1', condition=IfCondition(headless)),
         SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
         OpaqueFunction(function=_render_mm_controllers),
         OpaqueFunction(function=_set_lidar_bridge_arg),
