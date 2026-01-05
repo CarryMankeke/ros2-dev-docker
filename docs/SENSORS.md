@@ -44,7 +44,10 @@ EE (ejemplo de defaults):
 2. `ee_cam_x/y/z`, `ee_cam_roll/pitch/yaw`
 
 ## Bridging Gazebo -> ROS
-El bridge usa `ros_gz_bridge` con `sensor_msgs/msg/Image` y `sensor_msgs/msg/CameraInfo`. Los topicos de Gazebo se fijan en el URDF con `<topic>` y se puentean con el mismo nombre base en ROS.
+1. `ros_gz_bridge` publica en topicos RAW:
+   - `/<ns>/camera/<name>/image_raw`
+   - `/<ns>/camera/<name>/camera_info_raw`
+2. `mm_bringup/scripts/camera_frame_republisher.py` re-publica a los topicos estandar (`image` y `camera_info`) corrigiendo `frame_id`.
 
 ## Validacion minima (sim_time)
 1. Verificar TF de camaras:

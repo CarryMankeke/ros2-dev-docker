@@ -78,16 +78,16 @@ def _create_camera_bridge(context):
     ns_prefix = f'/{namespace}' if namespace else ''
     camera_prefix = f'{ns_prefix}/camera'
     bridge_args = [
-        f'{camera_prefix}/front/image@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/front/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-        f'{camera_prefix}/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-        f'{camera_prefix}/right/image@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-        f'{camera_prefix}/rear/image@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/rear/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-        f'{camera_prefix}/ee/image@sensor_msgs/msg/Image[gz.msgs.Image',
-        f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/front/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/front/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/left/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/left/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/right/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/right/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/rear/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/rear/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        f'{camera_prefix}/ee/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+        f'{camera_prefix}/ee/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
     ]
 
     return [
@@ -272,6 +272,13 @@ def generate_launch_description():
     start_omni = TimerAction(period=5.0, actions=[omni_controller])
     start_arm = TimerAction(period=7.0, actions=[arm_controller])
     start_gripper = TimerAction(period=9.0, actions=[gripper_controller])
+    camera_frame_republisher = Node(
+        package='mm_bringup',
+        executable='camera_frame_republisher.py',
+        namespace=namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
+    )
     start_rviz = TimerAction(
         period=11.0,
         actions=[
@@ -318,5 +325,6 @@ def generate_launch_description():
         start_omni,
         start_arm,
         start_gripper,
+        camera_frame_republisher,
         start_rviz,
     ])

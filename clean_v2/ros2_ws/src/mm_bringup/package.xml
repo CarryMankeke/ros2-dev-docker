@@ -18,10 +18,12 @@
   <exec_depend>mm_robot_description</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>omni_wheel_drive_controller</exec_depend>
+  <exec_depend>rclpy</exec_depend>
   <exec_depend>ros_gz_sim</exec_depend>
   <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>xacro</exec_depend>
 

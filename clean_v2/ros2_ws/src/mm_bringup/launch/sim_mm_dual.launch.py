@@ -61,16 +61,16 @@ def _create_camera_bridges(context):
         ns_prefix = f'/{namespace}' if namespace else ''
         camera_prefix = f'{ns_prefix}/camera'
         bridge_args = [
-            f'{camera_prefix}/front/image@sensor_msgs/msg/Image[gz.msgs.Image',
-            f'{camera_prefix}/front/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            f'{camera_prefix}/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
-            f'{camera_prefix}/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            f'{camera_prefix}/right/image@sensor_msgs/msg/Image[gz.msgs.Image',
-            f'{camera_prefix}/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            f'{camera_prefix}/rear/image@sensor_msgs/msg/Image[gz.msgs.Image',
-            f'{camera_prefix}/rear/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            f'{camera_prefix}/ee/image@sensor_msgs/msg/Image[gz.msgs.Image',
-            f'{camera_prefix}/ee/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/front/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/front/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/left/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/left/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/right/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/right/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/rear/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/rear/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            f'{camera_prefix}/ee/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+            f'{camera_prefix}/ee/camera_info_raw@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         ]
         actions.append(
             Node(
@@ -364,6 +364,21 @@ def generate_launch_description():
         ],
     )
 
+    mm1_camera_republisher = Node(
+        package='mm_bringup',
+        executable='camera_frame_republisher.py',
+        namespace=mm1_namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm1_prefix}],
+    )
+    mm2_camera_republisher = Node(
+        package='mm_bringup',
+        executable='camera_frame_republisher.py',
+        namespace=mm2_namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('mm1_namespace', default_value='mm1'),
         DeclareLaunchArgument('mm2_namespace', default_value='mm2'),
@@ -401,6 +416,8 @@ def generate_launch_description():
         mm2_state_publisher,
         mm1_spawn,
         mm2_spawn,
+        mm1_camera_republisher,
+        mm2_camera_republisher,
         TimerAction(period=3.0, actions=[mm1_jsb, mm2_jsb]),
         TimerAction(period=5.0, actions=[mm1_omni, mm2_omni]),
         TimerAction(period=7.0, actions=[mm1_arm, mm2_arm]),
