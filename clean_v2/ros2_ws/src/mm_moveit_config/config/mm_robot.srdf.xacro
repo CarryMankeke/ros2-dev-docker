@@ -31,24 +31,10 @@
     <group name="gripper" />
   </group>
 
-  <!-- Grupo: Base móvil omni -->
-  <group name="base">
-    <joint name="${prefix}front_left_wheel_joint" />
-    <joint name="${prefix}front_right_wheel_joint" />
-    <joint name="${prefix}rear_left_wheel_joint" />
-    <joint name="${prefix}rear_right_wheel_joint" />
-  </group>
-
-  <!-- Grupo: Sistema completo -->
-  <group name="mm_full_system">
-    <group name="base" />
-    <group name="manipulator" />
-  </group>
-
   <!-- ============================================================================= -->
   <!-- EFECTOR FINAL (End Effector) -->
   <!-- ============================================================================= -->
-  <end_effector name="gripper_eef" parent_link="${prefix}gripper_link" group="gripper" />
+  <end_effector name="gripper_eef" parent_link="${prefix}tool0" parent_group="arm" group="gripper" />
 
   <!-- ============================================================================= -->
   <!-- DESABILITAR COLISIONES (Disable Collisions) -->
@@ -80,11 +66,6 @@
   <disable_collisions link1="${prefix}arm_link_4" link2="${prefix}arm_link_5" reason="Adjacent" />
   <disable_collisions link1="${prefix}arm_link_5" link2="${prefix}arm_link_6" reason="Adjacent" />
   <disable_collisions link1="${prefix}arm_link_6" link2="${prefix}gripper_link" reason="Adjacent" />
-
-  <!-- Gripper interno: dedos -->
-  <disable_collisions link1="${prefix}gripper_link" link2="${prefix}gripper_finger_left_link" reason="Adjacent" />
-  <disable_collisions link1="${prefix}gripper_link" link2="${prefix}gripper_finger_right_link" reason="Adjacent" />
-  <disable_collisions link1="${prefix}gripper_finger_left_link" link2="${prefix}gripper_finger_right_link" reason="Never" />
 
   <!-- Sensores: no incluir en colisiones -->
   <xacro:if value="$(arg enable_lidar)">
