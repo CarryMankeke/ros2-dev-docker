@@ -8,6 +8,7 @@ install(DIRECTORY config launch
 )
 
 install(PROGRAMS scripts/moveit_optin_check.py
+  scripts/moveit_core_integration_check.sh
   DESTINATION lib/${PROJECT_NAME}
 )
 

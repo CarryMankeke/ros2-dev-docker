@@ -19,3 +19,6 @@ Sensor sources of truth (core):
 
 4) Run core health check with active test (optional)
 - docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1 --active-test"
+
+5) MoveIt plus core integration gate (opt-in)
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_moveit_config moveit_core_integration_check.sh --namespace mm1"
