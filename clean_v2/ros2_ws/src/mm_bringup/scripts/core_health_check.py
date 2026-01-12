@@ -29,7 +29,7 @@ class CoreHealthCheck(Node):
         super().__init__("core_health_check")
         self.namespace = namespace
         self._tf_buffer = Buffer()
-        self._tf_listener = TransformListener(self._tf_buffer, self, spin_thread=True)
+        self._tf_listener = TransformListener(self._tf_buffer, self, spin_thread=False)
 
     def _wait_for_message(self, msg_type, topic: str, timeout_sec: float, qos: QoSProfile):
         msg_holder = {"msg": None}
@@ -83,22 +83,47 @@ class CoreHealthCheck(Node):
         odom = f"{namespace}_odom"
         base_footprint = f"{namespace}_base_footprint"
         base_link = f"{namespace}_base_link"
-        try:
-            self._tf_buffer.lookup_transform(
-                base_footprint,
-                odom,
-                rclpy.time.Time(),
-                timeout=Duration(seconds=2.0),
-            )
-            self._tf_buffer.lookup_transform(
-                base_link,
-                base_footprint,
-                rclpy.time.Time(),
-                timeout=Duration(seconds=2.0),
-            )
-            return True, f"{odom}->{base_footprint}, {base_footprint}->{base_link}"
-        except TransformException as exc:
-            return False, f"TF lookup failed: {exc}"
+        deadline = time.time() + 2.0
+        last_error = None
+        while time.time() < deadline:
+            try:
+                if self._tf_buffer.can_transform(
+                    base_footprint,
+                    odom,
+                    rclpy.time.Time(),
+                ):
+                    self._tf_buffer.lookup_transform(
+                        base_footprint,
+                        odom,
+                        rclpy.time.Time(),
+                        timeout=Duration(seconds=1.0),
+                    )
+                else:
+                    last_error = f"{odom}->{base_footprint} not available"
+                    rclpy.spin_once(self, timeout_sec=0.1)
+                    continue
+
+                if self._tf_buffer.can_transform(
+                    base_link,
+                    base_footprint,
+                    rclpy.time.Time(),
+                ):
+                    self._tf_buffer.lookup_transform(
+                        base_link,
+                        base_footprint,
+                        rclpy.time.Time(),
+                        timeout=Duration(seconds=1.0),
+                    )
+                else:
+                    last_error = f"{base_footprint}->{base_link} not available"
+                    rclpy.spin_once(self, timeout_sec=0.1)
+                    continue
+
+                return True, f"{odom}->{base_footprint}, {base_footprint}->{base_link}"
+            except TransformException as exc:
+                last_error = str(exc)
+                rclpy.spin_once(self, timeout_sec=0.1)
+        return False, f"TF lookup failed: {last_error}"
 
     def _list_controllers(self, namespace: str):
         service = f"{_ns_prefix(namespace)}/controller_manager/list_controllers"
