@@ -3,6 +3,11 @@
 /ros2_ws/install/
 /ros2_ws/log/
 
+# Colcon build artifacts (clean_v2 workspace)
+/clean_v2/ros2_ws/build/
+/clean_v2/ros2_ws/install/
+/clean_v2/ros2_ws/log/
+
 # Python
 __pycache__/
 *.py[cod]
