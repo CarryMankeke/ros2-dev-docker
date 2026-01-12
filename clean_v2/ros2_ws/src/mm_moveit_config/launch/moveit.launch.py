@@ -15,9 +15,17 @@ def _load_yaml(path):
         return yaml.safe_load(handle)
 
 
+def _write_param_file(path, data):
+    payload = {'/**': {'ros__parameters': data}}
+    path.write_text(
+        yaml.safe_dump(payload, sort_keys=False),
+        encoding='utf-8',
+    )
+
+
 def _launch_move_group(context):
     prefix = LaunchConfiguration('prefix').perform(context)
-    namespace = LaunchConfiguration('namespace').perform(context)
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower() == 'true'
 
     moveit_share = Path(FindPackageShare('mm_moveit_config').perform(context))
@@ -39,6 +47,20 @@ def _launch_move_group(context):
 
     moveit_controllers = _load_yaml(output_dir / 'moveit_controllers.yaml')
     joint_limits = _load_yaml(output_dir / 'joint_limits.yaml')
+
+    kinematics_params = output_dir / 'kinematics_params.yaml'
+    ompl_params = output_dir / 'ompl_planning_params.yaml'
+    planning_scene_params = output_dir / 'planning_scene_params.yaml'
+    trajectory_execution_params = output_dir / 'trajectory_execution_params.yaml'
+    moveit_controllers_params = output_dir / 'moveit_controllers_params.yaml'
+    joint_limits_params = output_dir / 'joint_limits_params.yaml'
+
+    _write_param_file(kinematics_params, {'robot_description_kinematics': kinematics})
+    _write_param_file(ompl_params, ompl_planning)
+    _write_param_file(planning_scene_params, planning_scene)
+    _write_param_file(trajectory_execution_params, trajectory_execution)
+    _write_param_file(moveit_controllers_params, moveit_controllers)
+    _write_param_file(joint_limits_params, {'robot_description_planning': joint_limits})
 
     robot_xacro = PathJoinSubstitution([
         FindPackageShare('mm_robot_description'),
@@ -81,12 +103,12 @@ def _launch_move_group(context):
             {'use_sim_time': use_sim_time},
             {'robot_description': robot_description},
             {'robot_description_semantic': robot_description_semantic},
-            {'robot_description_kinematics': kinematics},
-            {'robot_description_planning': joint_limits},
-            ompl_planning,
-            moveit_controllers,
-            planning_scene,
-            trajectory_execution,
+            str(kinematics_params),
+            str(joint_limits_params),
+            str(ompl_params),
+            str(moveit_controllers_params),
+            str(planning_scene_params),
+            str(trajectory_execution_params),
         ],
     )
 
