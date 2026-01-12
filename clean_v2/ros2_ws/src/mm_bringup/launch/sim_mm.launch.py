@@ -106,7 +106,7 @@ def _create_imu_bridge(context):
         return []
 
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
-    topic = f'/{namespace}/imu' if namespace else '/imu'
+    topic = f'/{namespace}/imu_raw' if namespace else '/imu_raw'
     node_name = f'{namespace}_imu_bridge' if namespace else 'imu_bridge'
     
     return [
@@ -370,6 +370,22 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
         condition=IfCondition(sim),
     )
+    imu_frame_republisher = Node(
+        package='mm_bringup',
+        executable='imu_frame_republisher.py',
+        namespace=namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
+        condition=IfCondition(sim),
+    )
+    imu_stub_publisher = Node(
+        package='mm_bringup',
+        executable='imu_stub_publisher.py',
+        namespace=namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
+        condition=IfCondition(sim),
+    )
     odom_relay = Node(
         package='mm_bringup',
         executable='odom_relay.py',
@@ -450,6 +466,8 @@ def generate_launch_description():
         start_arm,
         start_gripper,
         camera_frame_republisher,
+        imu_frame_republisher,
+        imu_stub_publisher,
         odom_relay,
         start_rviz,
     ])

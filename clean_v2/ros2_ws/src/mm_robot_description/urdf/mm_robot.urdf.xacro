@@ -223,8 +223,9 @@
     <gazebo reference="${prefix}imu_link">
       <sensor name="${prefix}imu" type="imu">
         <pose>0 0 0 0 0 0</pose>
+        <always_on>1</always_on>
         <update_rate>100</update_rate>
-        <topic>$(eval '/' + namespace + '/imu' if namespace != '' else '/imu')</topic>
+        <topic>$(eval '/' + namespace + '/imu_raw' if namespace != '' else '/imu_raw')</topic>
         <imu>
           <linear_acceleration>
             <x>

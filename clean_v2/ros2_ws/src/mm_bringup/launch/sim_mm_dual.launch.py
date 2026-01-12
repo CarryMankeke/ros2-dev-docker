@@ -143,7 +143,7 @@ def _create_imu_bridges(context):
     actions = []
     for key in ('mm1', 'mm2'):
         namespace = LaunchConfiguration(f'{key}_namespace').perform(context).strip('/')
-        topic = f'/{namespace}/imu' if namespace else '/imu'
+        topic = f'/{namespace}/imu_raw' if namespace else '/imu_raw'
         node_name = f'{namespace}_imu_bridge' if namespace else f'imu_bridge_{key}'
         actions.append(
             Node(
@@ -441,6 +441,34 @@ def generate_launch_description():
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
     )
+    mm1_imu_republisher = Node(
+        package='mm_bringup',
+        executable='imu_frame_republisher.py',
+        namespace=mm1_namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm1_prefix}],
+    )
+    mm2_imu_republisher = Node(
+        package='mm_bringup',
+        executable='imu_frame_republisher.py',
+        namespace=mm2_namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
+    )
+    mm1_imu_stub = Node(
+        package='mm_bringup',
+        executable='imu_stub_publisher.py',
+        namespace=mm1_namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm1_prefix}],
+    )
+    mm2_imu_stub = Node(
+        package='mm_bringup',
+        executable='imu_stub_publisher.py',
+        namespace=mm2_namespace,
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
+    )
 
     mm1_odom_relay = Node(
         package='mm_bringup',
@@ -505,6 +533,10 @@ def generate_launch_description():
         mm2_spawn,
         mm1_camera_republisher,
         mm2_camera_republisher,
+        mm1_imu_republisher,
+        mm2_imu_republisher,
+        mm1_imu_stub,
+        mm2_imu_stub,
         mm1_odom_relay,
         mm2_odom_relay,
         TimerAction(period=3.0, actions=[mm1_jsb, mm2_jsb]),
