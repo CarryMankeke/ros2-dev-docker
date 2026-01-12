@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<!-- Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2 -->
+<!-- SRDF para configuración MoveIt 2 del manipulador móvil mm -->
+<robot name="mm_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="prefix" default="mm1_"/>
+  <xacro:arg name="enable_lidar" default="true"/>
+
+  <!-- ============================================================================= -->
+  <!-- GRUPOS DE PLANIFICACIÓN (Planning Groups) -->
+  <!-- ============================================================================= -->
+
+  <!-- Grupo: Brazo completo (6 DOF) -->
+  <group name="arm">
+    <joint name="${prefix}arm_shoulder_pan_joint" />
+    <joint name="${prefix}arm_shoulder_lift_joint" />
+    <joint name="${prefix}arm_elbow_joint" />
+    <joint name="${prefix}arm_wrist_1_joint" />
+    <joint name="${prefix}arm_wrist_2_joint" />
+    <joint name="${prefix}arm_wrist_3_joint" />
+  </group>
+
+  <!-- Grupo: Gripper -->
+  <group name="gripper">
+    <joint name="${prefix}gripper_joint" />
+  </group>
+
+  <!-- Grupo: Manipulador (Brazo + Gripper) -->
+  <group name="manipulator">
+    <group name="arm" />
+    <group name="gripper" />
+  </group>
+
+  <!-- Grupo: Base móvil omni -->
+  <group name="base">
+    <joint name="${prefix}front_left_wheel_joint" />
+    <joint name="${prefix}front_right_wheel_joint" />
+    <joint name="${prefix}rear_left_wheel_joint" />
+    <joint name="${prefix}rear_right_wheel_joint" />
+  </group>
+
+  <!-- Grupo: Sistema completo -->
+  <group name="mm_full_system">
+    <group name="base" />
+    <group name="manipulator" />
+  </group>
+
+  <!-- ============================================================================= -->
+  <!-- EFECTOR FINAL (End Effector) -->
+  <!-- ============================================================================= -->
+  <end_effector name="gripper_eef" parent_link="${prefix}gripper_link" group="gripper" />
+
+  <!-- ============================================================================= -->
+  <!-- DESABILITAR COLISIONES (Disable Collisions) -->
+  <!-- Especificar pares de links que NO necesitan verificación de colisión -->
+  <!-- ============================================================================= -->
+
+  <!-- Base y ruedas: se permiten colisiones internas -->
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}front_left_wheel_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}front_right_wheel_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}rear_left_wheel_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}rear_right_wheel_link" reason="Adjacent" />
+
+  <!-- Ruedas entre sí (opcional, si están muy juntas) -->
+  <disable_collisions link1="${prefix}front_left_wheel_link" link2="${prefix}front_right_wheel_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}front_left_wheel_link" link2="${prefix}rear_left_wheel_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}front_right_wheel_link" link2="${prefix}rear_right_wheel_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}rear_left_wheel_link" link2="${prefix}rear_right_wheel_link" reason="Adjacent" />
+
+  <!-- Base y brazo: configuración permitida -->
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}arm_root_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}arm_base_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}arm_link_1" reason="Adjacent" />
+
+  <!-- Brazo: segmentos consecutivos -->
+  <disable_collisions link1="${prefix}arm_base_link" link2="${prefix}arm_link_1" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_1" link2="${prefix}arm_link_2" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_2" link2="${prefix}arm_link_3" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_3" link2="${prefix}arm_link_4" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_4" link2="${prefix}arm_link_5" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_5" link2="${prefix}arm_link_6" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_6" link2="${prefix}gripper_link" reason="Adjacent" />
+
+  <!-- Gripper interno: dedos -->
+  <disable_collisions link1="${prefix}gripper_link" link2="${prefix}gripper_finger_left_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}gripper_link" link2="${prefix}gripper_finger_right_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}gripper_finger_left_link" link2="${prefix}gripper_finger_right_link" reason="Never" />
+
+  <!-- Sensores: no incluir en colisiones -->
+  <xacro:if value="$(arg enable_lidar)">
+    <disable_collisions link1="${prefix}base_link" link2="${prefix}lidar_link" reason="Adjacent" />
+  </xacro:if>
+
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}cam_front_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}cam_left_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}cam_right_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}base_link" link2="${prefix}cam_rear_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}arm_link_6" link2="${prefix}ee_cam_mount_link" reason="Adjacent" />
+  <disable_collisions link1="${prefix}ee_cam_mount_link" link2="${prefix}ee_cam_link" reason="Adjacent" />
+
+  <!-- ============================================================================= -->
+  <!-- POSICIONES DE REPOSO (Predefined Poses) -->
+  <!-- ============================================================================= -->
+
+  <!-- Postura de reposo: brazo "colgando" -->
+  <group_state name="home" group="arm">
+    <joint name="${prefix}arm_shoulder_pan_joint" value="0.0" />
+    <joint name="${prefix}arm_shoulder_lift_joint" value="-1.57" />
+    <joint name="${prefix}arm_elbow_joint" value="1.57" />
+    <joint name="${prefix}arm_wrist_1_joint" value="0.0" />
+    <joint name="${prefix}arm_wrist_2_joint" value="0.0" />
+    <joint name="${prefix}arm_wrist_3_joint" value="0.0" />
+  </group_state>
+
+  <!-- Postura de reposo: gripper abierto -->
+  <group_state name="gripper_open" group="gripper">
+    <joint name="${prefix}gripper_joint" value="0.04" />
+  </group_state>
+
+  <!-- Postura de reposo: gripper cerrado -->
+  <group_state name="gripper_closed" group="gripper">
+    <joint name="${prefix}gripper_joint" value="0.0" />
+  </group_state>
+
+  <!-- ============================================================================= -->
+  <!-- LÍMITES VIRTUALES (Virtual Joints and Limits) -->
+  <!-- ============================================================================= -->
+  
+  <!-- Virtual joint: conecta el mundo con la base -->
+  <virtual_joint name="fixed_base" type="fixed" parent_frame="world" child_frame="${prefix}base_footprint" />
+
+</robot>
