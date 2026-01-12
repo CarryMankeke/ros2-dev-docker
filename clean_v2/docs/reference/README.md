@@ -1,0 +1,1 @@
+Material de clase usado como referencia; no define el contrato del proyecto
