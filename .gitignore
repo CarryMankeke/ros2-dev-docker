@@ -34,3 +34,6 @@ docker-compose.override.yml
 
 # Local docs (no version control)
 /docs/
+
+# Course notes (do not version)
+/clean_v2/docs/reference/course/
