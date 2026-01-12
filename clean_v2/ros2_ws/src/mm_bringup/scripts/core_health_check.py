@@ -146,28 +146,37 @@ class CoreHealthCheck(Node):
             return False, f"no messages on {topic}"
         return True, f"{topic} ok ({len(msg.name)} joints)"
 
-    def _check_sensors(self, namespace: str):
+    def _check_sensor_topic(self, topic: str, msg_type, expected_prefix: str):
         topics = {name for name, _ in self.get_topic_names_and_types()}
+        qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
+        if topic not in topics:
+            return False, f"not advertised: {topic}"
+        msg = self._wait_for_message(msg_type, topic, 2.0, qos)
+        if msg is None:
+            return False, f"no messages within timeout: {topic}"
+        if hasattr(msg, "header"):
+            frame_id = msg.header.frame_id
+            if not frame_id:
+                return False, f"empty frame_id: {topic}"
+            if expected_prefix and not frame_id.startswith(expected_prefix):
+                return False, f"frame_id mismatch: {topic} ({frame_id})"
+        return True, f"{topic}"
+
+    def _check_sensors(self, namespace: str):
+        expected_prefix = f"{namespace}_"
         checks = [
             (LaserScan, _topic_name(namespace, "scan")),
             (Imu, _topic_name(namespace, "imu")),
             (Image, _topic_name(namespace, "camera/front/image_raw")),
         ]
-        qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
         found = []
         warnings = []
         for msg_type, topic in checks:
-            if topic not in topics:
-                warnings.append(f"missing {topic}")
-                continue
-            msg = self._wait_for_message(msg_type, topic, 2.0, qos)
-            if msg is None:
-                warnings.append(f"no msg on {topic}")
-                continue
-            if hasattr(msg, "header") and not msg.header.frame_id:
-                warnings.append(f"empty frame_id on {topic}")
-                continue
-            found.append(topic)
+            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix)
+            if ok:
+                found.append(detail)
+            else:
+                warnings.append(detail)
         if warnings:
             return "WARN", f"found: {found}; issues: {warnings}"
         return "PASS", f"found: {found}"
