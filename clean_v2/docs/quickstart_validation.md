@@ -9,5 +9,5 @@ Project: clean_v2
 2) Launch simulation (Gazebo + RViz)
 - docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 launch mm_bringup sim_mm.launch.py headless:=false"
 
-3) Run smoke tests
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup run_smoke_tests.sh"
+3) Run core health check
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1"
