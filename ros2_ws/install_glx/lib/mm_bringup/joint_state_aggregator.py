@@ -1,1 +1,0 @@
-/home/ros/ros2_ws/src/mm_bringup/scripts/joint_state_aggregator.py

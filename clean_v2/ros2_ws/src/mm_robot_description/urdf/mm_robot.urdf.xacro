@@ -57,6 +57,10 @@
   <xacro:arg name="ee_cam_roll" default="0.0"/>
   <xacro:arg name="ee_cam_pitch" default="0.0"/>
   <xacro:arg name="ee_cam_yaw" default="0.0"/>
+  <xacro:arg name="enable_imu" default="true"/>
+  <xacro:arg name="imu_x" default="0.0"/>
+  <xacro:arg name="imu_y" default="0.0"/>
+  <xacro:arg name="imu_z" default="0.10"/>
 
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="namespace" value="$(arg namespace)"/>
@@ -181,6 +185,88 @@
           </noise>
         </ray>
         <topic>${lidar_topic}</topic>
+      </sensor>
+    </gazebo>
+  </xacro:if>
+
+  <!-- IMU Sensor on base link -->
+  <xacro:if value="$(arg enable_imu)">
+    <link name="${prefix}imu_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.1"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+      <xacro:if value="${base_visual_enabled}">
+        <visual>
+          <geometry>
+            <box size="0.05 0.05 0.05"/>
+          </geometry>
+          <material name="SensorBlack">
+            <color rgba="0.1 0.1 0.1 1.0"/>
+          </material>
+        </visual>
+      </xacro:if>
+      <collision>
+        <geometry>
+          <box size="0.05 0.05 0.05"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}imu_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}imu_link"/>
+      <origin xyz="$(arg imu_x) $(arg imu_y) $(arg imu_z)" rpy="0 0 0"/>
+    </joint>
+
+    <gazebo reference="${prefix}imu_link">
+      <sensor name="${prefix}imu" type="imu">
+        <pose>0 0 0 0 0 0</pose>
+        <update_rate>100</update_rate>
+        <topic>$(eval '/' + namespace + '/imu' if namespace != '' else '/imu')</topic>
+        <imu>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.001</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.001</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.001</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+        </imu>
       </sensor>
     </gazebo>
   </xacro:if>

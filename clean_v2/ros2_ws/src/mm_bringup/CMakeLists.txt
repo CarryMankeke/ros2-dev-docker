@@ -15,6 +15,8 @@ install(PROGRAMS
   scripts/smoke_controllers.py
   scripts/smoke_cameras.py
   scripts/run_smoke_tests.sh
+  scripts/core_health_check.py
+  scripts/core_health_check.sh
   DESTINATION lib/${PROJECT_NAME}
 )
 

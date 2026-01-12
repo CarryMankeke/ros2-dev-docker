@@ -46,9 +46,9 @@ def _launch_move_group(context):
         'mm_robot.urdf.xacro',
     ])
     srdf_xacro = PathJoinSubstitution([
-        FindPackageShare('mm_arm_description'),
-        'srdf',
-        'mm_arm.srdf.xacro',
+        FindPackageShare('mm_moveit_config'),
+        'config',
+        'mm_robot.srdf.xacro',
     ])
 
     robot_description = ParameterValue(

@@ -50,7 +50,12 @@ def _render_rviz_config(context):
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     namespace_key = f'/{namespace}' if namespace else ''
     rviz_mode = LaunchConfiguration('rviz_mode').perform(context).strip().lower()
-    template_name = 'mm_verify.rviz.in' if rviz_mode == 'verify' else 'mm_verify.rviz.in'
+    if rviz_mode == 'verify':
+        template_name = 'mm_verify.rviz.in'
+    elif rviz_mode == 'display':
+        template_name = 'mm_display.rviz.in'
+    else:
+        template_name = 'mm_verify.rviz.in'
     template_path = PathJoinSubstitution([
         FindPackageShare('mm_bringup'),
         'rviz',
@@ -90,6 +95,28 @@ def _set_lidar_bridge_arg(context):
         SetLaunchConfiguration(
             'lidar_bridge_arg',
             f'{topic}@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+        )
+    ]
+
+
+def _create_imu_bridge(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    enable = LaunchConfiguration('enable_imu_bridge').perform(context).lower()
+    if sim in ('false', '0') or enable in ('false', '0'):
+        return []
+
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    topic = f'/{namespace}/imu' if namespace else '/imu'
+    node_name = f'{namespace}_imu_bridge' if namespace else 'imu_bridge'
+    
+    return [
+        Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            name=node_name,
+            namespace=namespace,
+            output='screen',
+            arguments=[f'{topic}@sensor_msgs/msg/Imu[gz.msgs.IMU'],
         )
     ]
 
@@ -217,6 +244,7 @@ def generate_launch_description():
             ' lidar_x:=', lidar_x,
             ' lidar_y:=', lidar_y,
             ' lidar_z:=', lidar_z,
+            ' enable_imu:=', LaunchConfiguration('enable_imu'),
         ]),
         value_type=str,
     )
@@ -378,6 +406,8 @@ def generate_launch_description():
         DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
+        DeclareLaunchArgument('enable_imu', default_value='true'),
+        DeclareLaunchArgument('enable_imu_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.02'),
@@ -398,6 +428,7 @@ def generate_launch_description():
         OpaqueFunction(function=_set_lidar_bridge_arg),
         OpaqueFunction(function=_create_camera_bridge),
         OpaqueFunction(function=_create_lidar_bridge),
+        OpaqueFunction(function=_create_imu_bridge),
         gz_launch,
         clock_bridge,
         robot_state_publisher,

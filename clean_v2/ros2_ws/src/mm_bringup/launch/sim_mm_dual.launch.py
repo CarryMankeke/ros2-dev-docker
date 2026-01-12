@@ -134,6 +134,30 @@ def _create_lidar_bridges(context):
     return actions
 
 
+def _create_imu_bridges(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    enable = LaunchConfiguration('enable_imu_bridge').perform(context).lower()
+    if sim in ('false', '0') or enable in ('false', '0'):
+        return []
+
+    actions = []
+    for key in ('mm1', 'mm2'):
+        namespace = LaunchConfiguration(f'{key}_namespace').perform(context).strip('/')
+        topic = f'/{namespace}/imu' if namespace else '/imu'
+        node_name = f'{namespace}_imu_bridge' if namespace else f'imu_bridge_{key}'
+        actions.append(
+            Node(
+                package='ros_gz_bridge',
+                executable='parameter_bridge',
+                name=node_name,
+                namespace=namespace,
+                output='screen',
+                arguments=[f'{topic}@sensor_msgs/msg/Imu[gz.msgs.IMU'],
+            )
+        )
+    return actions
+
+
 def generate_launch_description():
     mm1_namespace = LaunchConfiguration('mm1_namespace')
     mm2_namespace = LaunchConfiguration('mm2_namespace')
@@ -146,6 +170,7 @@ def generate_launch_description():
     headless = LaunchConfiguration('headless')
     enable_lidar = LaunchConfiguration('enable_lidar')
     enable_lidar_bridge = LaunchConfiguration('enable_lidar_bridge')
+    enable_imu_bridge = LaunchConfiguration('enable_imu_bridge')
 
     arm_x = LaunchConfiguration('arm_x')
     arm_y = LaunchConfiguration('arm_y')
@@ -429,6 +454,7 @@ def generate_launch_description():
         DeclareLaunchArgument('headless', default_value='true'),
         DeclareLaunchArgument('enable_lidar', default_value='true'),
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
+        DeclareLaunchArgument('enable_imu_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.02'),
@@ -449,6 +475,7 @@ def generate_launch_description():
         OpaqueFunction(function=_set_lidar_bridge_args),
         OpaqueFunction(function=_create_camera_bridges),
         OpaqueFunction(function=_create_lidar_bridges),
+        OpaqueFunction(function=_create_imu_bridges),
         gz_launch,
         clock_bridge,
         mm1_state_publisher,

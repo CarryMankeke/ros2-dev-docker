@@ -28,3 +28,14 @@ Proyecto: clean_v2
 ## Referencias
 - MoveIt 2 (Jazzy): https://moveit.picknik.ai/main/doc/ros2/index.html
 - ROS 2 Jazzy: https://docs.ros.org/en/jazzy/index.html
+
+## Guia especifica para mm1 (Docker + VNC)
+- `docs/moveit_setup_mm1.md`
+
+
+
+# Smoke
+docker compose exec ros2-vnc bash -lc \
+"source /opt/ros/jazzy/setup.bash && \
+ source /home/ros/ros2_ws/install/setup.bash && \
+ ros2 run mm_bringup run_smoke_tests.sh"
