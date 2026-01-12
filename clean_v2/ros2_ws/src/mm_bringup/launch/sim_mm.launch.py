@@ -378,14 +378,6 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
         condition=IfCondition(sim),
     )
-    imu_stub_publisher = Node(
-        package='mm_bringup',
-        executable='imu_stub_publisher.py',
-        namespace=namespace,
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
-        condition=IfCondition(sim),
-    )
     odom_relay = Node(
         package='mm_bringup',
         executable='odom_relay.py',
@@ -467,7 +459,6 @@ def generate_launch_description():
         start_gripper,
         camera_frame_republisher,
         imu_frame_republisher,
-        imu_stub_publisher,
         odom_relay,
         start_rviz,
     ])

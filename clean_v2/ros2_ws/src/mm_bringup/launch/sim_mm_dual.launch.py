@@ -455,20 +455,6 @@ def generate_launch_description():
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
     )
-    mm1_imu_stub = Node(
-        package='mm_bringup',
-        executable='imu_stub_publisher.py',
-        namespace=mm1_namespace,
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm1_prefix}],
-    )
-    mm2_imu_stub = Node(
-        package='mm_bringup',
-        executable='imu_stub_publisher.py',
-        namespace=mm2_namespace,
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
-    )
 
     mm1_odom_relay = Node(
         package='mm_bringup',
@@ -535,8 +521,6 @@ def generate_launch_description():
         mm2_camera_republisher,
         mm1_imu_republisher,
         mm2_imu_republisher,
-        mm1_imu_stub,
-        mm2_imu_stub,
         mm1_odom_relay,
         mm2_odom_relay,
         TimerAction(period=3.0, actions=[mm1_jsb, mm2_jsb]),
