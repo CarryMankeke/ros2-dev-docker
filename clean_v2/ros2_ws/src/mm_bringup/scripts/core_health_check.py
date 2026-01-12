@@ -32,6 +32,29 @@ class CoreHealthCheck(Node):
         self.namespace = namespace
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self, spin_thread=False)
+        self._robot_description = self._load_robot_description(namespace)
+
+    def _load_robot_description(self, namespace: str) -> str:
+        node_name = f"{_ns_prefix(namespace)}/robot_state_publisher"
+        client = self.create_client(GetParameters, f"{node_name}/get_parameters")
+        if not client.wait_for_service(timeout_sec=1.0):
+            return ""
+        req = GetParameters.Request(names=["robot_description"])
+        future = client.call_async(req)
+        rclpy.spin_until_future_complete(self, future, timeout_sec=1.0)
+        if future.result() is None:
+            return ""
+        values = future.result().values
+        if not values:
+            return ""
+        return values[0].string_value
+
+    def _sensor_defined_in(self, topic: str, link_hint: str) -> str:
+        if not self._robot_description:
+            return "DEFINED_IN: UNKNOWN"
+        if topic in self._robot_description or link_hint in self._robot_description:
+            return "DEFINED_IN: URDF_GAZEBO_SENSOR"
+        return "DEFINED_IN: UNKNOWN"
 
     def _wait_for_message(self, msg_type, topic: str, timeout_sec: float, qos: QoSProfile):
         msg_holder = {"msg": None}
@@ -218,55 +241,68 @@ class CoreHealthCheck(Node):
         if js_changed or odom_changed:
             return "PASS", "motion signals changed (joint_states or odom)"
         return "WARN", "no change detected in joint_states or odom"
-    def _check_sensor_topic(self, topic: str, msg_type, expected_prefix: str, expected_suffixes=None):
+    def _check_sensor_topic(
+        self,
+        topic: str,
+        msg_type,
+        expected_prefix: str,
+        expected_suffixes=None,
+        link_hint="",
+    ):
         topics = {name for name, _ in self.get_topic_names_and_types()}
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
         if topic not in topics:
-            return False, f"not advertised: {topic}"
+            defined_in = self._sensor_defined_in(topic, link_hint)
+            return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: not advertised"
         msg = self._wait_for_message(msg_type, topic, 2.0, qos)
         if msg is None:
-            return False, f"no messages within timeout: {topic}"
+            defined_in = self._sensor_defined_in(topic, link_hint)
+            cause = "LIKELY_CAUSE: bridge mismatch or sensor system not publishing or sim paused"
+            return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: advertised but no msgs; {cause}"
         if hasattr(msg, "header"):
             frame_id = msg.header.frame_id
             if not frame_id:
-                return False, f"empty frame_id: {topic}"
+                defined_in = self._sensor_defined_in(topic, link_hint)
+                return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: empty frame_id"
             if expected_prefix and not frame_id.startswith(expected_prefix):
                 suffixes = expected_suffixes or []
                 leaf = frame_id.split('/')[-1]
                 if leaf in suffixes:
                     return True, f"{topic} (frame_id ok: {frame_id})"
-                return False, f"frame_id mismatch: {topic} ({frame_id})"
-        return True, f"{topic}"
+                defined_in = self._sensor_defined_in(topic, link_hint)
+                return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: frame_id mismatch ({frame_id})"
+        defined_in = self._sensor_defined_in(topic, link_hint)
+        return True, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: msgs ok"
 
     def _check_sensors(self, namespace: str):
         expected_prefix = f"{namespace}_"
         prefix = f"{namespace}_"
         base_checks = [
-            (LaserScan, _topic_name(namespace, "scan"), [f"{prefix}lidar_link", f"{prefix}lidar"]),
-            (Imu, _topic_name(namespace, "imu"), [f"{prefix}imu_link", f"{prefix}imu"]),
-            (Image, _topic_name(namespace, "camera/front/image_raw"), [f"{prefix}cam_front_link", f"{prefix}cam_front"]),
-            (Image, _topic_name(namespace, "camera/left/image_raw"), [f"{prefix}cam_left_link", f"{prefix}cam_left"]),
-            (Image, _topic_name(namespace, "camera/right/image_raw"), [f"{prefix}cam_right_link", f"{prefix}cam_right"]),
-            (Image, _topic_name(namespace, "camera/rear/image_raw"), [f"{prefix}cam_rear_link", f"{prefix}cam_rear"]),
+            (LaserScan, _topic_name(namespace, "scan"), [f"{prefix}lidar_link", f"{prefix}lidar"], f"{prefix}lidar_link"),
+            (Imu, _topic_name(namespace, "imu"), [f"{prefix}imu_link", f"{prefix}imu"], f"{prefix}imu_link"),
+            (Image, _topic_name(namespace, "camera/front/image_raw"), [f"{prefix}cam_front_link", f"{prefix}cam_front"], f"{prefix}cam_front_link"),
+            (Image, _topic_name(namespace, "camera/left/image_raw"), [f"{prefix}cam_left_link", f"{prefix}cam_left"], f"{prefix}cam_left_link"),
+            (Image, _topic_name(namespace, "camera/right/image_raw"), [f"{prefix}cam_right_link", f"{prefix}cam_right"], f"{prefix}cam_right_link"),
+            (Image, _topic_name(namespace, "camera/rear/image_raw"), [f"{prefix}cam_rear_link", f"{prefix}cam_rear"], f"{prefix}cam_rear_link"),
         ]
         ee_checks = [
-            (Image, _topic_name(namespace, "camera/ee/image_raw"), [f"{prefix}ee_cam_link", f"{prefix}ee_cam"]),
-            (Imu, _topic_name(namespace, "imu/ee"), [f"{prefix}ee_imu_link", f"{prefix}ee_imu"]),
+            (Image, _topic_name(namespace, "camera/ee/image_raw"), [f"{prefix}ee_cam_link", f"{prefix}ee_cam"], f"{prefix}ee_cam_link"),
+            (Imu, _topic_name(namespace, "imu/ee"), [f"{prefix}ee_imu_link", f"{prefix}ee_imu"], f"{prefix}ee_imu_link"),
         ]
 
         found = []
         base_warnings = []
         ee_warnings = []
 
-        for msg_type, topic, suffixes in base_checks:
-            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix, suffixes)
+        for msg_type, topic, suffixes, link_hint in base_checks:
+            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix, suffixes, link_hint)
             if ok:
                 found.append(detail)
             else:
                 base_warnings.append(detail)
 
-        for msg_type, topic, suffixes in ee_checks:
-            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix, suffixes)
+        for msg_type, topic, suffixes, link_hint in ee_checks:
+            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix, suffixes, link_hint)
             if ok:
                 found.append(detail)
             else:
