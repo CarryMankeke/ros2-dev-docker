@@ -17,6 +17,7 @@ install(PROGRAMS
   scripts/run_smoke_tests.sh
   scripts/core_health_check.py
   scripts/core_health_check.sh
+  scripts/odom_relay.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

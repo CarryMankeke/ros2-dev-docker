@@ -370,6 +370,17 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
         condition=IfCondition(sim),
     )
+    odom_relay = Node(
+        package='mm_bringup',
+        executable='odom_relay.py',
+        namespace=namespace,
+        output='screen',
+        arguments=[
+            '--input-topic', 'omni_wheel_controller/odom',
+            '--output-topic', 'odom',
+        ],
+        condition=IfCondition(sim),
+    )
     start_rviz = TimerAction(
         period=11.0,
         actions=[
@@ -439,5 +450,6 @@ def generate_launch_description():
         start_arm,
         start_gripper,
         camera_frame_republisher,
+        odom_relay,
         start_rviz,
     ])

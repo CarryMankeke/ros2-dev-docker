@@ -442,6 +442,27 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, {'prefix': mm2_prefix}],
     )
 
+    mm1_odom_relay = Node(
+        package='mm_bringup',
+        executable='odom_relay.py',
+        namespace=mm1_namespace,
+        output='screen',
+        arguments=[
+            '--input-topic', 'omni_wheel_controller/odom',
+            '--output-topic', 'odom',
+        ],
+    )
+    mm2_odom_relay = Node(
+        package='mm_bringup',
+        executable='odom_relay.py',
+        namespace=mm2_namespace,
+        output='screen',
+        arguments=[
+            '--input-topic', 'omni_wheel_controller/odom',
+            '--output-topic', 'odom',
+        ],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('mm1_namespace', default_value='mm1'),
         DeclareLaunchArgument('mm2_namespace', default_value='mm2'),
@@ -484,6 +505,8 @@ def generate_launch_description():
         mm2_spawn,
         mm1_camera_republisher,
         mm2_camera_republisher,
+        mm1_odom_relay,
+        mm2_odom_relay,
         TimerAction(period=3.0, actions=[mm1_jsb, mm2_jsb]),
         TimerAction(period=5.0, actions=[mm1_omni, mm2_omni]),
         TimerAction(period=7.0, actions=[mm1_arm, mm2_arm]),

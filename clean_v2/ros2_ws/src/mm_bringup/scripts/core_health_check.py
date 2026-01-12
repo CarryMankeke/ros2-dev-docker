@@ -170,6 +170,14 @@ class CoreHealthCheck(Node):
         topic = _topic_name(namespace, "odom")
         topics = {name for name, _ in self.get_topic_names_and_types()}
         if topic not in topics:
+            alt = [t for t in topics if t.startswith(_ns_prefix(namespace) + "/") and t.endswith("/odom")]
+            if alt:
+                alt_topic = alt[0]
+                qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
+                msg = self._wait_for_message(Odometry, alt_topic, 2.0, qos)
+                if msg is None:
+                    return "WARN", f"contract mismatch: publishing at {alt_topic}, no messages"
+                return "WARN", f"contract mismatch: publishing at {alt_topic}, expected {topic}"
             return "WARN", f"not advertised: {topic}"
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
         msg = self._wait_for_message(Odometry, topic, 2.0, qos)
