@@ -167,7 +167,12 @@ class CoreHealthCheck(Node):
         checks = [
             (LaserScan, _topic_name(namespace, "scan")),
             (Imu, _topic_name(namespace, "imu")),
+            (Imu, _topic_name(namespace, "imu/ee")),
             (Image, _topic_name(namespace, "camera/front/image_raw")),
+            (Image, _topic_name(namespace, "camera/left/image_raw")),
+            (Image, _topic_name(namespace, "camera/right/image_raw")),
+            (Image, _topic_name(namespace, "camera/rear/image_raw")),
+            (Image, _topic_name(namespace, "camera/ee/image_raw")),
         ]
         found = []
         warnings = []
