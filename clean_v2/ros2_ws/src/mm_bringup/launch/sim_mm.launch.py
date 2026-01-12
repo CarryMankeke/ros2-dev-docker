@@ -50,7 +50,12 @@ def _render_rviz_config(context):
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     namespace_key = f'/{namespace}' if namespace else ''
     rviz_mode = LaunchConfiguration('rviz_mode').perform(context).strip().lower()
-    template_name = 'mm_verify.rviz.in' if rviz_mode == 'verify' else 'mm_verify.rviz.in'
+    if rviz_mode == 'verify':
+        template_name = 'mm_verify.rviz.in'
+    elif rviz_mode == 'display':
+        template_name = 'mm_display.rviz.in'
+    else:
+        template_name = 'mm_verify.rviz.in'
     template_path = PathJoinSubstitution([
         FindPackageShare('mm_bringup'),
         'rviz',
