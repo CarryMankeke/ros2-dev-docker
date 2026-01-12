@@ -11,6 +11,8 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy
 from controller_manager_msgs.srv import ListControllers
 from rcl_interfaces.srv import GetParameters
 from rosgraph_msgs.msg import Clock
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image, Imu, JointState, LaserScan
 from tf2_ros import Buffer, TransformException, TransformListener
 
@@ -146,6 +148,68 @@ class CoreHealthCheck(Node):
             return False, f"no messages on {topic}"
         return True, f"{topic} ok ({len(msg.name)} joints)"
 
+    def _check_wheel_joints(self, namespace: str):
+        topic = _topic_name(namespace, "joint_states")
+        qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
+        msg = self._wait_for_message(JointState, topic, 2.0, qos)
+        if msg is None:
+            return "WARN", f"no messages on {topic}"
+        prefix = f"{namespace}_"
+        required = [
+            f"{prefix}front_left_wheel_joint",
+            f"{prefix}rear_left_wheel_joint",
+            f"{prefix}rear_right_wheel_joint",
+            f"{prefix}front_right_wheel_joint",
+        ]
+        missing = [j for j in required if j not in msg.name]
+        if missing:
+            return "WARN", f"missing wheel joints in {topic}: {missing}"
+        return "PASS", f"wheel joints present in {topic}"
+
+    def _check_odom(self, namespace: str):
+        topic = _topic_name(namespace, "odom")
+        topics = {name for name, _ in self.get_topic_names_and_types()}
+        if topic not in topics:
+            return "WARN", f"not advertised: {topic}"
+        qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
+        msg = self._wait_for_message(Odometry, topic, 2.0, qos)
+        if msg is None:
+            return "WARN", f"no messages within timeout: {topic}"
+        if not msg.header.frame_id:
+            return "WARN", f"empty frame_id: {topic}"
+        return "PASS", f"{topic} ok ({msg.header.frame_id})"
+
+    def _active_test(self, namespace: str):
+        cmd_topic = _topic_name(namespace, "cmd_vel")
+        qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
+        pub = self.create_publisher(Twist, cmd_topic, qos)
+
+        js_topic = _topic_name(namespace, "joint_states")
+        odom_topic = _topic_name(namespace, "odom")
+        js_before = self._wait_for_message(JointState, js_topic, 1.0, qos)
+        odom_before = self._wait_for_message(Odometry, odom_topic, 1.0, qos)
+
+        twist = Twist()
+        twist.linear.x = 0.05
+        twist.angular.z = 0.1
+        end_time = time.time() + 0.5
+        while time.time() < end_time:
+            pub.publish(twist)
+            rclpy.spin_once(self, timeout_sec=0.05)
+
+        js_after = self._wait_for_message(JointState, js_topic, 1.0, qos)
+        odom_after = self._wait_for_message(Odometry, odom_topic, 1.0, qos)
+
+        if js_before is None or js_after is None:
+            return "WARN", f"no joint_states for active test on {js_topic}"
+        if odom_before is None or odom_after is None:
+            return "WARN", f"no odom for active test on {odom_topic}"
+
+        js_changed = js_before.header.stamp != js_after.header.stamp
+        odom_changed = odom_before.header.stamp != odom_after.header.stamp
+        if js_changed or odom_changed:
+            return "PASS", "motion signals changed (joint_states or odom)"
+        return "WARN", "no change detected in joint_states or odom"
     def _check_sensor_topic(self, topic: str, msg_type, expected_prefix: str):
         topics = {name for name, _ in self.get_topic_names_and_types()}
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
@@ -195,6 +259,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--namespace", default="mm1")
     parser.add_argument("--check-mm2", action="store_true")
+    parser.add_argument("--active-test", action="store_true")
     args = parser.parse_args()
 
     namespace = args.namespace.lstrip("/")
@@ -290,6 +355,16 @@ def main() -> int:
 
     sensors_status, sensors_detail = node._check_sensors(namespace)
     _print("SENSORS", sensors_status, sensors_detail)
+
+    enc_status, enc_detail = node._check_wheel_joints(namespace)
+    _print("ENCODERS", enc_status, enc_detail)
+
+    odom_status, odom_detail = node._check_odom(namespace)
+    _print("ODOM", odom_status, odom_detail)
+
+    if args.active_test:
+        test_status, test_detail = node._active_test(namespace)
+        _print("ACTIVE_TEST", test_status, test_detail)
 
     node.destroy_node()
     rclpy.shutdown()

@@ -11,3 +11,6 @@ Project: clean_v2
 
 3) Run core health check
 - docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1"
+
+4) Run core health check with active test (optional)
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1 --active-test"
