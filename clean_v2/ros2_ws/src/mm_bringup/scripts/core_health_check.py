@@ -218,7 +218,7 @@ class CoreHealthCheck(Node):
         if js_changed or odom_changed:
             return "PASS", "motion signals changed (joint_states or odom)"
         return "WARN", "no change detected in joint_states or odom"
-    def _check_sensor_topic(self, topic: str, msg_type, expected_prefix: str):
+    def _check_sensor_topic(self, topic: str, msg_type, expected_prefix: str, expected_suffixes=None):
         topics = {name for name, _ in self.get_topic_names_and_types()}
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
         if topic not in topics:
@@ -231,31 +231,54 @@ class CoreHealthCheck(Node):
             if not frame_id:
                 return False, f"empty frame_id: {topic}"
             if expected_prefix and not frame_id.startswith(expected_prefix):
+                suffixes = expected_suffixes or []
+                leaf = frame_id.split('/')[-1]
+                if leaf in suffixes:
+                    return True, f"{topic} (frame_id ok: {frame_id})"
                 return False, f"frame_id mismatch: {topic} ({frame_id})"
         return True, f"{topic}"
 
     def _check_sensors(self, namespace: str):
         expected_prefix = f"{namespace}_"
-        checks = [
-            (LaserScan, _topic_name(namespace, "scan")),
-            (Imu, _topic_name(namespace, "imu")),
-            (Imu, _topic_name(namespace, "imu/ee")),
-            (Image, _topic_name(namespace, "camera/front/image_raw")),
-            (Image, _topic_name(namespace, "camera/left/image_raw")),
-            (Image, _topic_name(namespace, "camera/right/image_raw")),
-            (Image, _topic_name(namespace, "camera/rear/image_raw")),
-            (Image, _topic_name(namespace, "camera/ee/image_raw")),
+        prefix = f"{namespace}_"
+        base_checks = [
+            (LaserScan, _topic_name(namespace, "scan"), [f"{prefix}lidar_link", f"{prefix}lidar"]),
+            (Imu, _topic_name(namespace, "imu"), [f"{prefix}imu_link", f"{prefix}imu"]),
+            (Image, _topic_name(namespace, "camera/front/image_raw"), [f"{prefix}cam_front_link", f"{prefix}cam_front"]),
+            (Image, _topic_name(namespace, "camera/left/image_raw"), [f"{prefix}cam_left_link", f"{prefix}cam_left"]),
+            (Image, _topic_name(namespace, "camera/right/image_raw"), [f"{prefix}cam_right_link", f"{prefix}cam_right"]),
+            (Image, _topic_name(namespace, "camera/rear/image_raw"), [f"{prefix}cam_rear_link", f"{prefix}cam_rear"]),
         ]
+        ee_checks = [
+            (Image, _topic_name(namespace, "camera/ee/image_raw"), [f"{prefix}ee_cam_link", f"{prefix}ee_cam"]),
+            (Imu, _topic_name(namespace, "imu/ee"), [f"{prefix}ee_imu_link", f"{prefix}ee_imu"]),
+        ]
+
         found = []
-        warnings = []
-        for msg_type, topic in checks:
-            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix)
+        base_warnings = []
+        ee_warnings = []
+
+        for msg_type, topic, suffixes in base_checks:
+            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix, suffixes)
             if ok:
                 found.append(detail)
             else:
-                warnings.append(detail)
-        if warnings:
-            return "WARN", f"found: {found}; issues: {warnings}"
+                base_warnings.append(detail)
+
+        for msg_type, topic, suffixes in ee_checks:
+            ok, detail = self._check_sensor_topic(topic, msg_type, expected_prefix, suffixes)
+            if ok:
+                found.append(detail)
+            else:
+                ee_warnings.append(detail)
+
+        if base_warnings:
+            detail = f"found: {found}; base issues: {base_warnings}"
+            if ee_warnings:
+                detail = f"{detail}; ee issues: {ee_warnings}"
+            return "WARN", detail
+        if ee_warnings:
+            return "PASS", f"found: {found}; ee issues: {ee_warnings}"
         return "PASS", f"found: {found}"
 
 
