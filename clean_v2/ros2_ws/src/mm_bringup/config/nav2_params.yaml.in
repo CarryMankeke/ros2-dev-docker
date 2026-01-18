@@ -27,7 +27,7 @@ planner_server:
     expected_planner_frequency: 5.0
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
+      plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.5
 
 controller_server:
@@ -111,13 +111,13 @@ behavior_server:
     use_sim_time: __USE_SIM_TIME__
     behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
     spin:
-      plugin: "nav2_behaviors/Spin"
+      plugin: "nav2_behaviors::Spin"
     backup:
-      plugin: "nav2_behaviors/BackUp"
+      plugin: "nav2_behaviors::BackUp"
     drive_on_heading:
-      plugin: "nav2_behaviors/DriveOnHeading"
+      plugin: "nav2_behaviors::DriveOnHeading"
     wait:
-      plugin: "nav2_behaviors/Wait"
+      plugin: "nav2_behaviors::Wait"
 
 waypoint_follower:
   ros__parameters:
@@ -132,11 +132,81 @@ velocity_smoother:
     scale_velocities: false
     feedback: "OPEN_LOOP"
     cmd_vel_in_topic: cmd_vel
-    cmd_vel_out_topic: cmd_vel_nav2
+    cmd_vel_out_topic: cmd_vel_smoothed
     max_velocity: [0.6, 0.3, 1.0]
     min_velocity: [-0.3, -0.3, -1.0]
     max_accel: [0.8, 0.8, 1.2]
     max_decel: [-0.8, -0.8, -1.2]
+
+collision_monitor:
+  ros__parameters:
+    use_sim_time: __USE_SIM_TIME__
+    base_frame_id: __PREFIX__base_footprint
+    odom_frame_id: __PREFIX__odom
+    cmd_vel_in_topic: cmd_vel_smoothed
+    cmd_vel_out_topic: cmd_vel_nav2
+    state_topic: collision_monitor_state
+    transform_tolerance: 0.2
+    source_timeout: 1.0
+    base_shift_correction: true
+    stop_pub_timeout: 2.0
+    polygons: ["FootprintApproach"]
+    FootprintApproach:
+      type: "polygon"
+      action_type: "approach"
+      footprint_topic: "local_costmap/published_footprint"
+      time_before_collision: 1.2
+      simulation_time_step: 0.1
+      min_points: 6
+      visualize: false
+      enabled: true
+    observation_sources: ["scan"]
+    scan:
+      type: "scan"
+      topic: "scan"
+      min_height: 0.15
+      max_height: 2.0
+      enabled: true
+
+docking_server:
+  ros__parameters:
+    controller_frequency: 50.0
+    initial_perception_timeout: 5.0
+    wait_charge_timeout: 5.0
+    dock_approach_timeout: 30.0
+    undock_linear_tolerance: 0.05
+    undock_angular_tolerance: 0.1
+    max_retries: 3
+    base_frame: __PREFIX__base_link
+    fixed_frame: __PREFIX__odom
+    dock_backwards: false
+    dock_plugins: ["simple_charging_dock"]
+    simple_charging_dock:
+      plugin: "opennav_docking::SimpleChargingDock"
+      docking_threshold: 0.05
+      staging_x_offset: -0.7
+      use_external_detection_pose: true
+      use_battery_status: false
+      use_stall_detection: false
+      external_detection_timeout: 1.0
+      external_detection_translation_x: -0.18
+      external_detection_translation_y: 0.0
+      external_detection_rotation_roll: -1.57
+      external_detection_rotation_pitch: -1.57
+      external_detection_rotation_yaw: 0.0
+      filter_coef: 0.1
+    controller:
+      k_phi: 3.0
+      k_delta: 2.0
+      v_linear_min: 0.15
+      v_linear_max: 0.15
+      use_collision_detection: true
+      costmap_topic: "local_costmap/costmap_raw"
+      footprint_topic: "local_costmap/published_footprint"
+      transform_tolerance: 0.1
+      projection_time: 5.0
+      simulation_step: 0.1
+      dock_collision_threshold: 0.3
 
 global_costmap:
   global_costmap:
@@ -185,8 +255,8 @@ local_costmap:
       transform_tolerance: 0.2
       resolution: 0.05
       rolling_window: true
-      width: 6.0
-      height: 6.0
+      width: 6
+      height: 6
       plugins: ["obstacle_layer", "inflation_layer"]
       qos_overrides:
         scan:

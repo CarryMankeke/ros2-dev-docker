@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import sys
+import time
 
 import subprocess
 
@@ -27,6 +28,7 @@ def _run_command(args):
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--namespace", default="mm1")
+    parser.add_argument("--wait-seconds", type=float, default=20.0)
     args = parser.parse_args()
 
     namespace = args.namespace.lstrip("/")
@@ -41,10 +43,16 @@ def main() -> int:
         f"{ns}/behavior_server",
     ]
 
-    node_lines = _run_command(["ros2", "node", "list"]).splitlines()
-    available_full = set(line.strip() for line in node_lines if line.strip())
-
-    missing = [n for n in required_nodes if n not in available_full]
+    deadline = time.monotonic() + args.wait_seconds
+    available_full = set()
+    missing = required_nodes
+    while time.monotonic() <= deadline:
+        node_lines = _run_command(["ros2", "node", "list"]).splitlines()
+        available_full = set(line.strip() for line in node_lines if line.strip())
+        missing = [n for n in required_nodes if n not in available_full]
+        if not missing:
+            break
+        time.sleep(1.0)
 
     if missing:
         print(f"[NODES] FAIL missing: {missing}")
