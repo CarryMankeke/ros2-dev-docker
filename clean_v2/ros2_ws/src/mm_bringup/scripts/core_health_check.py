@@ -249,16 +249,32 @@ class CoreHealthCheck(Node):
         expected_suffixes=None,
         link_hint="",
     ):
-        topics = {name for name, _ in self.get_topic_names_and_types()}
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
-        if topic not in topics:
-            defined_in = self._sensor_defined_in(topic, link_hint)
-            return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: not advertised"
-        msg = self._wait_for_message(msg_type, topic, 2.0, qos)
+        max_attempts = 3
+        backoff_sec = 0.6
+        msg = None
+        advertised = False
+
+        for attempt in range(max_attempts):
+            topics = {name for name, _ in self.get_topic_names_and_types()}
+            advertised = topic in topics
+            if not advertised:
+                if attempt < max_attempts - 1:
+                    time.sleep(backoff_sec * (attempt + 1))
+                    continue
+                defined_in = self._sensor_defined_in(topic, link_hint)
+                return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: not advertised"
+
+            msg = self._wait_for_message(msg_type, topic, 1.5, qos)
+            if msg is None and attempt < max_attempts - 1:
+                time.sleep(backoff_sec * (attempt + 1))
+                continue
+            break
+
         if msg is None:
             defined_in = self._sensor_defined_in(topic, link_hint)
             cause = "LIKELY_CAUSE: bridge mismatch or sensor system not publishing or sim paused"
-            return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: advertised but no msgs; {cause}"
+            return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: advertised but no msgs after retries; {cause}"
         if hasattr(msg, "header"):
             frame_id = msg.header.frame_id
             if not frame_id:
