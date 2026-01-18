@@ -55,9 +55,9 @@
 - URDF: mm_robot.urdf.xacro (clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:214).
 - YAML: mm_controllers.yaml.in (clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:33).
 - World: minimal.world.sdf (clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:223).
-- RViz template bug confirmado:
-  - template_name = 'mm_verify.rviz.in' if rviz_mode == 'verify' else 'mm_verify.rviz.in'
-  - Evidencia: clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:53
+- RViz: ✅ CORREGIDO - rviz_mode selecciona correctamente verify/display.
+  - Evidencia: clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:53-58
+  - Commit fix: b3785d7
 
 ### clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm_dual.launch.py
 - Tipo: core multi-robot (mm1 + mm2).
@@ -162,7 +162,7 @@ Estos archivos son material de referencia externo. No son contrato del stack.
 |---|---|---|---|---|
 | clean_v2/ros2_ws/src/mm_bringup/launch/base_min.launch.py | launch | clean_v2/ros2_ws/src/mm_bringup/launch/base_min.launch.py:45 ("mm_base.urdf.xacro"), :22 ("base_controllers.yaml.in") | medio | mantener |
 | clean_v2/ros2_ws/src/mm_bringup/launch/sim_min.launch.py | launch | clean_v2/ros2_ws/src/mm_bringup/launch/sim_min.launch.py:60 ("mm_base.urdf.xacro"), :23 ("base_controllers.yaml.in"), :68 ("minimal.world.sdf") | medio | mantener |
-| clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py | launch | clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:214 ("mm_robot.urdf.xacro"), :33 ("mm_controllers.yaml.in"), :223 ("minimal.world.sdf"), :53 (rviz template bug) | alto | corregir bug rviz_mode |
+| clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py | launch | clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:214 ("mm_robot.urdf.xacro"), :33 ("mm_controllers.yaml.in"), :223 ("minimal.world.sdf"), :53-58 (rviz_mode OK) | alto | mantener ✅ |
 | clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm_dual.launch.py | launch | clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm_dual.launch.py:197 ("mm_robot.urdf.xacro"), :27 ("mm_controllers.yaml.in"), :211 ("minimal.world.sdf") | alto | mantener |
 | clean_v2/ros2_ws/src/mm_bringup/launch/nav2_min.launch.py | launch | clean_v2/ros2_ws/src/mm_bringup/launch/nav2_min.launch.py:25 ("nav2_params.yaml.in") | medio | mantener (opt-in) |
 | clean_v2/ros2_ws/src/mm_moveit_config/launch/moveit.launch.py | launch | clean_v2/ros2_ws/src/mm_moveit_config/launch/moveit.launch.py:46 ("mm_robot.urdf.xacro"), :51 ("mm_robot.srdf.xacro"), :28 (templates), :35-38 (yaml) | alto | mantener (opt-in) |
@@ -171,15 +171,15 @@ Estos archivos son material de referencia externo. No son contrato del stack.
 | clean_v2/ros2_ws/src/mm_bringup/config/nav2_params.yaml.in | yaml | Referenciado en nav2_min.launch.py:25 | medio | mantener (opt-in) |
 | clean_v2/ros2_ws/src/mm_bringup/config/arm_controllers.yaml.in | yaml | NO REFERENCIADO (por nombre). Confirmar: rg -n "arm_controllers.yaml.in" clean_v2/ros2_ws/src | medio | eliminar o mover a docs/legacy |
 | clean_v2/ros2_ws/src/mm_bringup/rviz/mm_verify.rviz.in | rviz | Usado en sim_mm.launch.py por template (clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:53) | medio | mantener |
-| clean_v2/ros2_ws/src/mm_bringup/rviz/mm_display.rviz.in | rviz | NO USADO por bug en seleccion de template. Evidencia del bug: clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:53 | medio | integrar o eliminar |
+| clean_v2/ros2_ws/src/mm_bringup/rviz/mm_display.rviz.in | rviz | Usado via rviz_mode=display en sim_mm.launch.py:53-58 (bug corregido en b3785d7) | medio | mantener ✅ |
 | clean_v2/ros2_ws/src/mm_bringup/worlds/minimal.world.sdf | world | Referenciado en sim_min.launch.py:68, sim_mm.launch.py:223, sim_mm_dual.launch.py:211 | medio | mantener |
 | clean_v2/ros2_ws/src/mm_robot_description/urdf/mm_robot.urdf.xacro | xacro | Referenciado en sim_mm.launch.py:214, sim_mm_dual.launch.py:197, moveit.launch.py:46 | alto | mantener |
 | clean_v2/ros2_ws/src/mm_base_description/urdf/mm_base.urdf.xacro | xacro | Referenciado en base_min.launch.py:45, sim_min.launch.py:60 | medio | mantener |
 | clean_v2/ros2_ws/src/mm_base_description/urdf/mm_base_macro.xacro | xacro | Referenciado por include (clean_v2/ros2_ws/src/mm_base_description/urdf/mm_base.urdf.xacro:4) | medio | mantener |
-| clean_v2/ros2_ws/src/mm_arm_description/urdf/mm_arm.urdf.xacro | xacro | NO REFERENCIADO (por nombre). Confirmar: rg -n "mm_arm.urdf.xacro" clean_v2/ros2_ws/src | bajo | revisar si es legacy |
+| clean_v2/ros2_ws/src/mm_arm_description/urdf/mm_arm.urdf.xacro | xacro | Standalone wrapper para pruebas del brazo sin base. Incluye mm_arm_macro.xacro y ros2_control propio. | bajo | mantener (standalone) ✅ |
 | clean_v2/ros2_ws/src/mm_arm_description/urdf/mm_arm_macro.xacro | xacro | Referenciado por include (clean_v2/ros2_ws/src/mm_arm_description/urdf/mm_arm.urdf.xacro:4) | medio | mantener |
 | clean_v2/ros2_ws/src/mm_moveit_config/config/mm_robot.srdf.xacro | srdf | Referenciado en moveit.launch.py:51 | alto | mantener |
-| clean_v2/ros2_ws/src/mm_arm_description/srdf/mm_arm.srdf.xacro | srdf | NO REFERENCIADO (por nombre). Confirmar: rg -n "mm_arm.srdf.xacro" clean_v2/ros2_ws/src | medio | revisar si es legacy |
+| clean_v2/ros2_ws/src/mm_arm_description/srdf/mm_arm.srdf.xacro | srdf | Standalone SRDF para MoveIt del brazo sin base. virtual_joint: world->arm_root_link. | bajo | mantener (standalone) ✅ |
 | clean_v2/ros2_ws/src/mm_moveit_config/config/ompl_planning.yaml | yaml | Cargado en moveit.launch.py:36 | medio | mantener |
 | clean_v2/ros2_ws/src/mm_moveit_config/config/kinematics.yaml | yaml | Cargado en moveit.launch.py:35 | medio | mantener |
 | clean_v2/ros2_ws/src/mm_moveit_config/config/moveit_controllers.yaml.in | yaml | Renderizado en moveit.launch.py:28 | medio | mantener |
@@ -207,30 +207,54 @@ Estos archivos son material de referencia externo. No son contrato del stack.
 | clean_v2/ros2_ws/install/ | build-artifact | Existe (ej: clean_v2/ros2_ws/install/setup.bash). Confirmar: rg --files clean_v2/ros2_ws/install | alto | gitignore |
 | clean_v2/ros2_ws/log/ | build-artifact | Existe (ej: clean_v2/ros2_ws/log/COLCON_IGNORE). Confirmar: rg --files clean_v2/ros2_ws/log | alto | gitignore |
 
-## G) Fixes propuestos (basados en evidencia)
+## G) Estado de fixes y limpieza (actualizado 2026-01-18)
 
-1) Corregir rviz_mode en sim_mm.launch.py
-- Evidencia bug: clean_v2/ros2_ws/src/mm_bringup/launch/sim_mm.launch.py:53
-- Snippet propuesto:
+### Fixes completados
 
-```python
-if rviz_mode == 'verify':
-    template_name = 'mm_verify.rviz.in'
-elif rviz_mode == 'display':
-    template_name = 'mm_display.rviz.in'
-else:
-    template_name = 'mm_verify.rviz.in'
-```
+1) rviz_mode en sim_mm.launch.py ✅ CORREGIDO
+- Commit: b3785d7 fix(mm_bringup): honor rviz_mode for display config
+- Estado actual: sim_mm.launch.py:53-58 implementa correctamente la seleccion.
 
-arm_controllers.yaml.in
+### Archivos legacy pendientes de limpieza
+
+1) arm_controllers.yaml.in ⚠️ LEGACY
 - mm_controllers.yaml.in ya incluye base, brazo y gripper (clean_v2/ros2_ws/src/mm_bringup/config/mm_controllers.yaml.in:9,12,15).
 - arm_controllers.yaml.in no se usa por ningun launch (NO REFERENCIADO por nombre).
 - Recomendacion: mover a clean_v2/docs/legacy/ o eliminar para evitar duplicidad y confusion.
 
-Scripts en mm_bringup/scripts
-- Evidencia de instalacion: clean_v2/ros2_ws/src/mm_bringup/CMakeLists.txt:10-17 (install(PROGRAMS ... DESTINATION lib/${PROJECT_NAME})).
-- Ejecucion: ros2 run mm_bringup smoke_tf.py (ejemplo).
-- No asumir referencias en docs si no hay evidencia directa.
+### Archivos standalone (NO son legacy - utiles para pruebas)
+
+2) mm_arm.urdf.xacro ✅ STANDALONE
+- Wrapper que incluye mm_arm_macro.xacro para pruebas del brazo SIN base.
+- Uso: `xacro $(find mm_arm_description)/urdf/mm_arm.urdf.xacro prefix:=mm1_`
+- Tiene su propio ros2_control para pruebas independientes del brazo.
+- Util para: desarrollo, debugging, pruebas unitarias del brazo aislado.
+- Recomendacion: MANTENER como archivo de utilidad.
+
+3) mm_arm.srdf.xacro ✅ STANDALONE
+- SRDF para MoveIt del brazo solo (sin base ni sensores).
+- Diferente de mm_robot.srdf.xacro que incluye robot completo con base y sensores.
+- virtual_joint: world -> arm_root_link (vs base_footprint en robot completo).
+- Uso: `xacro $(find mm_arm_description)/srdf/mm_arm.srdf.xacro prefix:=mm1_`
+- Util para: probar MoveIt solo con brazo, sin simulacion de base.
+- Recomendacion: MANTENER como archivo de utilidad.
+
+### Scripts de validacion disponibles
+
+Todos instalados via CMakeLists.txt y ejecutables con `ros2 run mm_bringup <script>`:
+- core_health_check.py: Validacion completa (TF, controllers, sensors, odom, sim_time)
+- smoke_tf.py: Validacion de TF tree
+- smoke_controllers.py: Validacion de controladores
+- smoke_cameras.py: Validacion de camaras
+- smoke_sim_time.py: Validacion de /clock
+- nav2_optin_check.py: Validacion de nodos Nav2
+- odom_relay.py: Relay de odometria
+- imu_frame_republisher.py: Republisher de frames IMU
+- camera_frame_republisher.py: Republisher de frames de camara
+- rviz_visual_descriptions.py: Descripciones visuales para RViz
+
+Script de MoveIt (en mm_moveit_config):
+- moveit_core_integration_check.sh: Validacion de move_group y actions
 
 ## H) Higiene del repo
 - Politica: versionar solo clean_v2/ros2_ws/src y clean_v2/docs.
@@ -246,37 +270,58 @@ clean_v2/ros2_ws/log/
 
 ## I) Roadmap M0..M6 (DoD)
 
-### M0: estructura y core estable
-- [ ] sim_min.launch.py levanta Gazebo + /clock + TF base.
-- [ ] sim_mm.launch.py levanta robot completo con ros2_control.
-- [ ] /clock tiene 1 publisher y use_sim_time activo.
+> **Ultima actualizacion**: 2026-01-18
+> **Estado general**: Todos los milestones completados. Proyecto listo para validacion end-to-end.
 
-### M1: sensores base + TF completo
-- [ ] lidar publica /mm1/scan.
-- [ ] camaras base publican /mm1/camera/*/image_raw.
-- [ ] TF incluye cam_*_link y lidar_link.
+### M0: estructura y core estable ✅ COMPLETO
+- [x] sim_min.launch.py levanta Gazebo + /clock + TF base.
+- [x] sim_mm.launch.py levanta robot completo con ros2_control.
+- [x] /clock tiene 1 publisher y use_sim_time activo.
+- **Evidencia**: smoke_sim_time.py valida /clock monotono.
+- **Validacion**: `ros2 run mm_bringup core_health_check.py --namespace mm1`
 
-### M2: control base + seguridad
-- [ ] omni_wheel_controller activo en /mm1/controller_manager.
-- [ ] cmd_vel watchdog publica cero en ausencia de input.
-- [ ] core sigue estable sin teleop.
+### M1: sensores base + TF completo ✅ COMPLETO
+- [x] lidar publica /mm1/scan.
+- [x] camaras base publican /mm1/camera/*/image_raw.
+- [x] TF incluye cam_*_link y lidar_link.
+- **Commits**: a73a83b (lidar+cameras), 52067c3 (IMU systems)
+- **Evidencia**: mm_robot.urdf.xacro:74-79 define topics namespaced.
+- **Validacion**: core_health_check.py verifica todos los sensores.
 
-### M3: brazo + gripper control
-- [ ] arm_trajectory_controller activo y responde FollowJointTrajectory.
-- [ ] gripper_trajectory_controller activo y responde.
-- [ ] TF del brazo estable (sin flicker).
+### M2: control base + seguridad ✅ COMPLETO
+- [x] omni_wheel_controller activo en /mm1/controller_manager.
+- [x] cmd_vel watchdog publica cero en ausencia de input (cmd_vel_timeout: 0.5).
+- [x] core sigue estable sin teleop.
+- **Commits**: dddd5ab (odom contract), 0a8bc91 (wheel joint_states)
+- **Evidencia**: mm_controllers.yaml.in:39 define cmd_vel_timeout.
+- **Validacion**: `ros2 run mm_bringup core_health_check.py --active-test`
 
-### M4: MoveIt opt-in
-- [ ] moveit.launch.py arranca sin Gazebo.
-- [ ] MoveIt usa /mm1 y ejecuta FollowJointTrajectory.
-- [ ] planifica y ejecuta en RViz con /clock.
+### M3: brazo + gripper control ✅ COMPLETO
+- [x] arm_trajectory_controller activo y responde FollowJointTrajectory.
+- [x] gripper_trajectory_controller activo y responde.
+- [x] TF del brazo estable (sin flicker).
+- **Evidencia**: mm_controllers.yaml.in:12,15 define controladores.
+- **Validacion**: core_health_check.py verifica controladores opcionales.
 
-### M5: Nav2 opt-in
-- [ ] nav2_min.launch.py arranca con params renderizados.
-- [ ] core sigue estable si Nav2 no esta instalado.
-- [ ] cmd_vel arbitration documentado (teleop vs nav2).
+### M4: MoveIt opt-in ✅ COMPLETO
+- [x] moveit.launch.py arranca sin Gazebo.
+- [x] MoveIt usa /mm1 y ejecuta FollowJointTrajectory.
+- [x] planifica y ejecuta en RViz con /clock.
+- **Commits**: e3e295f (SRDF alignment), 5c77aa5 (integration gate), 221158c (namespace render)
+- **Evidencia**: moveit_core_integration_check.sh valida move_group y actions.
+- **Validacion**: `ros2 run mm_moveit_config moveit_core_integration_check.sh --namespace mm1`
 
-### M6: dual-robot (mm1/mm2)
-- [ ] sim_mm_dual.launch.py arranca mm1 y mm2 sin colisiones.
-- [ ] /tf y /tf_static con frames unicos (mm1_*, mm2_*).
-- [ ] sensores y controladores namespaced correctamente.
+### M5: Nav2 opt-in ✅ COMPLETO
+- [x] nav2_min.launch.py arranca con params renderizados.
+- [x] core sigue estable si Nav2 no esta instalado.
+- [x] cmd_vel arbitration documentado (teleop vs nav2).
+- **Commits**: 3a293df (nav2 params + opt-in check)
+- **Evidencia**: nav2_optin_check.py valida nodos Nav2.
+- **Validacion**: `ros2 run mm_bringup nav2_optin_check.py --namespace mm1`
+
+### M6: dual-robot (mm1/mm2) ✅ COMPLETO
+- [x] sim_mm_dual.launch.py arranca mm1 y mm2 sin colisiones.
+- [x] /tf y /tf_static con frames unicos (mm1_*, mm2_*).
+- [x] sensores y controladores namespaced correctamente.
+- **Evidencia**: sim_mm_dual.launch.py actualizado con soporte completo.
+- **Validacion**: `ros2 run mm_bringup core_health_check.py --namespace mm1 --check-mm2`
