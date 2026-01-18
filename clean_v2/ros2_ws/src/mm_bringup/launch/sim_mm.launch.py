@@ -485,12 +485,14 @@ def generate_launch_description():
                 ]
             ),
         ],
+        condition=IfCondition(LaunchConfiguration('use_rviz')),
     )
 
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('use_rviz', default_value='true'),
         DeclareLaunchArgument('rviz_mode', default_value='verify'),
         DeclareLaunchArgument('world', default_value=default_world),
         DeclareLaunchArgument('gz_args', default_value='-r -v 4'),

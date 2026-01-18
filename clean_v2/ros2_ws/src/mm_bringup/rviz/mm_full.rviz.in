@@ -1,0 +1,232 @@
+Panels:
+  - Class: rviz_common/Displays
+    Help Height: 0
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /TF1
+        - /Map1/Topic1
+        - /MotionPlanning1
+      Splitter Ratio: 0.5
+    Tree Height: 280
+  - Class: rviz_common/Selection
+    Name: Selection
+  - Class: rviz_common/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Goal Pose1
+    Name: Tool Properties
+    Splitter Ratio: 0.5
+  - Class: rviz_common/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz_default_plugins/Grid
+      Color: 160; 160; 160
+      Enabled: true
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Name: Grid
+      Plane: XY
+      Plane Cell Count: 20
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Value: /rviz_visual_descriptions/robot_description_base_visual
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: ""
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: BaseModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Value: /rviz_visual_descriptions/robot_description_arm_visual
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: ""
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: ArmModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Class: moveit_rviz_plugin/MotionPlanning
+      Enabled: true
+      Name: MotionPlanning
+      Robot Description: robot_description
+      Planning Scene Topic: __NS__/monitored_planning_scene
+      Planning Request:
+        Planning Group: arm
+      Planned Path:
+        Loop Animation: false
+        State Display Time: 0.05
+      Scene Geometry:
+        Scene Alpha: 1
+      Scene Robot:
+        Robot Alpha: 0.8
+    - Class: rviz_default_plugins/Map
+      Enabled: true
+      Name: Map
+      Topic:
+        Depth: 10
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/map
+      Update Topic:
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/map_updates
+      Use Timestamp: false
+    - Class: rviz_default_plugins/LaserScan
+      Enabled: true
+      Name: Scan
+      Queue Size: 10
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: __NS__/scan
+      Size (Pixels): 3
+      Style: Flat Squares
+    - Class: rviz_default_plugins/Path
+      Enabled: true
+      Name: Plan
+      Line Style: Lines
+      Line Width: 0.03
+      Color: 0; 255; 0
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/plan
+    - Class: rviz_default_plugins/PoseWithCovariance
+      Enabled: true
+      Name: AMCL Pose
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/amcl_pose
+    - Class: nav2_rviz_plugins/Costmap
+      Enabled: true
+      Name: Global Costmap
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/global_costmap/costmap
+    - Class: nav2_rviz_plugins/Costmap
+      Enabled: true
+      Name: Local Costmap
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/local_costmap/costmap
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: Camera Front
+      Image Topic: __NS__/camera/front/image_raw
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: Camera Left
+      Image Topic: __NS__/camera/left/image_raw
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: Camera Right
+      Image Topic: __NS__/camera/right/image_raw
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: Camera Rear
+      Image Topic: __NS__/camera/rear/image_raw
+      Transport Hint: raw
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: Camera EE
+      Image Topic: __NS__/camera/ee/image_raw
+      Transport Hint: raw
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic: __NS__/initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic: __NS__/goal_pose
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 8
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Pitch: 0.4
+      Target Frame: __PREFIX__base_footprint
+      Yaw: 0.69
+Window Geometry:
+  Height: 800
+  Width: 1200
