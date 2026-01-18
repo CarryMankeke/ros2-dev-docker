@@ -14,6 +14,9 @@ Base limpia para un manipulador movil (base omni + brazo) con soporte multi-robo
 ## Documentacion clave
 - `docs/MOVEIT2_BASE.md`
 - `docs/NAV2_BASE.md`
+- `docs/ROADMAP.md`
+- `docs/TEST_PLAN.md`
+- `docs/UPSTREAM_REFERENCES.md`
 
 ## Ejecucion minima
 1. Construir:
@@ -34,6 +37,17 @@ Base limpia para un manipulador movil (base omni + brazo) con soporte multi-robo
    - El brazo y el gripper usan interfaces de posicion (JTC) para integracion con MoveIt 2.
 
 Nota: para evitar saltos de tiempo, ejecuta un solo launch a la vez (un solo `/clock`).
+
+## Scripts de validacion (host)
+- `scripts/core_health.sh` (gate del core)
+- `scripts/smoke/smoke_sim_basic.sh`
+- `scripts/smoke/smoke_ekf_local.sh`
+- `scripts/smoke/smoke_nav2.sh`
+- `scripts/smoke/smoke_moveit.sh`
+- `scripts/smoke/smoke_multirobot.sh`
+
+Notas:
+- Teleop y rqt_graph son opt-in. Usa `use_teleop:=true` y `use_rqt:=true` cuando se requiera.
 
 ## MoveIt 2 (brazo + gripper)
 1. Lanzar MoveIt (solo move_group):
