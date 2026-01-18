@@ -19,7 +19,7 @@ RUN apt-get update \
     xvfb x11vnc novnc websockify supervisor \
     xserver-xorg-core xserver-xorg-video-dummy \
     # Utilidades básicas de sistema
-    curl ca-certificates git python3-jinja2 python3-ament-package \
+    curl ca-certificates git python3-jinja2 \
     # --- Paquete desktop de ROS (incluye RViz2) ---
     ros-jazzy-desktop-full \
     # --- Gazebo Harmonic + integración ROS-Gazebo (ros_gz) ---
