@@ -289,20 +289,6 @@
 
   <!-- IMU Sensor on end-effector link -->
   <xacro:if value="$(arg enable_ee_imu)">
-    <link name="${prefix}ee_imu_link">
-      <inertial>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <mass value="0.05"/>
-        <inertia ixx="0.00005" ixy="0" ixz="0" iyy="0.00005" iyz="0" izz="0.00005"/>
-      </inertial>
-    </link>
-
-    <joint name="${prefix}ee_imu_joint" type="fixed">
-      <parent link="${prefix}tool0"/>
-      <child link="${prefix}ee_imu_link"/>
-      <origin xyz="$(arg ee_imu_x) $(arg ee_imu_y) $(arg ee_imu_z)" rpy="$(arg ee_imu_roll) $(arg ee_imu_pitch) $(arg ee_imu_yaw)"/>
-    </joint>
-
     <gazebo reference="${prefix}ee_imu_link">
       <sensor name="${prefix}ee_imu" type="imu">
         <pose>0 0 0 0 0 0</pose>
