@@ -23,6 +23,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
-        DeclareLaunchArgument('use_teleop', default_value='true'),
+        DeclareLaunchArgument('use_teleop', default_value='false'),
         teleop,
     ])

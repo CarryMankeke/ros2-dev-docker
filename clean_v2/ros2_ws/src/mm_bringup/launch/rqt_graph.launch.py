@@ -19,6 +19,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument('use_rqt', default_value='true'),
+        DeclareLaunchArgument('use_rqt', default_value='false'),
         rqt_graph,
     ])
