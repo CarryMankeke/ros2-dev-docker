@@ -42,6 +42,11 @@ def main() -> int:
         f"{ns}/bt_navigator",
         f"{ns}/behavior_server",
     ]
+    optional_nodes = [
+        f"{ns}/map_server",
+        f"{ns}/slam_toolbox",
+        f"{ns}/amcl",
+    ]
 
     deadline = time.monotonic() + args.wait_seconds
     available_full = set()
@@ -60,6 +65,12 @@ def main() -> int:
     else:
         print(f"[NODES] PASS found: {required_nodes}")
 
+    optional_missing = [n for n in optional_nodes if n not in available_full]
+    if optional_missing:
+        print(f"[NODES] WARN optional missing: {optional_missing}")
+    else:
+        print(f"[NODES] PASS optional nodes: {optional_nodes}")
+
     topic_lines = _run_command(["ros2", "topic", "list"]).splitlines()
     topics = set(line.strip() for line in topic_lines if line.strip())
     cmd_vel_nav2 = f"{ns}/cmd_vel_nav2"
@@ -67,6 +78,12 @@ def main() -> int:
         print(f"[TOPICS] PASS {cmd_vel_nav2} advertised")
     else:
         print(f"[TOPICS] WARN {cmd_vel_nav2} not advertised (no goal or nav2 inactive)")
+
+    map_topic = f"{ns}/map"
+    if map_topic in topics:
+        print(f"[TOPICS] PASS {map_topic} advertised")
+    else:
+        print(f"[TOPICS] WARN {map_topic} not advertised (slam/map server not active)")
 
     return status
 

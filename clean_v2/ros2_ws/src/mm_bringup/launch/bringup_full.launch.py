@@ -44,6 +44,12 @@ def generate_launch_description():
     use_moveit = LaunchConfiguration('use_moveit')
     use_nav2 = LaunchConfiguration('use_nav2')
     use_rviz = LaunchConfiguration('use_rviz')
+    use_rqt_graph = LaunchConfiguration('use_rqt_graph')
+    use_mux = LaunchConfiguration('use_mux')
+    use_teleop = LaunchConfiguration('use_teleop')
+    cmd_vel_out = LaunchConfiguration('cmd_vel_out')
+    use_ekf = LaunchConfiguration('use_ekf')
+    ekf_publish_tf = LaunchConfiguration('ekf_publish_tf')
     slam = LaunchConfiguration('slam')
     map_yaml = LaunchConfiguration('map')
     use_composition = LaunchConfiguration('use_composition')
@@ -96,6 +102,54 @@ def generate_launch_description():
         }.items(),
     )
 
+    cmd_vel_mux = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            bringup_share,
+            '/launch/cmd_vel_mux.launch.py',
+        ]),
+        launch_arguments={
+            'namespace': namespace,
+            'use_sim_time': use_sim_time,
+            'use_mux': use_mux,
+            'cmd_vel_out': cmd_vel_out,
+        }.items(),
+    )
+
+    teleop = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            bringup_share,
+            '/launch/teleop.launch.py',
+        ]),
+        launch_arguments={
+            'namespace': namespace,
+            'use_teleop': use_teleop,
+        }.items(),
+    )
+
+    ekf = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            bringup_share,
+            '/launch/ekf.launch.py',
+        ]),
+        launch_arguments={
+            'namespace': namespace,
+            'prefix': prefix,
+            'use_sim_time': use_sim_time,
+            'publish_tf': ekf_publish_tf,
+        }.items(),
+        condition=IfCondition(use_ekf),
+    )
+
+    rqt_graph = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            bringup_share,
+            '/launch/rqt_graph.launch.py',
+        ]),
+        launch_arguments={
+            'use_rqt': use_rqt_graph,
+        }.items(),
+    )
+
     rviz_node = GroupAction([
         SetEnvironmentVariable('LIBGL_ALWAYS_SOFTWARE', '1'),
         SetEnvironmentVariable('QT_XCB_GL_INTEGRATION', 'none'),
@@ -117,11 +171,21 @@ def generate_launch_description():
         DeclareLaunchArgument('use_moveit', default_value='true'),
         DeclareLaunchArgument('use_nav2', default_value='true'),
         DeclareLaunchArgument('use_rviz', default_value='true'),
+        DeclareLaunchArgument('use_rqt_graph', default_value='false'),
+        DeclareLaunchArgument('use_mux', default_value='true'),
+        DeclareLaunchArgument('use_teleop', default_value='false'),
+        DeclareLaunchArgument('cmd_vel_out', default_value='omni_wheel_controller/cmd_vel'),
+        DeclareLaunchArgument('use_ekf', default_value='true'),
+        DeclareLaunchArgument('ekf_publish_tf', default_value='false'),
         DeclareLaunchArgument('slam', default_value='True'),
         DeclareLaunchArgument('map', default_value=''),
         DeclareLaunchArgument('use_composition', default_value='False'),
         OpaqueFunction(function=_render_full_rviz),
         sim_mm,
+        cmd_vel_mux,
+        teleop,
+        ekf,
+        rqt_graph,
         moveit,
         nav2,
         rviz_node,

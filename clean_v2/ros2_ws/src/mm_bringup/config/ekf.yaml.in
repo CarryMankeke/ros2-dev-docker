@@ -5,6 +5,11 @@ ekf_filter_node:
     sensor_timeout: 0.1
     two_d_mode: true
     publish_tf: __PUBLISH_TF__
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    publish_acceleration: false
+    print_diagnostics: true
+    permit_corrected_publication: false
     map_frame: map
     odom_frame: __PREFIX__odom
     base_link_frame: __PREFIX__base_footprint
