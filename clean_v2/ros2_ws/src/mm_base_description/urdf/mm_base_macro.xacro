@@ -1,11 +1,27 @@
 <?xml version="1.0"?>
 <!-- Autor: Camilo Soto Villegas | Contacto: camilo.soto.v@usach.cl | Proyecto: clean_v2 -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="mm_base_simple_inertial" params="mass ixz">
+  <!-- Macro para inercia de caja (box) -->
+  <xacro:macro name="box_inertial" params="mass x y z *origin">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <xacro:insert_block name="origin"/>
       <mass value="${mass}"/>
-      <inertia ixx="${ixz}" ixy="0" ixz="0" iyy="${ixz}" iyz="0" izz="${ixz}"/>
+      <inertia
+        ixx="${(mass/12) * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+        iyy="${(mass/12) * (x*x + z*z)}" iyz="0.0"
+        izz="${(mass/12) * (x*x + y*y)}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Macro para inercia de cilindro alineado con eje Y (ruedas) -->
+  <xacro:macro name="cylinder_inertial_y" params="mass radius length *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${(mass/12) * (3*radius*radius + length*length)}" ixy="0.0" ixz="0.0"
+        iyy="${0.5 * mass * radius * radius}" iyz="0.0"
+        izz="${(mass/12) * (3*radius*radius + length*length)}"/>
     </inertial>
   </xacro:macro>
 
@@ -34,7 +50,9 @@
     <xacro:property name="base_visual_enabled" value="${visual_mode == 'full' or visual_mode == 'base_only'}"/>
 
     <link name="${prefix}base_link">
-      <xacro:mm_base_simple_inertial mass="15.0" ixz="0.25"/>
+      <xacro:box_inertial mass="15.0" x="${base_length}" y="${base_width}" z="${base_height}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <origin xyz="0 0 ${base_visual_z}" rpy="0 0 0"/>
@@ -61,7 +79,9 @@
     </joint>
 
     <link name="${prefix}front_left_wheel_link">
-      <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
+      <xacro:cylinder_inertial_y mass="1.0" radius="${wheel_radius}" length="${wheel_width}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:cylinder_inertial_y>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -77,7 +97,9 @@
     </link>
 
     <link name="${prefix}front_right_wheel_link">
-      <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
+      <xacro:cylinder_inertial_y mass="1.0" radius="${wheel_radius}" length="${wheel_width}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:cylinder_inertial_y>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -93,7 +115,9 @@
     </link>
 
     <link name="${prefix}rear_left_wheel_link">
-      <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
+      <xacro:cylinder_inertial_y mass="1.0" radius="${wheel_radius}" length="${wheel_width}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:cylinder_inertial_y>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -109,7 +133,9 @@
     </link>
 
     <link name="${prefix}rear_right_wheel_link">
-      <xacro:mm_base_simple_inertial mass="1.0" ixz="0.01"/>
+      <xacro:cylinder_inertial_y mass="1.0" radius="${wheel_radius}" length="${wheel_width}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:cylinder_inertial_y>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -153,7 +179,9 @@
     </joint>
 
     <link name="${prefix}cam_front_link">
-      <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
+      <xacro:box_inertial mass="0.2" x="0.04" y="0.03" z="0.03">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -175,7 +203,9 @@
     </joint>
 
     <link name="${prefix}cam_left_link">
-      <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
+      <xacro:box_inertial mass="0.2" x="0.04" y="0.03" z="0.03">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -197,7 +227,9 @@
     </joint>
 
     <link name="${prefix}cam_right_link">
-      <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
+      <xacro:box_inertial mass="0.2" x="0.04" y="0.03" z="0.03">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>
@@ -219,7 +251,9 @@
     </joint>
 
     <link name="${prefix}cam_rear_link">
-      <xacro:mm_base_simple_inertial mass="0.2" ixz="0.001"/>
+      <xacro:box_inertial mass="0.2" x="0.04" y="0.03" z="0.03">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
       <xacro:if value="${base_visual_enabled}">
         <visual>
           <geometry>

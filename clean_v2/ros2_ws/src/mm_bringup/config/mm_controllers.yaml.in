@@ -27,8 +27,8 @@ __NAMESPACE__/omni_wheel_controller:
       - __PREFIX__rear_left_wheel_joint
       - __PREFIX__rear_right_wheel_joint
       - __PREFIX__front_right_wheel_joint
-    wheel_offset: 0.611
-    robot_radius: 0.305
+    wheel_offset: 0.742
+    robot_radius: 0.357
     wheel_radius: 0.07
     base_frame_id: __PREFIX__base_footprint
     odom_frame_id: __PREFIX__odom

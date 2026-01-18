@@ -1,6 +1,7 @@
 amcl:
   ros__parameters:
     use_sim_time: __USE_SIM_TIME__
+    robot_model_type: "nav2_amcl::OmnidirectionalMotionModel"
     base_frame_id: __PREFIX__base_footprint
     odom_frame_id: __PREFIX__odom
     scan_topic: scan
@@ -8,9 +9,9 @@ amcl:
     max_particles: 2000
     alpha1: 0.2
     alpha2: 0.2
-    alpha3: 0.2
+    alpha3: 0.3
     alpha4: 0.2
-    alpha5: 0.1
+    alpha5: 0.3
     update_min_d: 0.2
     update_min_a: 0.2
     pf_err: 0.05
@@ -214,6 +215,7 @@ global_costmap:
       use_sim_time: __USE_SIM_TIME__
       global_frame: map
       robot_base_frame: __PREFIX__base_footprint
+      footprint: "[[0.25, 0.30], [0.25, -0.30], [-0.25, -0.30], [-0.25, 0.30]]"
       update_frequency: 5.0
       publish_frequency: 2.0
       transform_tolerance: 0.2
@@ -250,6 +252,7 @@ local_costmap:
       use_sim_time: __USE_SIM_TIME__
       global_frame: __PREFIX__odom
       robot_base_frame: __PREFIX__base_footprint
+      footprint: "[[0.25, 0.30], [0.25, -0.30], [-0.25, -0.30], [-0.25, 0.30]]"
       update_frequency: 10.0
       publish_frequency: 5.0
       transform_tolerance: 0.2
