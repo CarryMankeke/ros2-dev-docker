@@ -34,8 +34,16 @@ else
   status=1
 fi
 
-rd=$(ros2 param get "${ns}/move_group" robot_description 2>/dev/null || true)
-rs=$(ros2 param get "${ns}/move_group" robot_description_semantic 2>/dev/null || true)
+rd=""
+rs=""
+for _ in $(seq 1 15); do
+  rd=$(ros2 param get "${ns}/move_group" robot_description 2>/dev/null || true)
+  rs=$(ros2 param get "${ns}/move_group" robot_description_semantic 2>/dev/null || true)
+  if [[ "$rd" == *"String value is:"* ]] && [[ "$rs" == *"String value is:"* ]]; then
+    break
+  fi
+  sleep 1
+done
 
 if [[ "$rd" == *"String value is:"* ]] && [[ "$rs" == *"String value is:"* ]]; then
   echo "[PARAMS] PASS robot_description and robot_description_semantic"
