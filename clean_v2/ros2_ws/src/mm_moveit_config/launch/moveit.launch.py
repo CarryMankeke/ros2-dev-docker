@@ -2,8 +2,9 @@ from pathlib import Path
 import yaml
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable, SetLaunchConfiguration, GroupAction
+from launch.conditions import IfCondition
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -115,10 +116,45 @@ def _launch_move_group(context):
     return [move_group]
 
 
+def _render_rviz_config(context):
+    prefix = LaunchConfiguration('prefix').perform(context)
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    namespace_key = f'/{namespace}' if namespace else ''
+
+    moveit_share = Path(FindPackageShare('mm_moveit_config').perform(context))
+    template_path = moveit_share / 'rviz' / 'mm_moveit.rviz.in'
+
+    output_dir = Path('/tmp/mm_moveit') / prefix
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / 'mm_moveit.rviz'
+
+    content = template_path.read_text(encoding='utf-8')
+    content = content.replace('__PREFIX__', prefix)
+    content = content.replace('__NS__', namespace_key)
+    output_file.write_text(content, encoding='utf-8')
+
+    return [SetLaunchConfiguration('rviz_config', str(output_file))]
+
+
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('use_rviz', default_value='true'),
         OpaqueFunction(function=_launch_move_group),
+        OpaqueFunction(function=_render_rviz_config),
+        GroupAction([
+            SetEnvironmentVariable('LIBGL_ALWAYS_SOFTWARE', '1'),
+            SetEnvironmentVariable('QT_XCB_GL_INTEGRATION', 'none'),
+            SetEnvironmentVariable('GALLIUM_DRIVER', 'llvmpipe'),
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                output='screen',
+                arguments=['-d', LaunchConfiguration('rviz_config')],
+                parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+                condition=IfCondition(LaunchConfiguration('use_rviz')),
+            ),
+        ]),
     ])

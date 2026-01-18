@@ -22,3 +22,21 @@ Sensor sources of truth (core):
 
 5) MoveIt plus core integration gate (opt-in)
 - docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_moveit_config moveit_core_integration_check.sh --namespace mm1"
+
+6) EKF opt-in (robot_localization)
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 launch mm_bringup ekf.launch.py namespace:=mm1 prefix:=mm1_ use_sim_time:=true"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup ekf_optin_check.py --namespace mm1"
+
+7) Nav2 opt-in (mm1)
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 launch mm_bringup nav2_min.launch.py namespace:=mm1 prefix:=mm1_ use_sim_time:=true"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source /home/ros/ros2_ws/install/setup.bash && ros2 run mm_bringup nav2_optin_check.py --namespace mm1"
+
+8) RViz opt-in configs
+- Nav2: use mm_bringup/rviz/mm_nav2.rviz.in via nav2_min.launch.py (use_rviz:=true).
+- MoveIt: use mm_moveit_config/rviz/mm_moveit.rviz.in via moveit.launch.py (use_rviz:=true).
+
+9) Debug opt-in
+- rqt_graph: docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && ros2 launch mm_bringup rqt_graph.launch.py use_rqt:=true"
+
+10) Teleop opt-in
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && ros2 launch mm_bringup teleop.launch.py namespace:=mm1 use_teleop:=true"

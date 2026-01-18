@@ -4,10 +4,12 @@
 from pathlib import Path
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, SetEnvironmentVariable, SetLaunchConfiguration, GroupAction
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -37,6 +39,29 @@ def _render_nav2_params(context):
     output_file.write_text(content, encoding='utf-8')
 
     return []
+
+
+def _render_nav2_rviz(context):
+    prefix = LaunchConfiguration('prefix').perform(context)
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    namespace_key = f'/{namespace}' if namespace else ''
+
+    template_path = PathJoinSubstitution([
+        FindPackageShare('mm_bringup'),
+        'rviz',
+        'mm_nav2.rviz.in',
+    ]).perform(context)
+
+    output_dir = Path('/tmp/mm_bringup') / prefix
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / 'mm_nav2.rviz'
+
+    content = Path(template_path).read_text(encoding='utf-8')
+    content = content.replace('__PREFIX__', prefix)
+    content = content.replace('__NS__', namespace_key)
+    output_file.write_text(content, encoding='utf-8')
+
+    return [SetLaunchConfiguration('rviz_config', str(output_file))]
 
 
 def generate_launch_description():
@@ -72,6 +97,19 @@ def generate_launch_description():
         }.items(),
     )
 
+    rviz_node = GroupAction([
+        SetEnvironmentVariable('LIBGL_ALWAYS_SOFTWARE', '1'),
+        SetEnvironmentVariable('QT_XCB_GL_INTEGRATION', 'none'),
+        SetEnvironmentVariable('GALLIUM_DRIVER', 'llvmpipe'),
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            output='screen',
+            arguments=['-d', LaunchConfiguration('rviz_config')],
+            parameters=[{'use_sim_time': use_sim_time}],
+        ),
+    ], condition=IfCondition(LaunchConfiguration('use_rviz')))
+
     return LaunchDescription([
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
@@ -79,6 +117,9 @@ def generate_launch_description():
         DeclareLaunchArgument('slam', default_value='True'),
         DeclareLaunchArgument('map', default_value=''),
         DeclareLaunchArgument('use_composition', default_value='False'),
+        DeclareLaunchArgument('use_rviz', default_value='true'),
         OpaqueFunction(function=_render_nav2_params),
+        OpaqueFunction(function=_render_nav2_rviz),
         nav2_launch,
+        rviz_node,
     ])
