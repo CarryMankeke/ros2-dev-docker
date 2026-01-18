@@ -1,0 +1,178 @@
+================================================================================
+                   TREE DE PROYECTO - ARCHIVOS DE CÓDIGO
+================================================================================
+
+clean_v2/
+├──  ros2_ws/src/  (Workspace ROS2 - Código Fuente)
+│   ├──  mm_bringup/
+│   │   ├──  launch/  [10 archivos Launch/Python - 1,118 L]
+│   │   │   ├── sim_mm.launch.py               [548 L] [CRIT] CRÍTICO - Simulación principal
+│   │   │   ├── sim_mm_dual.launch.py          [665 L] [CRIT] CRÍTICO - Multi-robot sim
+│   │   │   ├── sim_min.launch.py              [158 L] [HIGH] Simulación mínima
+│   │   │   ├── nav2_min.launch.py             [125 L] [HIGH] Navegación autónoma
+│   │   │   ├── ekf.launch.py                  [ 68 L] [MED] Localización EKF
+│   │   │   ├── base_min.launch.py             [ 78 L] [MED] Base mínima
+│   │   │   ├── cmd_vel_mux.launch.py          [ 40 L] [LOW] Multiplexor velocidad
+│   │   │   ├── teleop.launch.py               [ 28 L] [LOW] Teleoperación
+│   │   │   └── rqt_graph.launch.py            [ 24 L] [LOW] Visualización grafo
+│   │   │
+│   │   ├──  scripts/  [10 archivos Python/Bash - 1,267 L]
+│   │   │   ├── core_health_check.py           [461 L] [CRIT] CRÍTICO - Health gate
+│   │   │   ├── rviz_visual_descriptions.py    [160 L] [HIGH] Visualización RViz
+│   │   │   ├── smoke_cameras.py               [125 L] [HIGH] Tests de cámaras
+│   │   │   ├── smoke_controllers.py           [ 69 L] [MED] Tests de controles
+│   │   │   ├── smoke_sim_time.py              [ 64 L] [MED] Tests de sim_time
+│   │   │   ├── camera_frame_republisher.py    [ 76 L] [MED] Bridge de cámaras
+│   │   │   ├── lidar_frame_republisher.py     [ 61 L] [MED] Bridge de LiDAR
+│   │   │   ├── imu_frame_republisher.py       [ 61 L] [MED] Bridge de IMU
+│   │   │   ├── smoke_tf.py                    [103 L] [MED] Tests de TF2
+│   │   │   ├── odom_relay.py                  [ 37 L] [LOW] Relay odometría
+│   │   │   └── core_health_check.sh           [  5 L] [LOW] Wrapper bash
+│   │   │
+│   │   ├──  config/  [configuraciones ROS2]
+│   │   ├── package.xml                        [ 38 L] [LOW] Dependencias
+│   │   └── CMakeLists.txt                     [ 28 L] [LOW] Build system
+│   │
+│   ├──  mm_robot_description/
+│   │   ├──  urdf/
+│   │   │   ├── mm_robot.urdf.xacro            [520 L] [CRIT] CRÍTICO - Robot completo
+│   │   │   └── [imports macros de arm+base]
+│   │   │
+│   │   ├── package.xml                        [ 19 L] [LOW]
+│   │   └── CMakeLists.txt                     [ 10 L] [LOW]
+│   │
+│   ├──  mm_arm_description/
+│   │   ├──  urdf/
+│   │   │   ├── mm_arm_macro.xacro             [370 L] [HIGH] Brazo del robot
+│   │   │   └── mm_arm.urdf.xacro              [119 L] [HIGH] URDF brazo
+│   │   ├──  srdf/
+│   │   │   └── mm_arm.srdf.xacro              [ 37 L] [LOW] Grupos MoveIt
+│   │   │
+│   │   ├── package.xml                        [ 17 L] [LOW]
+│   │   └── CMakeLists.txt                     [ 10 L] [LOW]
+│   │
+│   ├──  mm_base_description/
+│   │   ├──  urdf/
+│   │   │   ├── mm_base_macro.xacro            [277 L] [HIGH] Base móvil
+│   │   │   └── mm_base.urdf.xacro             [112 L] [HIGH] URDF base
+│   │   │
+│   │   ├── package.xml                        [ 17 L] [LOW]
+│   │   └── CMakeLists.txt                     [ 10 L] [LOW]
+│   │
+│   └──  mm_moveit_config/
+│       ├──  launch/
+│       │   └── moveit.launch.py               [160 L] [HIGH] Lanzador MoveIt2
+│       │
+│       ├──  config/
+│       │   ├── mm_robot.srdf.xacro            [113 L] [HIGH] SRDF robot completo
+│       │   ├── ompl_planning.yaml             [ 26 L] [LOW] Configuración OMPL
+│       │   ├── planning_scene_monitor.yaml    [  7 L] [LOW]
+│       │   ├── trajectory_execution.yaml      [  5 L] [LOW]
+│       │   └── kinematics.yaml                [  5 L] [LOW]
+│       │
+│       ├──  scripts/
+│       │   ├── moveit_optin_check.py          [105 L] [MED] Validación MoveIt
+│       │   ├── moveit_core_integration_check.sh [72 L] [MED] Tests integración
+│       │   └── [etc...]
+│       │
+│       ├── package.xml                        [ 24 L] [LOW]
+│       └── CMakeLists.txt                     [ 15 L] [LOW]
+│
+├──  scripts/  (Scripts de desarrollo)
+│   ├── core_health.sh                         [ 24 L] [LOW] Health check host
+│   │
+│   └──  smoke/  [6 archivos Bash - 390 L]
+│       ├── smoke_sim_basic.sh                 [ 55 L] [MED] Test básico
+│       ├── smoke_ekf_local.sh                 [ 71 L] [MED] Test EKF
+│       ├── smoke_moveit.sh                    [ 71 L] [MED] Test MoveIt
+│       ├── smoke_nav2.sh                      [ 71 L] [MED] Test Nav2
+│       ├── smoke_multirobot.sh                [ 51 L] [MED] Test dual robot
+│       └── run_smoke_tests.sh                 [ 57 L] [MED] Test runner CI/CD
+│
+└──  docs/  (Documentación)
+    ├── ARCHITECTURE_AND_ROADMAP.md
+    ├── TEST_PLAN.md                           [Hace referencia a audit items]
+    ├── quickstart_validation.md                [Guía de validación]
+    ├── BEST_PRACTICES_FROM_PUBLIC_REPOS.md
+    ├── AUDIT_PLAN.md                          [Este archivo]
+    ├── [etc...]
+    └──  legacy/ (Histórico)
+
+================================================================================
+                           ESTADÍSTICAS FINALES
+================================================================================
+
+ Por Tipo de Archivo:
+
+├── Python Scripts & Launches    20 archivos   2,438 líneas  43.4%
+├── Xacro/URDF/SRDF               11 archivos   2,228 líneas  39.6%
+├── Bash Scripts                   8 archivos     474 líneas   8.4%
+└── Configs (YAML/XML)             4 archivos     357 líneas   6.4%
+                                   ─────────────────────────────────
+                            TOTAL:  53 archivos   5,615 líneas  100%
+
+ Densidad de Código:
+   
+   Archivo más grande:    sim_mm_dual.launch.py         (665 L)
+   Archivo más pequeño:   Multiple (5-10 L)              
+   Promedio por archivo:  106 líneas
+   Mediana:               ~70 líneas
+
+🎯 Distribución de Criticidad:
+   [CRIT] CRÍTICO (>400 L):        4 archivos  │ 2,194 líneas  │ 39.1%
+   [HIGH] INTERMEDIO (100-400 L): 12 archivos  │ 1,947 líneas  │ 34.7%
+   [MED] UTILIDAD (50-99 L):     16 archivos  │ 1,053 líneas  │ 18.8%
+   [LOW] CONFIG (<50 L):         21 archivos  │   421 líneas  │  7.5%
+
+================================================================================
+                          COMPONENTES PRINCIPALES
+================================================================================
+
+1️⃣  SIMULACIÓN & GAZEBO (2 archivos principales)
+    └─ sim_mm.launch.py (548 L)
+    └─ sim_mm_dual.launch.py (665 L)
+    └─ Robot descriptions (5 archivos - 1,178 L)
+
+2️⃣  MOTION PLANNING (3 archivos principales)
+    └─ moveit.launch.py (160 L)
+    └─ SRDF configs (150 L)
+    └─ OMPL planning (26 L)
+
+3️⃣  NAVEGACIÓN AUTÓNOMA (2 archivos principales)
+    └─ nav2_min.launch.py (125 L)
+    └─ nav2_optin_check.py (75 L)
+
+4️⃣  SENSORES & BRIDGES (5 archivos)
+    └─ Republishers: 3 × 61-76 L
+    └─ Smoke tests: smoke_cameras.py (125 L)
+
+5️⃣  VALIDACIÓN & TESTING (9 archivos - 624 L)
+    └─ Smoke tests: 6 scripts
+    └─ Health checks: 3 scripts
+
+6️⃣  BUILD & CONFIG (14 archivos - 134 L)
+    └─ CMakeLists.txt
+    └─ package.xml
+    └─ YAML configs
+
+================================================================================
+                       🎯 PRÓXIMOS PASOS AUDITORÍA
+================================================================================
+
+Archivo a revisar         Tipo        Líneas  Prioridad  Tiempo Estimado
+──────────────────────────────────────────────────────────────────────────
+sim_mm_dual.launch.py     Launch      665     [CRIT][CRIT][CRIT]   90 min (Gazebo Physics)
+sim_mm.launch.py          Launch      548     [CRIT][CRIT][CRIT]   75 min (ROS2 Integration)
+mm_robot.urdf.xacro       URDF        520     [CRIT][CRIT][CRIT]   75 min (Kinematics)
+core_health_check.py      Python      461     [CRIT][CRIT][CRIT]   60 min (Health gates)
+
+mm_arm_macro.xacro        URDF        370     [HIGH][HIGH]     50 min (Arm model)
+mm_base_macro.xacro       URDF        277     [HIGH][HIGH]     40 min (Base model)
+moveit.launch.py          Launch      160     [HIGH][HIGH]     40 min (Motion planning)
+rviz_visual_descriptions  Python      160     [HIGH][HIGH]     35 min (Visualization)
+
+[... resto de 45 archivos - prioridad media-baja ...]
+
+================================================================================
+
+AUDITORÍA TOTAL ESTIMADA:  28-36 horas (6 días laborales)
