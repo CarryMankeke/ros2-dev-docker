@@ -263,6 +263,9 @@ class CoreHealthCheck(Node):
                     time.sleep(backoff_sec * (attempt + 1))
                     continue
                 defined_in = self._sensor_defined_in(topic, link_hint)
+                if defined_in == "DEFINED_IN: UNKNOWN":
+                    cause = "LIKELY_CAUSE: sensor not implemented or disabled in xacro"
+                    return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: not advertised; {cause}"
                 return False, f"{defined_in}; EXPECTED_TOPIC: {topic}; OBSERVED: not advertised"
 
             msg = self._wait_for_message(msg_type, topic, 1.5, qos)
