@@ -54,11 +54,11 @@ def main() -> int:
 
     topic_lines = _run_command(["ros2", "topic", "list"]).splitlines()
     topics = set(line.strip() for line in topic_lines if line.strip())
-    cmd_vel = f"{ns}/cmd_vel"
-    if cmd_vel in topics:
-        print(f"[TOPICS] PASS {cmd_vel} advertised")
+    cmd_vel_nav2 = f"{ns}/cmd_vel_nav2"
+    if cmd_vel_nav2 in topics:
+        print(f"[TOPICS] PASS {cmd_vel_nav2} advertised")
     else:
-        print(f"[TOPICS] WARN {cmd_vel} not advertised (no goal or nav2 inactive)")
+        print(f"[TOPICS] WARN {cmd_vel_nav2} not advertised (no goal or nav2 inactive)")
 
     return status
 

@@ -17,7 +17,7 @@ def generate_launch_description():
         executable='teleop_twist_keyboard',
         namespace=namespace,
         output='screen',
-        remappings=[('cmd_vel', 'cmd_vel')],
+        remappings=[('cmd_vel', 'cmd_vel_teleop')],
         condition=IfCondition(use_teleop),
     )
 
