@@ -120,6 +120,24 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: __NS__/amcl_pose
+    - Class: nav2_rviz_plugins/Costmap
+      Enabled: true
+      Name: Global Costmap
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/global_costmap/costmap
+    - Class: nav2_rviz_plugins/Costmap
+      Enabled: true
+      Name: Local Costmap
+      Topic:
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: __NS__/local_costmap/costmap
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
