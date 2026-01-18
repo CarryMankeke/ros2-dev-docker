@@ -37,6 +37,7 @@ RUN apt-get update \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
     ros-jazzy-nav2-rviz-plugins \
+    ros-jazzy-slam-toolbox \
     ros-jazzy-robot-localization \
     # Opcional pero útil para teleoperación con teclado
     ros-jazzy-teleop-twist-keyboard \
