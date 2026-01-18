@@ -121,6 +121,28 @@ def _create_imu_bridge(context):
     ]
 
 
+def _create_ee_imu_bridge(context):
+    sim = LaunchConfiguration('sim').perform(context).lower()
+    enable = LaunchConfiguration('enable_ee_imu_bridge').perform(context).lower()
+    if sim in ('false', '0') or enable in ('false', '0'):
+        return []
+
+    namespace = LaunchConfiguration('namespace').perform(context).strip('/')
+    topic = f'/{namespace}/imu/ee_raw' if namespace else '/imu/ee_raw'
+    node_name = f'{namespace}_ee_imu_bridge' if namespace else 'ee_imu_bridge'
+
+    return [
+        Node(
+            package='ros_gz_bridge',
+            executable='parameter_bridge',
+            name=node_name,
+            namespace=namespace,
+            output='screen',
+            arguments=[f'{topic}@sensor_msgs/msg/Imu[gz.msgs.IMU'],
+        )
+    ]
+
+
 def _create_camera_bridge(context):
     sim = LaunchConfiguration('sim').perform(context).lower()
     if sim in ('false', '0'):
@@ -245,6 +267,13 @@ def generate_launch_description():
             ' lidar_y:=', lidar_y,
             ' lidar_z:=', lidar_z,
             ' enable_imu:=', LaunchConfiguration('enable_imu'),
+            ' enable_ee_imu:=', LaunchConfiguration('enable_ee_imu'),
+            ' ee_imu_x:=', LaunchConfiguration('ee_imu_x'),
+            ' ee_imu_y:=', LaunchConfiguration('ee_imu_y'),
+            ' ee_imu_z:=', LaunchConfiguration('ee_imu_z'),
+            ' ee_imu_roll:=', LaunchConfiguration('ee_imu_roll'),
+            ' ee_imu_pitch:=', LaunchConfiguration('ee_imu_pitch'),
+            ' ee_imu_yaw:=', LaunchConfiguration('ee_imu_yaw'),
         ]),
         value_type=str,
     )
@@ -275,6 +304,13 @@ def generate_launch_description():
             {'lidar_x': lidar_x},
             {'lidar_y': lidar_y},
             {'lidar_z': lidar_z},
+            {'enable_ee_imu': LaunchConfiguration('enable_ee_imu')},
+            {'ee_imu_x': LaunchConfiguration('ee_imu_x')},
+            {'ee_imu_y': LaunchConfiguration('ee_imu_y')},
+            {'ee_imu_z': LaunchConfiguration('ee_imu_z')},
+            {'ee_imu_roll': LaunchConfiguration('ee_imu_roll')},
+            {'ee_imu_pitch': LaunchConfiguration('ee_imu_pitch')},
+            {'ee_imu_yaw': LaunchConfiguration('ee_imu_yaw')},
         ],
     )
 
@@ -375,7 +411,27 @@ def generate_launch_description():
         executable='imu_frame_republisher.py',
         namespace=namespace,
         output='screen',
-        parameters=[{'use_sim_time': use_sim_time}, {'prefix': prefix}],
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'prefix': prefix},
+            {'frame_id': 'imu_link'},
+            {'src_topic': 'imu_raw'},
+            {'dst_topic': 'imu'},
+        ],
+        condition=IfCondition(sim),
+    )
+    ee_imu_frame_republisher = Node(
+        package='mm_bringup',
+        executable='imu_frame_republisher.py',
+        namespace=namespace,
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'prefix': prefix},
+            {'frame_id': 'ee_imu_link'},
+            {'src_topic': 'imu/ee_raw'},
+            {'dst_topic': 'imu/ee'},
+        ],
         condition=IfCondition(sim),
     )
     odom_relay = Node(
@@ -427,6 +483,8 @@ def generate_launch_description():
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('enable_imu', default_value='true'),
         DeclareLaunchArgument('enable_imu_bridge', default_value='true'),
+        DeclareLaunchArgument('enable_ee_imu', default_value='true'),
+        DeclareLaunchArgument('enable_ee_imu_bridge', default_value='true'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.02'),
@@ -436,6 +494,12 @@ def generate_launch_description():
         DeclareLaunchArgument('lidar_x', default_value='0.20'),
         DeclareLaunchArgument('lidar_y', default_value='0.0'),
         DeclareLaunchArgument('lidar_z', default_value='0.125'),
+        DeclareLaunchArgument('ee_imu_x', default_value='0.03'),
+        DeclareLaunchArgument('ee_imu_y', default_value='0.0'),
+        DeclareLaunchArgument('ee_imu_z', default_value='0.02'),
+        DeclareLaunchArgument('ee_imu_roll', default_value='0.0'),
+        DeclareLaunchArgument('ee_imu_pitch', default_value='0.0'),
+        DeclareLaunchArgument('ee_imu_yaw', default_value='0.0'),
         SetEnvironmentVariable(
             name='GZ_SIM_HEADLESS',
             value='1',
@@ -448,6 +512,7 @@ def generate_launch_description():
         OpaqueFunction(function=_create_camera_bridge),
         OpaqueFunction(function=_create_lidar_bridge),
         OpaqueFunction(function=_create_imu_bridge),
+        OpaqueFunction(function=_create_ee_imu_bridge),
         gz_launch,
         clock_bridge,
         robot_state_publisher,
@@ -459,6 +524,7 @@ def generate_launch_description():
         start_gripper,
         camera_frame_republisher,
         imu_frame_republisher,
+        ee_imu_frame_republisher,
         odom_relay,
         start_rviz,
     ])

@@ -32,6 +32,13 @@ class RvizVisualDescriptions(Node):
         self.declare_parameter('lidar_x', 0.20)
         self.declare_parameter('lidar_y', 0.0)
         self.declare_parameter('lidar_z', 0.125)
+        self.declare_parameter('enable_ee_imu', True)
+        self.declare_parameter('ee_imu_x', 0.03)
+        self.declare_parameter('ee_imu_y', 0.0)
+        self.declare_parameter('ee_imu_z', 0.02)
+        self.declare_parameter('ee_imu_roll', 0.0)
+        self.declare_parameter('ee_imu_pitch', 0.0)
+        self.declare_parameter('ee_imu_yaw', 0.0)
 
         qos = QoSProfile(depth=1)
         qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
@@ -67,6 +74,13 @@ class RvizVisualDescriptions(Node):
         lidar_x = self.get_parameter('lidar_x').value
         lidar_y = self.get_parameter('lidar_y').value
         lidar_z = self.get_parameter('lidar_z').value
+        enable_ee_imu = self.get_parameter('enable_ee_imu').value
+        ee_imu_x = self.get_parameter('ee_imu_x').value
+        ee_imu_y = self.get_parameter('ee_imu_y').value
+        ee_imu_z = self.get_parameter('ee_imu_z').value
+        ee_imu_roll = self.get_parameter('ee_imu_roll').value
+        ee_imu_pitch = self.get_parameter('ee_imu_pitch').value
+        ee_imu_yaw = self.get_parameter('ee_imu_yaw').value
 
         xacro_path = Path(
             get_package_share_directory('mm_robot_description')
@@ -87,6 +101,13 @@ class RvizVisualDescriptions(Node):
             f'lidar_x:={lidar_x}',
             f'lidar_y:={lidar_y}',
             f'lidar_z:={lidar_z}',
+            f'enable_ee_imu:={str(enable_ee_imu).lower()}',
+            f'ee_imu_x:={ee_imu_x}',
+            f'ee_imu_y:={ee_imu_y}',
+            f'ee_imu_z:={ee_imu_z}',
+            f'ee_imu_roll:={ee_imu_roll}',
+            f'ee_imu_pitch:={ee_imu_pitch}',
+            f'ee_imu_yaw:={ee_imu_yaw}',
             f'visual_mode:={visual_mode}',
             'enable_ros2_control:=false',
         ]

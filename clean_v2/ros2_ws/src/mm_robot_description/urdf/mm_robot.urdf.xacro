@@ -61,6 +61,13 @@
   <xacro:arg name="imu_x" default="0.0"/>
   <xacro:arg name="imu_y" default="0.0"/>
   <xacro:arg name="imu_z" default="0.10"/>
+  <xacro:arg name="enable_ee_imu" default="true"/>
+  <xacro:arg name="ee_imu_x" default="0.03"/>
+  <xacro:arg name="ee_imu_y" default="0.0"/>
+  <xacro:arg name="ee_imu_z" default="0.02"/>
+  <xacro:arg name="ee_imu_roll" default="0.0"/>
+  <xacro:arg name="ee_imu_pitch" default="0.0"/>
+  <xacro:arg name="ee_imu_yaw" default="0.0"/>
 
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="namespace" value="$(arg namespace)"/>
@@ -77,6 +84,7 @@
   <xacro:property name="cam_right_topic" value="$(eval '/' + namespace + '/camera/right/image_raw' if namespace != '' else '/camera/right/image_raw')"/>
   <xacro:property name="cam_rear_topic" value="$(eval '/' + namespace + '/camera/rear/image_raw' if namespace != '' else '/camera/rear/image_raw')"/>
   <xacro:property name="ee_cam_topic" value="$(eval '/' + namespace + '/camera/ee/image_raw' if namespace != '' else '/camera/ee/image_raw')"/>
+  <xacro:property name="ee_imu_topic" value="$(eval '/' + namespace + '/imu/ee_raw' if namespace != '' else '/imu/ee_raw')"/>
 
   <xacro:mm_base
     prefix="${prefix}"
@@ -124,6 +132,13 @@
     ee_cam_roll="$(arg ee_cam_roll)"
     ee_cam_pitch="$(arg ee_cam_pitch)"
     ee_cam_yaw="$(arg ee_cam_yaw)"
+    enable_ee_imu="$(arg enable_ee_imu)"
+    ee_imu_x="$(arg ee_imu_x)"
+    ee_imu_y="$(arg ee_imu_y)"
+    ee_imu_z="$(arg ee_imu_z)"
+    ee_imu_roll="$(arg ee_imu_roll)"
+    ee_imu_pitch="$(arg ee_imu_pitch)"
+    ee_imu_yaw="$(arg ee_imu_yaw)"
   />
 
   <joint name="${prefix}base_to_arm_joint" type="fixed">
@@ -226,6 +241,60 @@
         <always_on>1</always_on>
         <update_rate>100</update_rate>
         <topic>$(eval '/' + namespace + '/imu_raw' if namespace != '' else '/imu_raw')</topic>
+        <imu>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.001</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.001</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.001</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+        </imu>
+      </sensor>
+    </gazebo>
+  </xacro:if>
+
+  <!-- IMU Sensor on end-effector link -->
+  <xacro:if value="$(arg enable_ee_imu)">
+    <gazebo reference="${prefix}ee_imu_link">
+      <sensor name="${prefix}ee_imu" type="imu">
+        <pose>0 0 0 0 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>100</update_rate>
+        <topic>${ee_imu_topic}</topic>
         <imu>
           <linear_acceleration>
             <x>

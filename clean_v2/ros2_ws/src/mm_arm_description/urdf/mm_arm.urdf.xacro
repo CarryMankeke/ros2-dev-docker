@@ -22,6 +22,13 @@
   <xacro:arg name="ee_cam_roll" default="0.0"/>
   <xacro:arg name="ee_cam_pitch" default="0.0"/>
   <xacro:arg name="ee_cam_yaw" default="0.0"/>
+  <xacro:arg name="enable_ee_imu" default="true"/>
+  <xacro:arg name="ee_imu_x" default="0.03"/>
+  <xacro:arg name="ee_imu_y" default="0.0"/>
+  <xacro:arg name="ee_imu_z" default="0.02"/>
+  <xacro:arg name="ee_imu_roll" default="0.0"/>
+  <xacro:arg name="ee_imu_pitch" default="0.0"/>
+  <xacro:arg name="ee_imu_yaw" default="0.0"/>
 
   <xacro:property name="prefix" value="$(arg prefix)"/>
   <xacro:property name="namespace" value="$(arg namespace)"/>
@@ -45,6 +52,13 @@
     ee_cam_roll="$(arg ee_cam_roll)"
     ee_cam_pitch="$(arg ee_cam_pitch)"
     ee_cam_yaw="$(arg ee_cam_yaw)"
+    enable_ee_imu="$(arg enable_ee_imu)"
+    ee_imu_x="$(arg ee_imu_x)"
+    ee_imu_y="$(arg ee_imu_y)"
+    ee_imu_z="$(arg ee_imu_z)"
+    ee_imu_roll="$(arg ee_imu_roll)"
+    ee_imu_pitch="$(arg ee_imu_pitch)"
+    ee_imu_yaw="$(arg ee_imu_yaw)"
   />
 
   <xacro:if value="$(arg enable_ros2_control)">
