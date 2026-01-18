@@ -8,7 +8,7 @@ This test plan defines what to run when specific files or subsystems change. All
 
 ## Core gates (always)
 - Core gate command:
-  - docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1"
+  - docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \\$ROS2_WS/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1"
 - Expected:
   - SIM_TIME PASS, TF PASS, CONTROLLERS PASS.
   - SENSORS may WARN if data is missing.

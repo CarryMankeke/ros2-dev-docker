@@ -4,17 +4,17 @@ Contact: camilo.soto.v@usach.cl
 Project: clean_v2
 
 1) Build inside Docker
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && cd $ROS2_WS && colcon build --symlink-install"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && cd \$ROS2_WS && colcon build --symlink-install"
 
 Host shortcuts (optional):
 - clean_v2/scripts/core_health.sh --namespace mm1
 - clean_v2/scripts/smoke/smoke_sim_basic.sh
 
 2) Launch simulation (Gazebo + RViz)
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 launch mm_bringup sim_mm.launch.py headless:=false"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 launch mm_bringup sim_mm.launch.py headless:=false"
 
 3) Run core health check
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1"
 
 Sensor sources of truth (core):
 - Encoders: ros2_control joint_states.
@@ -22,18 +22,18 @@ Sensor sources of truth (core):
 - EE IMU: opt-in (may WARN in health check).
 
 4) Run core health check with active test (optional)
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1 --active-test"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 run mm_bringup core_health_check.sh --namespace mm1 --active-test"
 
 5) MoveIt plus core integration gate (opt-in)
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 run mm_moveit_config moveit_core_integration_check.sh --namespace mm1"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 run mm_moveit_config moveit_core_integration_check.sh --namespace mm1"
 
 6) EKF opt-in (robot_localization)
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 launch mm_bringup ekf.launch.py namespace:=mm1 prefix:=mm1_ use_sim_time:=true"
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 run mm_bringup ekf_optin_check.py --namespace mm1"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 launch mm_bringup ekf.launch.py namespace:=mm1 prefix:=mm1_ use_sim_time:=true"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 run mm_bringup ekf_optin_check.py --namespace mm1"
 
 7) Nav2 opt-in (mm1)
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 launch mm_bringup nav2_min.launch.py namespace:=mm1 prefix:=mm1_ use_sim_time:=true"
-- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source $ROS2_WS/install/setup.bash && ros2 run mm_bringup nav2_optin_check.py --namespace mm1"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 launch mm_bringup nav2_min.launch.py namespace:=mm1 prefix:=mm1_ use_sim_time:=true"
+- docker compose exec ros2-vnc bash -lc "source /opt/ros/jazzy/setup.bash && source \$ROS2_WS/install/setup.bash && ros2 run mm_bringup nav2_optin_check.py --namespace mm1"
 
 8) RViz opt-in configs
 - Nav2: use mm_bringup/rviz/mm_nav2.rviz.in via nav2_min.launch.py (use_rviz:=true).
