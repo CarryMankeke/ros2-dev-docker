@@ -325,3 +325,49 @@ clean_v2/ros2_ws/log/
 - [x] sensores y controladores namespaced correctamente.
 - **Evidencia**: sim_mm_dual.launch.py actualizado con soporte completo.
 - **Validacion**: `ros2 run mm_bringup core_health_check.py --namespace mm1 --check-mm2`
+
+## J) Problemas Conocidos Pendientes (2026-01-18)
+
+### Problemas Criticos (P0) - Requieren atencion inmediata
+
+1. **Inercias simplificadas incorrectas**
+   - **Ubicacion**: mm_base_macro.xacro:4-9, mm_arm_macro.xacro:3-8
+   - **Problema**: Uso de mismo valor para ixx=iyy=izz (solo correcto para esferas)
+   - **Impacto**: Comportamiento fisico incorrecto en Gazebo
+   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 1
+   - **Prioridad**: P0 - CRITICO
+
+2. **Parametros geometricos del controlador omnidireccional incorrectos**
+   - **Ubicacion**: mm_controllers.yaml.in:30-32
+   - **Problema**: wheel_offset=0.611, robot_radius=0.305 no coinciden con geometria real
+   - **Valores correctos**: wheel_offset=0.0, robot_radius=0.357
+   - **Impacto**: Odometria y control de base incorrectos
+   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 2
+   - **Prioridad**: P0 - CRITICO
+
+3. **Falta definicion de footprint en Nav2**
+   - **Ubicacion**: nav2_params.yaml.in (global_costmap, local_costmap)
+   - **Problema**: Sin footprint, Nav2 asume robot circular (incorrecto para base 0.50m x 0.60m)
+   - **Impacto**: Navegacion insegura, colisiones en esquinas
+   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 3.1
+   - **Prioridad**: P0 - CRITICO
+
+### Problemas Importantes (P1) - Ajustar pronto
+
+4. **AMCL configurado para differential en vez de omnidirectional**
+   - **Ubicacion**: nav2_params.yaml.in:8-12
+   - **Problema**: robot_model_type deberia ser OmnidirectionalMotionModel
+   - **Problema**: alpha5=0.1 muy bajo para movimiento lateral
+   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 3.2
+   - **Prioridad**: P1 - IMPORTANTE
+
+5. **Kinematics solver timeout muy bajo**
+   - **Ubicacion**: kinematics.yaml:4
+   - **Problema**: timeout=0.1s, attempts=3 insuficiente para brazo 6-DOF
+   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 4
+   - **Prioridad**: P1 - IMPORTANTE
+
+### Notas
+- Ver **docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md** para soluciones detalladas basadas en repos publicos de ROS2 Jazzy + Gazebo Harmonic
+- Estos problemas fueron identificados en revision tecnica del 2026-01-18
+- Problemas P0 deben resolverse antes de usar el robot en navegacion real
