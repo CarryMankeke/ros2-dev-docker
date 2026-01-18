@@ -27,9 +27,9 @@ docker compose exec "${SERVICE}" bash -lc \
 # Clean previous processes
 
 docker compose exec "${SERVICE}" bash -lc \
-  "pkill -f 'ros2 launch mm_bringup sim_mm.launch.py' || true; \
-   pkill -f 'ros2 launch mm_bringup ekf.launch.py' || true; \
-   pkill -f 'gz sim' || true"
+  "pkill -f '[r]os2 launch mm_bringup sim_mm.launch.py' || true; \
+   pkill -f '[r]os2 launch mm_bringup ekf.launch.py' || true; \
+   pkill -f '[g]z sim' || true"
 
 # Launch sim
 
@@ -38,7 +38,7 @@ docker compose exec "${SERVICE}" bash -lc \
    source \$ROS2_WS/install/setup.bash && \
    nohup ros2 launch mm_bringup sim_mm.launch.py headless:=${HEADLESS} > /tmp/sim_mm.log 2>&1 &"
 
-sleep 10
+sleep 15
 
 # Launch EKF opt-in
 
@@ -66,6 +66,6 @@ docker compose exec "${SERVICE}" bash -lc \
 # Cleanup
 
 docker compose exec "${SERVICE}" bash -lc \
-  "pkill -f 'ros2 launch mm_bringup ekf.launch.py' || true; \
-   pkill -f 'ros2 launch mm_bringup sim_mm.launch.py' || true; \
-   pkill -f 'gz sim' || true"
+  "pkill -f '[r]os2 launch mm_bringup ekf.launch.py' || true; \
+   pkill -f '[r]os2 launch mm_bringup sim_mm.launch.py' || true; \
+   pkill -f '[g]z sim' || true"
