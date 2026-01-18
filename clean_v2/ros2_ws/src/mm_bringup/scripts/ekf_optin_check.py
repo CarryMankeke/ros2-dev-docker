@@ -2,6 +2,7 @@
 import argparse
 import sys
 import subprocess
+import time
 
 
 def _ns_prefix(namespace: str) -> str:
@@ -23,6 +24,16 @@ def _run_command(args, timeout=15):
         return ""
 
 
+def _wait_for_entry(command, match_value, retries=5, delay=1.0):
+    for _ in range(retries):
+        output = _run_command(command).splitlines()
+        entries = set(line.strip() for line in output if line.strip())
+        if match_value in entries:
+            return True
+        time.sleep(delay)
+    return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--namespace", default="mm1")
@@ -35,16 +46,12 @@ def main() -> int:
     node_name = f"{ns}/ekf_filter_node"
     odom_topic = f"{ns}/odometry/filtered"
 
-    node_lines = _run_command(["ros2", "node", "list"]).splitlines()
-    nodes = set(line.strip() for line in node_lines if line.strip())
-    if node_name not in nodes:
+    if not _wait_for_entry(["ros2", "node", "list"], node_name, retries=8, delay=1.0):
         print(f"[EKF] FAIL node missing: {node_name}")
         return 1
     print(f"[EKF] PASS node: {node_name}")
 
-    topic_lines = _run_command(["ros2", "topic", "list"]).splitlines()
-    topics = set(line.strip() for line in topic_lines if line.strip())
-    if odom_topic not in topics:
+    if not _wait_for_entry(["ros2", "topic", "list"], odom_topic, retries=8, delay=1.0):
         print(f"[EKF] FAIL topic missing: {odom_topic}")
         return 1
 

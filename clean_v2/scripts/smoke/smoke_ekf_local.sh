@@ -47,7 +47,7 @@ docker compose exec "${SERVICE}" bash -lc \
    source \$ROS2_WS/install/setup.bash && \
    nohup ros2 launch mm_bringup ekf.launch.py namespace:=${NAMESPACE} prefix:=${PREFIX} use_sim_time:=true > /tmp/ekf.log 2>&1 &"
 
-sleep 6
+sleep 12
 
 # EKF check
 

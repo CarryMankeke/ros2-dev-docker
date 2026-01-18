@@ -35,7 +35,7 @@ docker compose exec "${SERVICE}" bash -lc \
    source \$ROS2_WS/install/setup.bash && \
    nohup ros2 launch mm_bringup sim_mm_dual.launch.py headless:=${HEADLESS} > /tmp/sim_mm_dual.log 2>&1 &"
 
-sleep 15
+sleep 20
 
 # Core health check for mm1 + mm2
 

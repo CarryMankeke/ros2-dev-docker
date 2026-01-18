@@ -19,7 +19,14 @@ done
 ns="/${namespace}"
 status=0
 
-node_found=$(ros2 node list | grep -x "${ns}/move_group" || true)
+node_found=""
+for _ in $(seq 1 15); do
+  node_found=$(ros2 node list | grep -x "${ns}/move_group" || true)
+  if [[ -n "$node_found" ]]; then
+    break
+  fi
+  sleep 1
+done
 if [[ -n "$node_found" ]]; then
   echo "[MOVE_GROUP] PASS node ${ns}/move_group found"
 else
