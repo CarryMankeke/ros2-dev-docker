@@ -117,7 +117,7 @@ def generate_launch_description():
         DeclareLaunchArgument('slam', default_value='True'),
         DeclareLaunchArgument('map', default_value=''),
         DeclareLaunchArgument('use_composition', default_value='False'),
-        DeclareLaunchArgument('use_rviz', default_value='true'),
+        DeclareLaunchArgument('use_rviz', default_value='false'),
         OpaqueFunction(function=_render_nav2_params),
         OpaqueFunction(function=_render_nav2_rviz),
         nav2_launch,

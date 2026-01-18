@@ -14,6 +14,7 @@ def _render_ekf_params(context):
     prefix = LaunchConfiguration('prefix').perform(context)
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
     use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower()
+    publish_tf = LaunchConfiguration('publish_tf').perform(context).lower()
 
     namespace_key = f'/{namespace}' if namespace else ''
 
@@ -31,6 +32,7 @@ def _render_ekf_params(context):
     content = content.replace('__PREFIX__', prefix)
     content = content.replace('__NAMESPACE__', namespace_key)
     content = content.replace('__USE_SIM_TIME__', use_sim_time)
+    content = content.replace('__PUBLISH_TF__', publish_tf)
     output_file.write_text(content, encoding='utf-8')
 
     return []
@@ -60,6 +62,7 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('publish_tf', default_value='false'),
         OpaqueFunction(function=_render_ekf_params),
         ekf_node,
     ])

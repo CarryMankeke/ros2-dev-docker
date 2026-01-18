@@ -48,7 +48,7 @@ def _set_lidar_bridge_args(context):
     actions = []
     for key in ('mm1', 'mm2'):
         namespace = LaunchConfiguration(f'{key}_namespace').perform(context).strip('/')
-        topic = f'/{namespace}/scan' if namespace else '/scan'
+        topic = f'/{namespace}/scan_raw' if namespace else '/scan_raw'
         actions.append(
             SetLaunchConfiguration(
                 f'{key}_lidar_bridge_arg',
@@ -530,6 +530,7 @@ def generate_launch_description():
             {'src_topic': 'imu/ee_raw'},
             {'dst_topic': 'imu/ee'},
         ],
+        condition=IfCondition(LaunchConfiguration('enable_ee_imu_bridge')),
     )
     mm2_ee_imu_republisher = Node(
         package='mm_bringup',
@@ -543,6 +544,36 @@ def generate_launch_description():
             {'frame_id': 'ee_imu_link'},
             {'src_topic': 'imu/ee_raw'},
             {'dst_topic': 'imu/ee'},
+        ],
+        condition=IfCondition(LaunchConfiguration('enable_ee_imu_bridge')),
+    )
+
+    mm1_lidar_republisher = Node(
+        package='mm_bringup',
+        executable='lidar_frame_republisher.py',
+        name='mm1_lidar_frame_republisher',
+        namespace=mm1_namespace,
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'prefix': mm1_prefix},
+            {'frame_id': 'lidar_link'},
+            {'src_topic': 'scan_raw'},
+            {'dst_topic': 'scan'},
+        ],
+    )
+    mm2_lidar_republisher = Node(
+        package='mm_bringup',
+        executable='lidar_frame_republisher.py',
+        name='mm2_lidar_frame_republisher',
+        namespace=mm2_namespace,
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'prefix': mm2_prefix},
+            {'frame_id': 'lidar_link'},
+            {'src_topic': 'scan_raw'},
+            {'dst_topic': 'scan'},
         ],
     )
 
@@ -581,8 +612,8 @@ def generate_launch_description():
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('enable_imu', default_value='true'),
         DeclareLaunchArgument('enable_imu_bridge', default_value='true'),
-        DeclareLaunchArgument('enable_ee_imu', default_value='true'),
-        DeclareLaunchArgument('enable_ee_imu_bridge', default_value='true'),
+        DeclareLaunchArgument('enable_ee_imu', default_value='false'),
+        DeclareLaunchArgument('enable_ee_imu_bridge', default_value='false'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.02'),
@@ -623,6 +654,8 @@ def generate_launch_description():
         mm2_imu_republisher,
         mm1_ee_imu_republisher,
         mm2_ee_imu_republisher,
+        mm1_lidar_republisher,
+        mm2_lidar_republisher,
         mm1_odom_relay,
         mm2_odom_relay,
         TimerAction(period=3.0, actions=[mm1_jsb, mm2_jsb]),

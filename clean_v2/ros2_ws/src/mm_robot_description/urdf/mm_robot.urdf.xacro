@@ -61,7 +61,7 @@
   <xacro:arg name="imu_x" default="0.0"/>
   <xacro:arg name="imu_y" default="0.0"/>
   <xacro:arg name="imu_z" default="0.10"/>
-  <xacro:arg name="enable_ee_imu" default="true"/>
+  <xacro:arg name="enable_ee_imu" default="false"/>
   <xacro:arg name="ee_imu_x" default="0.03"/>
   <xacro:arg name="ee_imu_y" default="0.0"/>
   <xacro:arg name="ee_imu_z" default="0.02"/>
@@ -78,7 +78,7 @@
   <xacro:property name="arm_mount_height" value="$(arg arm_z)"/>
   <xacro:property name="arm_mount_z" value="${(base_height / 2.0) + arm_mount_height}"/>
   <xacro:property name="base_visual_enabled" value="${visual_mode == 'full' or visual_mode == 'base_only'}"/>
-  <xacro:property name="lidar_topic" value="$(eval '/' + namespace + '/scan' if namespace != '' else '/scan')"/>
+  <xacro:property name="lidar_topic" value="$(eval '/' + namespace + '/scan_raw' if namespace != '' else '/scan_raw')"/>
   <xacro:property name="cam_front_topic" value="$(eval '/' + namespace + '/camera/front/image_raw' if namespace != '' else '/camera/front/image_raw')"/>
   <xacro:property name="cam_left_topic" value="$(eval '/' + namespace + '/camera/left/image_raw' if namespace != '' else '/camera/left/image_raw')"/>
   <xacro:property name="cam_right_topic" value="$(eval '/' + namespace + '/camera/right/image_raw' if namespace != '' else '/camera/right/image_raw')"/>

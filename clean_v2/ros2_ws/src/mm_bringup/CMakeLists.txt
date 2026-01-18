@@ -10,6 +10,7 @@ install(DIRECTORY launch config worlds rviz
 install(PROGRAMS
   scripts/camera_frame_republisher.py
   scripts/imu_frame_republisher.py
+  scripts/lidar_frame_republisher.py
   scripts/rviz_visual_descriptions.py
   scripts/smoke_sim_time.py
   scripts/smoke_tf.py

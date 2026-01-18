@@ -90,7 +90,7 @@ def _set_gz_args(context):
 
 def _set_lidar_bridge_arg(context):
     namespace = LaunchConfiguration('namespace').perform(context).strip('/')
-    topic = f'/{namespace}/scan' if namespace else '/scan'
+    topic = f'/{namespace}/scan_raw' if namespace else '/scan_raw'
     return [
         SetLaunchConfiguration(
             'lidar_bridge_arg',
@@ -434,6 +434,21 @@ def generate_launch_description():
             {'src_topic': 'imu/ee_raw'},
             {'dst_topic': 'imu/ee'},
         ],
+        condition=IfCondition(LaunchConfiguration('enable_ee_imu_bridge')),
+    )
+    lidar_frame_republisher = Node(
+        package='mm_bringup',
+        executable='lidar_frame_republisher.py',
+        name='lidar_frame_republisher',
+        namespace=namespace,
+        output='screen',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'prefix': prefix},
+            {'frame_id': 'lidar_link'},
+            {'src_topic': 'scan_raw'},
+            {'dst_topic': 'scan'},
+        ],
         condition=IfCondition(sim),
     )
     odom_relay = Node(
@@ -485,8 +500,8 @@ def generate_launch_description():
         DeclareLaunchArgument('enable_lidar_bridge', default_value='true'),
         DeclareLaunchArgument('enable_imu', default_value='true'),
         DeclareLaunchArgument('enable_imu_bridge', default_value='true'),
-        DeclareLaunchArgument('enable_ee_imu', default_value='true'),
-        DeclareLaunchArgument('enable_ee_imu_bridge', default_value='true'),
+        DeclareLaunchArgument('enable_ee_imu', default_value='false'),
+        DeclareLaunchArgument('enable_ee_imu_bridge', default_value='false'),
         DeclareLaunchArgument('arm_x', default_value='0.0'),
         DeclareLaunchArgument('arm_y', default_value='0.0'),
         DeclareLaunchArgument('arm_z', default_value='0.02'),
@@ -527,6 +542,7 @@ def generate_launch_description():
         camera_frame_republisher,
         imu_frame_republisher,
         ee_imu_frame_republisher,
+        lidar_frame_republisher,
         odom_relay,
         start_rviz,
     ])
