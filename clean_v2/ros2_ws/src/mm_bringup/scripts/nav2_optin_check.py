@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+import argparse
+import sys
+
+import subprocess
+
+
+def _ns_prefix(namespace: str) -> str:
+    return f"/{namespace}" if namespace else ""
+
+
+def _run_command(args):
+    try:
+        result = subprocess.run(
+            args,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=30,
+        )
+        return result.stdout.strip()
+    except subprocess.TimeoutExpired:
+        return ""
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--namespace", default="mm1")
+    args = parser.parse_args()
+
+    namespace = args.namespace.lstrip("/")
+    ns = _ns_prefix(namespace)
+
+    status = 0
+
+    required_nodes = [
+        f"{ns}/controller_server",
+        f"{ns}/planner_server",
+        f"{ns}/bt_navigator",
+        f"{ns}/behavior_server",
+    ]
+
+    node_lines = _run_command(["ros2", "node", "list"]).splitlines()
+    available_full = set(line.strip() for line in node_lines if line.strip())
+
+    missing = [n for n in required_nodes if n not in available_full]
+
+    if missing:
+        print(f"[NODES] FAIL missing: {missing}")
+        status = 1
+    else:
+        print(f"[NODES] PASS found: {required_nodes}")
+
+    topic_lines = _run_command(["ros2", "topic", "list"]).splitlines()
+    topics = set(line.strip() for line in topic_lines if line.strip())
+    cmd_vel = f"{ns}/cmd_vel"
+    if cmd_vel in topics:
+        print(f"[TOPICS] PASS {cmd_vel} advertised")
+    else:
+        print(f"[TOPICS] WARN {cmd_vel} not advertised (no goal or nav2 inactive)")
+
+    return status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -45,6 +45,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     slam = LaunchConfiguration('slam')
     map_yaml = LaunchConfiguration('map')
+    use_composition = LaunchConfiguration('use_composition')
 
     nav2_params = PathJoinSubstitution([
         TextSubstitution(text='/tmp/mm_bringup/'),
@@ -67,6 +68,7 @@ def generate_launch_description():
             'use_sim_time': use_sim_time,
             'params_file': nav2_params,
             'autostart': 'true',
+            'use_composition': use_composition,
         }.items(),
     )
 
@@ -74,8 +76,9 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace', default_value='mm1'),
         DeclareLaunchArgument('prefix', default_value='mm1_'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
-        DeclareLaunchArgument('slam', default_value='true'),
+        DeclareLaunchArgument('slam', default_value='True'),
         DeclareLaunchArgument('map', default_value=''),
+        DeclareLaunchArgument('use_composition', default_value='False'),
         OpaqueFunction(function=_render_nav2_params),
         nav2_launch,
     ])
