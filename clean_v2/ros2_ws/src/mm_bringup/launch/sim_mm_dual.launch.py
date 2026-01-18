@@ -491,6 +491,7 @@ def generate_launch_description():
     mm1_imu_republisher = Node(
         package='mm_bringup',
         executable='imu_frame_republisher.py',
+        name='mm1_imu_frame_republisher',
         namespace=mm1_namespace,
         output='screen',
         parameters=[
@@ -504,6 +505,7 @@ def generate_launch_description():
     mm2_imu_republisher = Node(
         package='mm_bringup',
         executable='imu_frame_republisher.py',
+        name='mm2_imu_frame_republisher',
         namespace=mm2_namespace,
         output='screen',
         parameters=[
@@ -518,6 +520,7 @@ def generate_launch_description():
     mm1_ee_imu_republisher = Node(
         package='mm_bringup',
         executable='imu_frame_republisher.py',
+        name='mm1_ee_imu_frame_republisher',
         namespace=mm1_namespace,
         output='screen',
         parameters=[
@@ -531,6 +534,7 @@ def generate_launch_description():
     mm2_ee_imu_republisher = Node(
         package='mm_bringup',
         executable='imu_frame_republisher.py',
+        name='mm2_ee_imu_frame_republisher',
         namespace=mm2_namespace,
         output='screen',
         parameters=[

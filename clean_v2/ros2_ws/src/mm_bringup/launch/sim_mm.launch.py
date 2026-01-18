@@ -409,6 +409,7 @@ def generate_launch_description():
     imu_frame_republisher = Node(
         package='mm_bringup',
         executable='imu_frame_republisher.py',
+        name='imu_frame_republisher',
         namespace=namespace,
         output='screen',
         parameters=[
@@ -423,6 +424,7 @@ def generate_launch_description():
     ee_imu_frame_republisher = Node(
         package='mm_bringup',
         executable='imu_frame_republisher.py',
+        name='ee_imu_frame_republisher',
         namespace=namespace,
         output='screen',
         parameters=[
