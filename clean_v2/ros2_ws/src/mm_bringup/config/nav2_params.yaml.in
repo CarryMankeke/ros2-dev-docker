@@ -142,6 +142,7 @@ velocity_smoother:
 collision_monitor:
   ros__parameters:
     use_sim_time: __USE_SIM_TIME__
+    holonomic: true
     base_frame_id: __PREFIX__base_footprint
     odom_frame_id: __PREFIX__odom
     cmd_vel_in_topic: cmd_vel_smoothed

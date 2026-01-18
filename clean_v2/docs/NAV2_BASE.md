@@ -77,7 +77,21 @@ controller_server:
       max_speed_xy: 0.7
 ```
 
-### 4. Parametros del Controlador Base
+### 4. Collision Monitor (Holonomico)
+
+```yaml
+collision_monitor:
+  ros__parameters:
+    holonomic: true  # IMPORTANTE para robots omnidireccionales
+    base_frame_id: __PREFIX__base_footprint
+    odom_frame_id: __PREFIX__odom
+    cmd_vel_in_topic: cmd_vel_smoothed
+    cmd_vel_out_topic: cmd_vel_nav2
+```
+
+**Razon**: El collision_monitor debe saber que el robot es holonómico para considerar correctamente velocidades laterales en detección de colisiones.
+
+### 5. Parametros del Controlador Base
 
 Asegurate que en `mm_controllers.yaml.in`:
 
@@ -86,7 +100,7 @@ omni_wheel_controller:
   ros__parameters:
     robot_radius: 0.357  # Distancia centro->rueda (NO 0.305)
     wheel_radius: 0.07   # Radio de rueda
-    wheel_offset: 0.0    # Offset angular primera rueda
+    wheel_offset: 0.742  # Offset angular primera rueda (radianes)
 ```
 
 **Calculo de robot_radius**:
@@ -94,6 +108,7 @@ omni_wheel_controller:
 wheel_x = 0.263m (posicion x de rueda desde centro)
 wheel_y = 0.241m (posicion y de rueda desde centro)
 robot_radius = sqrt(wheel_x² + wheel_y²) = sqrt(0.263² + 0.241²) ≈ 0.357m
+wheel_offset = atan2(wheel_y, wheel_x) = atan2(0.241, 0.263) ≈ 0.742 rad
 ```
 
 ## Seguridad

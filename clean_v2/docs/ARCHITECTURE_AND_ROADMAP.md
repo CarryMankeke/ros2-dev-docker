@@ -326,48 +326,45 @@ clean_v2/ros2_ws/log/
 - **Evidencia**: sim_mm_dual.launch.py actualizado con soporte completo.
 - **Validacion**: `ros2 run mm_bringup core_health_check.py --namespace mm1 --check-mm2`
 
-## J) Problemas Conocidos Pendientes (2026-01-18)
+## J) Problemas Conocidos (2026-01-18)
 
-### Problemas Criticos (P0) - Requieren atencion inmediata
+### ✅ Problemas Corregidos (Commit d2c69b0)
 
-1. **Inercias simplificadas incorrectas**
-   - **Ubicacion**: mm_base_macro.xacro:4-9, mm_arm_macro.xacro:3-8
-   - **Problema**: Uso de mismo valor para ixx=iyy=izz (solo correcto para esferas)
-   - **Impacto**: Comportamiento fisico incorrecto en Gazebo
-   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 1
-   - **Prioridad**: P0 - CRITICO
+1. **✅ Inercias simplificadas incorrectas - CORREGIDO**
+   - **Ubicacion**: mm_base_macro.xacro, mm_arm_macro.xacro
+   - **Solucion aplicada**: Implementadas formulas fisicamente correctas (box_inertial, cylinder_inertial_y, cylinder_inertial_z)
+   - **Estado**: RESUELTO (2026-01-18)
 
-2. **Parametros geometricos del controlador omnidireccional incorrectos**
-   - **Ubicacion**: mm_controllers.yaml.in:30-32
-   - **Problema**: wheel_offset=0.611, robot_radius=0.305 no coinciden con geometria real
-   - **Valores correctos**: wheel_offset=0.0, robot_radius=0.357
-   - **Impacto**: Odometria y control de base incorrectos
-   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 2
-   - **Prioridad**: P0 - CRITICO
+2. **✅ Parametros geometricos del controlador omnidireccional - CORREGIDO**
+   - **Ubicacion**: mm_controllers.yaml.in:30-31
+   - **Valores corregidos**: wheel_offset=0.742, robot_radius=0.357
+   - **Estado**: RESUELTO (2026-01-18)
 
-3. **Falta definicion de footprint en Nav2**
-   - **Ubicacion**: nav2_params.yaml.in (global_costmap, local_costmap)
-   - **Problema**: Sin footprint, Nav2 asume robot circular (incorrecto para base 0.50m x 0.60m)
-   - **Impacto**: Navegacion insegura, colisiones en esquinas
-   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 3.1
-   - **Prioridad**: P0 - CRITICO
+3. **✅ Falta definicion de footprint en Nav2 - CORREGIDO**
+   - **Ubicacion**: nav2_params.yaml.in:217, 254
+   - **Solucion aplicada**: Footprint agregado [[0.25, 0.30], [0.25, -0.30], [-0.25, -0.30], [-0.25, 0.30]]
+   - **Estado**: RESUELTO (2026-01-18)
 
-### Problemas Importantes (P1) - Ajustar pronto
+4. **✅ AMCL configurado para differential - CORREGIDO**
+   - **Ubicacion**: nav2_params.yaml.in:4,12-14
+   - **Solucion aplicada**: robot_model_type="nav2_amcl::OmnidirectionalMotionModel", alpha3=0.3, alpha5=0.3
+   - **Estado**: RESUELTO (2026-01-18)
 
-4. **AMCL configurado para differential en vez de omnidirectional**
-   - **Ubicacion**: nav2_params.yaml.in:8-12
-   - **Problema**: robot_model_type deberia ser OmnidirectionalMotionModel
-   - **Problema**: alpha5=0.1 muy bajo para movimiento lateral
-   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 3.2
-   - **Prioridad**: P1 - IMPORTANTE
+5. **✅ Kinematics solver timeout muy bajo - CORREGIDO**
+   - **Ubicacion**: kinematics.yaml:4-5
+   - **Valores corregidos**: timeout=0.5s, attempts=10
+   - **Estado**: RESUELTO (2026-01-18)
 
-5. **Kinematics solver timeout muy bajo**
-   - **Ubicacion**: kinematics.yaml:4
-   - **Problema**: timeout=0.1s, attempts=3 insuficiente para brazo 6-DOF
-   - **Solucion**: Ver docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md seccion 4
-   - **Prioridad**: P1 - IMPORTANTE
+### Problemas Menores Pendientes (P2)
+
+6. **collision_monitor sin parametro holonomic**
+   - **Ubicacion**: nav2_params.yaml.in:142-170
+   - **Problema**: Falta parametro holonomic: true para robots omnidireccionales
+   - **Impacto**: Menor - Puede afectar deteccion de colisiones en movimiento lateral
+   - **Solucion**: Agregar holonomic: true en collision_monitor/ros__parameters
+   - **Prioridad**: P2 - MENOR
 
 ### Notas
-- Ver **docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md** para soluciones detalladas basadas en repos publicos de ROS2 Jazzy + Gazebo Harmonic
-- Estos problemas fueron identificados en revision tecnica del 2026-01-18
-- Problemas P0 deben resolverse antes de usar el robot en navegacion real
+- Ver **docs/BEST_PRACTICES_FROM_PUBLIC_REPOS.md** para soluciones detalladas
+- Problemas P0 y P1 fueron corregidos en commit d2c69b0 (2026-01-18)
+- Basado en mejores practicas de repositorios publicos ROS2 Jazzy + Gazebo Harmonic
