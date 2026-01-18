@@ -139,6 +139,7 @@
     ee_imu_roll="$(arg ee_imu_roll)"
     ee_imu_pitch="$(arg ee_imu_pitch)"
     ee_imu_yaw="$(arg ee_imu_yaw)"
+    ee_imu_topic="${ee_imu_topic}"
   />
 
   <joint name="${prefix}base_to_arm_joint" type="fixed">
@@ -241,60 +242,6 @@
         <always_on>1</always_on>
         <update_rate>100</update_rate>
         <topic>$(eval '/' + namespace + '/imu_raw' if namespace != '' else '/imu_raw')</topic>
-        <imu>
-          <linear_acceleration>
-            <x>
-              <noise type="gaussian">
-                <mean>0.0</mean>
-                <stddev>0.01</stddev>
-              </noise>
-            </x>
-            <y>
-              <noise type="gaussian">
-                <mean>0.0</mean>
-                <stddev>0.01</stddev>
-              </noise>
-            </y>
-            <z>
-              <noise type="gaussian">
-                <mean>0.0</mean>
-                <stddev>0.01</stddev>
-              </noise>
-            </z>
-          </linear_acceleration>
-          <angular_velocity>
-            <x>
-              <noise type="gaussian">
-                <mean>0.0</mean>
-                <stddev>0.001</stddev>
-              </noise>
-            </x>
-            <y>
-              <noise type="gaussian">
-                <mean>0.0</mean>
-                <stddev>0.001</stddev>
-              </noise>
-            </y>
-            <z>
-              <noise type="gaussian">
-                <mean>0.0</mean>
-                <stddev>0.001</stddev>
-              </noise>
-            </z>
-          </angular_velocity>
-        </imu>
-      </sensor>
-    </gazebo>
-  </xacro:if>
-
-  <!-- IMU Sensor on end-effector link -->
-  <xacro:if value="$(arg enable_ee_imu)">
-    <gazebo reference="${prefix}ee_imu_link">
-      <sensor name="${prefix}ee_imu" type="imu">
-        <pose>0 0 0 0 0 0</pose>
-        <always_on>1</always_on>
-        <update_rate>100</update_rate>
-        <topic>${ee_imu_topic}</topic>
         <imu>
           <linear_acceleration>
             <x>

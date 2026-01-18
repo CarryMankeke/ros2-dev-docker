@@ -25,7 +25,7 @@
     </inertial>
   </xacro:macro>
 
-  <xacro:macro name="mm_arm" params="prefix scale visual_mode arm_mount_height ee_cam_mount_x ee_cam_mount_y ee_cam_mount_z ee_cam_mount_roll ee_cam_mount_pitch ee_cam_mount_yaw ee_cam_x ee_cam_y ee_cam_z ee_cam_roll ee_cam_pitch ee_cam_yaw enable_ee_imu ee_imu_x ee_imu_y ee_imu_z ee_imu_roll ee_imu_pitch ee_imu_yaw">
+  <xacro:macro name="mm_arm" params="prefix scale visual_mode arm_mount_height ee_cam_mount_x ee_cam_mount_y ee_cam_mount_z ee_cam_mount_roll ee_cam_mount_pitch ee_cam_mount_yaw ee_cam_x ee_cam_y ee_cam_z ee_cam_roll ee_cam_pitch ee_cam_yaw enable_ee_imu ee_imu_x ee_imu_y ee_imu_z ee_imu_roll ee_imu_pitch ee_imu_yaw ee_imu_topic">
     <xacro:property name="link1_len" value="${0.22 * scale}"/>
     <xacro:property name="link2_len" value="${0.22 * scale}"/>
     <xacro:property name="link3_len" value="${0.18 * scale}"/>
@@ -337,6 +337,57 @@
         <child link="${prefix}ee_imu_link"/>
         <origin xyz="${ee_imu_x} ${ee_imu_y} ${ee_imu_z}" rpy="${ee_imu_roll} ${ee_imu_pitch} ${ee_imu_yaw}"/>
       </joint>
+
+      <gazebo reference="${prefix}ee_imu_link">
+        <sensor name="${prefix}ee_imu" type="imu">
+          <pose>0 0 0 0 0 0</pose>
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+          <topic>${ee_imu_topic}</topic>
+          <imu>
+            <linear_acceleration>
+              <x>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.01</stddev>
+                </noise>
+              </x>
+              <y>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.01</stddev>
+                </noise>
+              </y>
+              <z>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.01</stddev>
+                </noise>
+              </z>
+            </linear_acceleration>
+            <angular_velocity>
+              <x>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.001</stddev>
+                </noise>
+              </x>
+              <y>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.001</stddev>
+                </noise>
+              </y>
+              <z>
+                <noise type="gaussian">
+                  <mean>0.0</mean>
+                  <stddev>0.001</stddev>
+                </noise>
+              </z>
+            </angular_velocity>
+          </imu>
+        </sensor>
+      </gazebo>
     </xacro:if>
 
     <link name="${prefix}gripper_link">
