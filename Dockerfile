@@ -33,8 +33,15 @@ RUN apt-get update \
     ros-jazzy-twist-mux \
     # --- MoveIt2 (planificacion y OMPL) ---
     ros-jazzy-moveit \
+    # --- Nav2 + robot_localization (EKF) + RViz plugins ---
+    ros-jazzy-navigation2 \
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-rviz-plugins \
+    ros-jazzy-robot-localization \
     # Opcional pero útil para teleoperación con teclado
     ros-jazzy-teleop-twist-keyboard \
+    # RQt graph para debug opt-in
+    ros-jazzy-rqt-graph \
     # Extras de soporte
     ros-jazzy-joint-state-publisher \
     ros-jazzy-joint-state-publisher-gui \
